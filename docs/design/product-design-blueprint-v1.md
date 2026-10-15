@@ -1,4 +1,4 @@
-# School ERP — Product & Design Blueprint v1
+# School ERP — Product & Design Blueprint v1.1
 Date: 15 October 2026
 Repository: IdeationsTech/school-epr
 Audience: Pakistani private schools, 500–1,000 students, 1–2 campuses.
@@ -28,13 +28,13 @@ Interpretation of “no tables with entities”: number of database tables, thei
 | Tests/exams | Quick class test, marks grid, absent/exempt handling, grading snapshot, approval, individual PDF/text, performance history |
 | Sharing desk | Pending/shared filters, guardian number validation, open WhatsApp, explicit mark shared, next pending, resend reason |
 | Academics | Teacher allocations, manual timetable and overlap checks, lesson/topic tracking, calendar |
-| Staff | Staff profiles, teacher assignments, leave requests; full payroll later |
+| Staff | Staff profiles, teacher assignments, leave requests, manual staff attendance and basic payroll; see section 13 |
 | Documents | Student attachments, ID cards, leaving/character certificates, configurable signature blocks |
 | Operations | PTM scheduling, follow-up notes, notices and acknowledged staff tasks |
 | Reports | Dues aging, daily/monthly collection, attendance trends, test analysis, campus comparison; figures drill down to underlying records |
 | Data utilities | Excel import preview, per-row errors, duplicate checking, CSV export, backup/restore procedures |
 
-Later modules: full double-entry accounts, payroll, transport, library, inventory, LMS, parent app and optional official messaging.
+Later modules: full double-entry accounts, advanced payroll, transport, library, inventory, LMS, parent app and optional official messaging. Basic payroll and expanded term exams are now in release scope; see section 13.
 Release 1 is a coherent production scope, not all later modules at once.
 
 ## 3. Role boundaries
@@ -220,3 +220,64 @@ https://www.w3.org/TR/WCAG22/
 
 These sources inform the specification; they do not validate our proposed implementation. No competitor internals audited.
 Visual mockups are illustrative raster concepts. Exact strings, counts, financial calculations and accessibility are governed by this specification and must be verified in the real UI.
+
+## 13. Module gap review — 15 October 2026
+Reviewed official EduSuite module directory and linked front-office, payroll and exam descriptions against this specification.
+This section supersedes earlier references to all payroll being deferred. Initial 40 screen concepts remain references; new screens below are specifications, not generated mockups.
+
+### Decisions for our target schools
+Already covered: admissions, students/families, fees, student attendance, multi-campus, teacher allocations, timetable, certificates, manual diary/test sharing, expenses, access and audit.
+Add to planned first production release:
+1. Staff attendance and basic payroll: daily present/absent/late/leave; salary effective dates, fixed allowances/deductions, approved advances/recoveries, monthly calculation preview, approval, payslips, partial salary payment and outstanding balance. Attendance affects pay only through an explicitly configured school policy and approved review. Draft payroll recalculation never duplicates payment; finalized payroll is immutable and corrected via adjustment. No statutory compliance claim; statutory components require separately verified rules before implementation.
+2. Term/annual exams beyond class tests: exam terms, per-subject papers, manual datesheet with conflict warnings, roll slips, subject totals/pass rules, configurable assessment weightages, consolidated term/annual cards and class gazette. Absent/exempt handling, rounding and tie/position policy explicit. Reuse existing tests/results and snapshot sharing, do not duplicate marks storage. Auto timetable solving, seating optimization, invigilator scheduling and question bank remain later.
+3. Front office: minimal visitor entry/exit, student early-leave gate passes with authorized pickup contact, reason, approver and departure time. Inquiry follow-ups reuse admissions. Do not require CNIC copies or excessive visitor identifiers by default.
+4. Parent complaint/follow-up register: school-owned complaints separate from SaaS technical support, assigned staff, due date, status, resolution notes and limited visibility.
+5. Student behaviour/achievement notes: dated observations, positive achievements or incidents, action taken and follow-up; restricted access, objective descriptions. No automatic financial penalty or unreviewed parent sharing.
+
+Strengthen existing financial reporting: daily cash/bank movements, expenses, fee collection, net cash movement, reconciliation and reversals. Do not label cash flow as profit or pretend this is full double-entry accounting.
+Optional per-school later: transport, library, inventory, full LMS, hostel, biometrics and advanced AI. Feature flags are school-level and do not weaken tenant isolation.
+Retain agreed communications: manual WhatsApp group diary and individual report sharing with staff confirmation; no automatic WhatsApp or email introduced.
+
+### Additional screen specifications — 41 to 50
+| # | Screen | Main workflow |
+|---|---|---|
+| 41 | Staff attendance | Daily roster, leave linkage, correction history |
+| 42 | Salary structures and advances | Effective salary components; approved advances and recoveries |
+| 43 | Monthly payroll and payslips | Preview, approve, pay, outstanding salary, print |
+| 44 | Front-office visitor desk | Check-in/out and purpose with minimal personal data |
+| 45 | Student gate passes | Verify pickup authority, approve, issue and record departure |
+| 46 | Parent complaints and follow-ups | Assign, due date, resolution and restricted notes |
+| 47 | Exam terms and weightages | School-defined terms, pass/rounding/tie policies |
+| 48 | Exam datesheet and roll slips | Manual paper scheduling, conflicts, print |
+| 49 | Consolidated results and gazette | Subject results, term/annual cards, publish revision |
+| 50 | Student observations | Behaviour/achievement entries and follow-ups |
+
+Screen count is now 50 planned principal screens: original 40 concepts plus 10 new specifications. New images have NOT been generated in this review.
+
+### Database planning impact
+Original 50 core tables are a baseline, not final schema. All feature commitments must be represented before migrations are authored.
+Payroll candidates: staff_attendance_records, salary_structures, salary_structure_items, staff_advances, payroll_runs, payroll_items, payroll_item_components, salary_payments, salary_payment_allocations, advance_recoveries.
+Front-office candidates: visitor_logs, student_gate_passes.
+Complaints: parent_complaints, complaint_updates.
+Observations: student_observations (follow-up fields initially; separate follow-up table if multiple actions needed).
+Exams: academic_terms, exam_cycles, exam_papers, assessment_weightages, exam_candidates, consolidated_result_snapshots.
+These 21 candidate tables suggest 71 domain tables when added to the original core baseline, BEFORE the earlier operational modules' tables and framework tables. This is a provisional inventory, not a finalized migration count. Consolidation and naming will be resolved during schema design.
+
+Relations:
+- Staff profile 1:N attendance records, effective salary structures, advances and payroll items.
+- Payroll run belongs to school/campus/period; 1:N payroll items, each linked to staff and salary component snapshots.
+- Salary payments M:N payroll items through allocations; advance recoveries link advances to payroll items, with outstanding balances protected transactionally.
+- Student gate pass belongs to current enrollment and an authorized pickup contact or separately approved exception; approver and departure recorder are audited.
+- Complaint belongs to school/campus, optional student/guardian and assigned membership; 1:N updates.
+- Observation belongs to enrollment and authorized author; optional follow-up date/status.
+- Session 1:N academic terms; exam cycle belongs to session/term; papers reference existing tests as assessments; exam candidates link cycle/enrollment.
+- Weightages have explicit assessment scope, sum validation and effective version; report snapshots preserve policies and marks used for published consolidated results.
+- Every new school-owned relationship follows same-school composite constraints and tenant-scoped authorization.
+- Salary, advance and cash movements use decimal money, idempotency and immutable finalized records.
+
+### Sources for this review
+https://www.edusuite.pk/module/
+https://www.edusuite.pk/module/payroll-management-system/
+https://www.edusuite.pk/module/exam-management-system/
+Front Office linked directly from module directory (visitor, gate-pass and complaint features reviewed).
+Reference product descriptions inform coverage; our module priority, schema and controls are independent design recommendations.
