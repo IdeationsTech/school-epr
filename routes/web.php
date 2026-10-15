@@ -15,6 +15,7 @@ Route::prefix('app-api')->group(function (): void {
         Route::get('/campuses', [SchoolController::class, 'campuses']);
         Route::post('/campuses', [SchoolController::class, 'saveCampus']);
         Route::put('/campuses/{campus}', [SchoolController::class, 'saveCampus'])->whereNumber('campus');
+        Route::delete('/campuses/{campus}', [SchoolController::class, 'deleteCampus'])->whereNumber('campus');
         Route::get('/members', [SchoolController::class, 'members']);
         Route::post('/members', [SchoolController::class, 'saveMember']);
         Route::put('/members/{member}', [SchoolController::class, 'saveMember'])->whereNumber('member');

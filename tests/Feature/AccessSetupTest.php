@@ -100,9 +100,9 @@ class AccessSetupTest extends TestCase
     public function test_owner_can_save_school_and_campus_with_audit_record(): void
     {
         $f=$this->fixture();$this->signIn($f);
-        $this->putJson('/app-api/school',['name'=>'Updated school','timezone'=>'Asia/Karachi','currency'=>'PKR','phone'=>'03001234567','email'=>'office@example.test'])
+        $this->putJson('/app-api/school',['name'=>'Updated school','timezone'=>'Asia/Karachi','currency'=>'PKR','phone'=>'03001234567','address'=>'12 School Road, Lahore','email'=>'office@example.test'])
             ->assertOk()->assertJsonPath('school.name','Updated school');
-        $this->postJson('/app-api/campuses',['name'=>'Second Campus','code'=>'SECOND','status'=>'active','address'=>'Test address'])->assertOk();
+        $this->postJson('/app-api/campuses',['name'=>'Second Campus','code'=>'SECOND','status'=>'active','address'=>'Test address','phone'=>'04231234567'])->assertOk();
         $this->assertDatabaseHas('campuses',['school_id'=>$f['sid'],'code'=>'SECOND']);
         $this->assertDatabaseHas('audit_logs',['school_id'=>$f['sid'],'action'=>'campus.created']);
     }
@@ -110,7 +110,7 @@ class AccessSetupTest extends TestCase
     public function test_campus_ids_are_scoped_and_last_active_campus_is_protected(): void
     {
         $a=$this->fixture('A');$b=$this->fixture('B');$this->signIn($a);
-        $payload=['name'=>'Campus','code'=>'MAIN','status'=>'inactive'];
+        $payload=['name'=>'Campus','code'=>'MAIN','status'=>'inactive','phone'=>'03001234567','address'=>'School road, Lahore'];
         $this->putJson('/app-api/campuses/'.$b['cid'],$payload)->assertNotFound();
         $this->putJson('/app-api/campuses/'.$a['cid'],$payload)->assertUnprocessable();
     }
@@ -170,4 +170,34 @@ class AccessSetupTest extends TestCase
         $this->assertDatabaseHas('schools',['code'=>'MY-SCHOOL']);
         $this->postJson('/app-api/login',['email'=>'owner@example.test','password'=>'ChosenPassword123!'])->assertOk();
     }
+    public function test_contact_fields_are_required_and_phone_format_is_checked(): void
+    {
+        $f=$this->fixture();$this->signIn($f);
+        $base=['name'=>'School','timezone'=>'Asia/Karachi','currency'=>'PKR'];
+        $this->putJson('/app-api/school',$base)->assertUnprocessable()->assertJsonValidationErrors(['phone','address']);
+        $this->putJson('/app-api/school',$base+['phone'=>'abcdefghijk','address'=>'School Road Lahore'])->assertUnprocessable()->assertJsonValidationErrors(['phone']);
+        $this->postJson('/app-api/campuses',['name'=>'Branch','code'=>'BRANCH','status'=>'active'])->assertUnprocessable()->assertJsonValidationErrors(['phone','address']);
+        $this->postJson('/app-api/campuses',['name'=>'Branch','code'=>'BRANCH','status'=>'active','phone'=>'+92 300 1234567','address'=>'School Road Lahore'])->assertOk();
+    }
+
+    public function test_campus_delete_is_scoped_and_protects_last_active_and_linked_records(): void
+    {
+        $a=$this->fixture('A');$b=$this->fixture('B');$this->signIn($a);
+        $this->deleteJson('/app-api/campuses/'.$b['cid'])->assertNotFound();
+        $this->deleteJson('/app-api/campuses/'.$a['cid'])->assertUnprocessable();
+        $id=DB::table('campuses')->insertGetId(['school_id'=>$a['sid'],'name'=>'Branch','code'=>'BRANCH','status'=>'active']);
+        // Main campus still has its owner membership assignment.
+        $this->deleteJson('/app-api/campuses/'.$a['cid'])->assertUnprocessable();
+        $this->assertDatabaseHas('campuses',['id'=>$a['cid']]);
+        $this->deleteJson('/app-api/campuses/'.$id)->assertOk();
+        $this->assertDatabaseMissing('campuses',['id'=>$id]);
+        $this->assertDatabaseHas('audit_logs',['school_id'=>$a['sid'],'action'=>'campus.deleted','target_id'=>$id]);
+    }
+
+    public function test_teacher_cannot_delete_campus(): void
+    {
+        $f=$this->fixture('A','teacher');$this->signIn($f);
+        $this->deleteJson('/app-api/campuses/'.$f['cid'])->assertForbidden();
+    }
+
 }

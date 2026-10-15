@@ -25,7 +25,7 @@ class SchoolController extends Controller
             $counts['users'] = DB::table('school_memberships')->where('school_id', $m->school_id)->where('status','active')->count();
         }
         $contact = DB::table('school_settings')->where('school_id', $m->school_id)->where('key','contact')->value('value');
-        return response()->json(['school'=>$school, 'contact'=>$contact ? json_decode($contact,true) : ['phone'=>'','email'=>''],
+        return response()->json(['school'=>$school, 'contact'=>$contact ? json_decode($contact,true) : ['phone'=>'','email'=>'','address'=>''],
             'roles'=>$this->access->roles($m), 'permissions'=>$this->access->permissions($m), 'is_owner'=>$owner,
             'campuses'=>$campuses, 'counts'=>$counts, 'csrf_token'=>csrf_token()]);
     }
@@ -35,11 +35,11 @@ class SchoolController extends Controller
         abort_unless($this->access->can($request,'school.manage'),403);
         $m = $this->access->membership($request);
         $d = $request->validate(['name'=>'required|string|max:160', 'timezone'=>['required',Rule::in(['Asia/Karachi'])],
-            'currency'=>['required',Rule::in(['PKR'])], 'phone'=>'nullable|string|max:40', 'email'=>'nullable|email|max:160']);
+            'currency'=>['required',Rule::in(['PKR'])], 'phone'=>['required',new \App\Rules\PakistanPhone()], 'address'=>'required|string|min:8|max:2000', 'email'=>'nullable|email|max:160']);
         DB::transaction(function () use ($m,$d,$request): void {
             DB::table('schools')->where('id',$m->school_id)->update(['name'=>$d['name'],'timezone'=>$d['timezone'],'currency'=>$d['currency'],'updated_at'=>now()]);
             DB::table('school_settings')->updateOrInsert(['school_id'=>$m->school_id,'key'=>'contact'],[
-                'value'=>json_encode(['phone'=>$d['phone']??'','email'=>$d['email']??'']), 'updated_at'=>now()]);
+                'value'=>json_encode(['phone'=>$d['phone']??'','email'=>$d['email']??'','address'=>$d['address']]), 'updated_at'=>now()]);
             $this->access->audit($request,'school.updated','school',(int)$m->school_id,['fields'=>array_keys($d)]);
         });
         return $this->bootstrap($request);
@@ -59,7 +59,7 @@ class SchoolController extends Controller
         if ($campus) { abort_unless(DB::table('campuses')->where('school_id',$m->school_id)->where('id',$campus)->exists(),404); }
         $d = $request->validate(['name'=>'required|string|max:160','code'=>['required','alpha_dash','max:30',
             Rule::unique('campuses','code')->where('school_id',$m->school_id)->ignore($campus)],
-            'address'=>'nullable|string|max:2000','phone'=>'nullable|string|max:40','status'=>['required',Rule::in(['active','inactive'])]]);
+            'address'=>'required|string|min:8|max:2000','phone'=>['required',new \App\Rules\PakistanPhone()],'status'=>['required',Rule::in(['active','inactive'])]]);
         DB::transaction(function () use ($m,$d,$campus,$request): void {
             DB::table('schools')->where('id',$m->school_id)->lockForUpdate()->first();
             if ($campus && $d['status']==='inactive') {
@@ -72,6 +72,29 @@ class SchoolController extends Controller
             $this->access->audit($request,$campus?'campus.updated':'campus.created','campus',$id,['fields'=>array_keys($d)]);
         });
         return response()->json(['message'=>'Campus saved.']);
+    }
+
+    public function deleteCampus(Request $request, int $campus)
+    {
+        abort_unless($this->access->can($request,'campuses.manage'),403);
+        $sid=$this->access->membership($request)->school_id;
+        try {
+            DB::transaction(function () use ($request,$sid,$campus): void {
+                DB::table('schools')->where('id',$sid)->lockForUpdate()->first();
+                $target=DB::table('campuses')->where('school_id',$sid)->where('id',$campus)->lockForUpdate()->first();
+                abort_unless($target,404);
+                if ($target->status==='active' && !DB::table('campuses')->where('school_id',$sid)->where('status','active')->where('id','<>',$campus)->exists()) {
+                    throw ValidationException::withMessages(['campus'=>'The last active campus cannot be deleted.']);
+                }
+                // RESTRICT foreign keys protect staff access, students and all other linked records.
+                DB::table('campuses')->where('school_id',$sid)->where('id',$campus)->delete();
+                $this->access->audit($request,'campus.deleted','campus',$campus,['name'=>$target->name,'code'=>$target->code]);
+            });
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ((int)($e->errorInfo[1] ?? 0) !== 1451) { throw $e; }
+            throw ValidationException::withMessages(['campus'=>'This campus has linked records or assigned users. Keep its history and set it inactive instead.']);
+        }
+        return response()->json(['message'=>'Campus deleted.']);
     }
 
     public function members(Request $request)

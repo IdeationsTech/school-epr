@@ -2,7 +2,7 @@
 @import "./access.css";
 @source "../views";
 @source "../js";
-:root {font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:#172b4d;background:#f5f7fb;font-synthesis:none}
+:root {font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:#172b4d;background:#f0f2f5;font-synthesis:none}
 body{margin:0}button,a{ -webkit-tap-highlight-color:transparent }
 button:focus-visible,a:focus-visible{outline:3px solid #0f766e;outline-offset:4px}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
