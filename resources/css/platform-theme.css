@@ -1,0 +1,90 @@
+/* Provider-only theme. School workspaces keep their existing light palette. */
+.platform-workspace,.platform-login{color-scheme:dark;--admin-bg:#0d111c;--admin-surface:#171e2e;--admin-raised:#202a3d;--admin-border:#303d55;--admin-text:#edf1fa;--admin-muted:#a7b3c9;--admin-purple:#8b5cf6;--admin-purple-hover:#7c3aed;background:var(--admin-bg);color:var(--admin-text)}
+.platform-workspace .workspace-body{background:radial-gradient(ellipse at top right,#51308a15,transparent 55%),var(--admin-bg)}
+.platform-workspace h1,.platform-workspace h2,.platform-workspace h3{color:var(--admin-text)}
+.platform-workspace .muted,.platform-workspace .field-hint,.platform-workspace .table-subtext,.platform-workspace .pagination{color:var(--admin-muted)}
+.platform-workspace .eyebrow{color:#b49aff}
+.platform-workspace .sidebar{background:#101522;border-right:1px solid #273149}
+.platform-workspace .sidebar-brand>svg{color:#b899ff}
+.platform-workspace .sidebar-brand small,.platform-workspace .school-badge small,.platform-workspace .nav-caption,.platform-workspace .sidebar-bottom p{color:#94a4c0}
+.platform-workspace .school-badge{background:#1c2436;border:1px solid #2b3650}
+.platform-workspace .school-badge .avatar{background:#342653;color:#d2bcff}
+.platform-workspace .sidebar nav button{color:#b6c2d7}
+.platform-workspace .sidebar nav button.active{background:#5936a1;color:#fff;box-shadow:inset 4px 0 #c8adff,0 5px 18px #00000024}
+.platform-workspace .sidebar nav button.active svg{color:#e7dcff}
+.platform-workspace .sidebar-bottom>.badge{background:#342653;color:#d6c3ff;border-color:#574077}
+.platform-workspace .topbar{background:#151c2b;border-bottom:1px solid #2a354c;box-shadow:0 3px 12px #00000024}
+.platform-workspace .topbar-user small{color:#b49aff}
+.platform-workspace .menu-toggle{color:#edf1fa}
+.platform-workspace .panel{background:var(--admin-surface);border-color:var(--admin-border);box-shadow:0 3px 10px #00000026,0 1px 2px #00000032}
+.platform-workspace .icon-tile,.platform-workspace .avatar{background:#342653;color:#cbb2ff}
+.platform-workspace .stat-card{border-color:#49346c;border-top-color:#a78bfa;background:linear-gradient(135deg,#2d2144,#171e2e 80%);box-shadow:0 3px 12px #0000002b}
+.platform-workspace .stat-card:nth-child(2){border-color:#584225;border-top-color:#f5ae4c;background:linear-gradient(135deg,#372a1c,#171e2e 80%)}
+.platform-workspace .stat-card:nth-child(3){border-color:#2b4668;border-top-color:#60a5fa;background:linear-gradient(135deg,#1b2b45,#171e2e 80%)}
+.platform-workspace .stat-card strong{color:#f2edff}
+.platform-workspace .stat-card span{color:#b1bfd5}
+.platform-workspace .stat-card:nth-child(1) svg{color:#c4a7ff}.platform-workspace .stat-card:nth-child(2) svg{color:#ffc477}.platform-workspace .stat-card:nth-child(3) svg{color:#93c5fd}
+.platform-workspace .setup-cards button{background:#241d36;border-color:#49346c;border-top-color:#a78bfa;color:#f2edff}
+.platform-workspace .setup-cards button:nth-child(2){background:#2d261b;border-color:#57432a;border-top-color:#f5ae4c}
+.platform-workspace .setup-cards button:nth-child(3){background:#1b2940;border-color:#314968;border-top-color:#60a5fa}
+.platform-workspace .setup-cards p{color:#b6c1d5}
+.platform-workspace .setup-cards button span{color:#ceb8ff}.platform-workspace .setup-cards button:nth-child(2) span{color:#ffc477}.platform-workspace .setup-cards button:nth-child(3) span{color:#93c5fd}
+.platform-workspace .primary,.platform-login .primary{background:#7c3aed;border-color:#9563f5;color:#fff;box-shadow:0 4px 14px #7c3aed38}
+.platform-workspace .secondary,.platform-login .secondary{background:#2b2240;border-color:#62468c;color:#e2d4ff}
+.platform-workspace .danger-outline{background:#321e2a;border-color:#99435b;color:#ffb6c7}
+.platform-workspace .danger{background:#a82d4d;border-color:#d95676;color:#fff}
+.platform-workspace .field>span,.platform-login .field>span{color:#dbe3f2}
+.platform-workspace .required-mark,.platform-login .required-mark{color:#ffc477}
+.platform-workspace input:not([type=checkbox]),.platform-workspace select,.platform-workspace textarea,.platform-login input:not([type=checkbox]){background:#101827;border-color:#3b4861;color:#f0f3fa;accent-color:#a78bfa}
+.platform-workspace input::placeholder,.platform-workspace textarea::placeholder,.platform-login input::placeholder{color:#8999b6;opacity:1}
+.platform-workspace input:focus,.platform-workspace select:focus,.platform-workspace textarea:focus,.platform-login input:focus{border-color:#ae88ff;box-shadow:0 0 0 3px #a78bfa25}
+.platform-workspace input[type=checkbox],.platform-login input[type=checkbox]{accent-color:#8b5cf6}
+.platform-workspace input:disabled,.platform-workspace textarea:disabled{background:#202839;color:#99a8c0}
+.platform-workspace .phone-input{background:#101827;border-color:#3b4861}
+.platform-workspace .phone-input>span{background:#29223c;border-right-color:#51416c;color:#e1d4ff}
+.platform-workspace .phone-input input:not([type=checkbox]){border:0;box-shadow:none}
+.platform-workspace .phone-input:focus-within{border-color:#ae88ff;box-shadow:0 0 0 3px #a78bfa25}
+.platform-workspace .form-footer,.platform-workspace .form-section{border-color:#303d55}
+.platform-workspace .form-section{color:#c5a8ff}
+.platform-workspace .platform-detail-grid h3{color:#becbe0}
+.platform-workspace .campus-card,.platform-workspace .member-card,.platform-workspace .campus-pills>span{background:#1c2639;border-color:#3a4962;color:#e4ebf6}
+.platform-workspace .campus-card.selected,.platform-workspace .member-card.selected{background:#35264d;border-color:#b08aff;box-shadow:0 4px 14px #8b5cf61c}
+.platform-workspace .badge.success{background:#143a32;border-color:#2d6a59;color:#9de7c9}
+.platform-workspace .badge.neutral{background:#49331b;border-color:#8a6132;color:#ffd194}
+.platform-workspace .success-box{background:#14362e;border-color:#2d6a59;color:#abe8cf}
+.platform-workspace .error-box,.platform-login .error-box{background:#3a1e2a;border-color:#9a425b;color:#ffc0cf}
+.platform-workspace .status-panel{border-left-color:#f5ae4c}
+.platform-workspace .table-scroll{border-color:#34425a}
+.platform-workspace th{background:#222d42;color:#cfdbef}
+.platform-workspace td{border-top-color:#2d3951;color:#d5dfef}
+.platform-workspace .search-input svg{color:#b6a3db}
+.platform-workspace .text-teal-700{color:#bda1ff}
+.platform-workspace .text-red-700{color:#ffb47d}
+.platform-workspace input:user-invalid,.platform-workspace textarea:user-invalid{border-color:#ed809d;box-shadow:0 0 0 3px #ed809d15}
+.platform-workspace .phone-input:has(input:user-invalid){border-color:#ed809d}
+.platform-workspace input:-webkit-autofill,.platform-login input:-webkit-autofill{-webkit-text-fill-color:#f0f3fa;box-shadow:0 0 0 1000px #101827 inset}
+.platform-workspace button:focus-visible,.platform-login button:focus-visible{outline-color:#c5a8ff}
+.platform-workspace button:disabled,.platform-login button:disabled{opacity:.5}
+/* The provider sign-in page shares the same identity. */
+.platform-login{background:radial-gradient(ellipse at top left,#6b3b9d35,transparent 65%),#0d111c}
+.platform-login .login-brand strong{color:#f2edff}.platform-login .brand-icon{color:#bda1ff}
+.platform-login .login-brand>span,.platform-login .login-footer{color:#a5b2ca}
+.platform-login .login-card{background:#171e2e;border-color:#3b3450;box-shadow:0 25px 80px #00000050}
+.platform-login .login-story{background:linear-gradient(145deg,#25193c,#141d2f)}
+.platform-login .login-story .eyebrow{color:#d2bbff}.platform-login .story-line svg{color:#bda1ff}
+.platform-login .login-form .icon-tile{background:#342653;color:#cbb2ff}
+.platform-login .muted,.platform-login .password-field button{color:#aebdd4}
+@media(hover:hover) and (pointer:fine){
+ .platform-workspace .panel:hover{border-color:#665084;box-shadow:0 10px 28px #00000040,0 0 0 1px #a78bfa0a}
+ .platform-workspace .stat-card:hover{box-shadow:0 14px 30px #00000045}
+ .platform-workspace .primary:hover:not(:disabled),.platform-login .primary:hover:not(:disabled){background:#9555fa;border-color:#bd9aff;color:#fff;box-shadow:0 8px 22px #8b5cf64d}
+ .platform-workspace .secondary:hover:not(:disabled),.platform-login .secondary:hover:not(:disabled){background:#7040ba;border-color:#bb94ff;color:#fff;box-shadow:0 7px 18px #8b5cf630}
+ .platform-workspace .sidebar nav button:hover:not(.active){background:#2d2442;color:#f3eaff}
+ .platform-workspace .sidebar nav button.active:hover{background:#7245c3;color:#fff}
+ .platform-workspace .setup-cards button:hover{background:#3a2856;border-color:#a78bfa;box-shadow:0 10px 24px #00000040}
+ .platform-workspace .setup-cards button:nth-child(2):hover{background:#46321e;border-color:#f5ae4c;box-shadow:0 10px 24px #00000040}
+ .platform-workspace .setup-cards button:nth-child(3):hover{background:#263d5d;border-color:#60a5fa;box-shadow:0 10px 24px #00000040}
+ .platform-workspace .campus-card:hover,.platform-workspace .member-card:hover,.platform-workspace .campus-pills>span:hover{background:#33264c;border-color:#ab83ef;box-shadow:0 8px 20px #00000033}
+ .platform-workspace tbody tr:hover{background:#26213b}
+ .platform-workspace .danger-outline:hover:not(:disabled){background:#a82d4d;border-color:#f18fa8;color:#fff}
+}
