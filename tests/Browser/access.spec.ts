@@ -21,7 +21,11 @@ test('desktop owner can sign in, save setup, create a campus and manage access',
     const phone=page.getByLabel('Phone',{exact:true});
     await phone.fill('abc');
     await expect(phone).toHaveValue('');
-    await phone.fill('3001234567');
+    await phone.pressSequentially('3001234567');
+    await expect(phone).toHaveValue('3001234567');
+    await phone.press('Backspace');
+    await expect(phone).toHaveValue('300123456');
+    await phone.pressSequentially('7');
     await expect(phone).toHaveValue('3001234567');
     await page.getByLabel('Address',{exact:true}).fill('24 Branch Road, Lahore');
     await page.getByRole('button',{name:'Save campus',exact:true}).click();

@@ -16,8 +16,9 @@ function DeleteCampusDialog({campus,busy,onCancel,onConfirm}:{campus:Campus;busy
 }
 function nationalPhone(value:string){
  let digits=value.replace(/[^0-9]/g,'');
- if(digits.startsWith('0092'))digits=digits.slice(4);
- else if(digits.startsWith('92')&&digits.length>10)digits=digits.slice(2);
+ if(value.trim().startsWith('+92'))digits=digits.slice(2);
+ else if(digits.startsWith('0092'))digits=digits.slice(4);
+ else if(digits.startsWith('92')&&(digits.length===2||digits.length>10))digits=digits.slice(2);
  if(digits.startsWith('0'))digits=digits.slice(1);
  return digits.slice(0,10);
 }
