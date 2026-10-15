@@ -43,6 +43,7 @@ test('mobile navigation and login fit a 390px viewport',async({page})=>{
     await page.getByRole('button',{name:'Open menu',exact:true}).click();
     await page.getByRole('navigation').getByRole('button',{name:'School profile',exact:true}).click();
     await expect(page.getByLabel('School name')).toBeVisible();
+    await expect(page.locator('.sidebar')).toHaveCSS('transform','matrix(1, 0, 0, 1, -260, 0)');
     expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
     await page.screenshot({path:'test-results/school-mobile.png',fullPage:true});
     await page.getByRole('button',{name:'Sign out',exact:true}).click();
