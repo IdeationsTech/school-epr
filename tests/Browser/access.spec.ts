@@ -10,7 +10,7 @@ test('desktop owner can sign in, save setup, create a campus and manage access',
     await page.goto('/');
     await page.screenshot({path:'test-results/login-desktop.png',fullPage:true});
     await login(page);
-    await page.getByRole('navigation').getByRole('button',{name:'School profile',exact:true,level:1}).click();
+    await page.getByRole('navigation').getByRole('button',{name:'School profile',exact:true}).click();
     await page.getByLabel('Contact phone').fill('3001234567');
     await page.getByLabel('School address').fill('12 School Road, Lahore');
     await page.getByRole('button',{name:'Save school profile'}).click();
@@ -70,7 +70,7 @@ test('mobile navigation and login fit a 390px viewport',async({page})=>{
     await login(page);
     await expect(page.getByRole('button',{name:'Open menu',exact:true})).toBeVisible();
     await page.getByRole('button',{name:'Open menu',exact:true}).click();
-    await page.getByRole('navigation').getByRole('button',{name:'School profile',exact:true,level:1}).click();
+    await page.getByRole('navigation').getByRole('button',{name:'School profile',exact:true}).click();
     await expect(page.getByLabel('School name')).toBeVisible();
     await expect(page.locator('.sidebar')).toHaveCSS('transform','matrix(1, 0, 0, 1, -260, 0)');
     expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
