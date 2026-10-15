@@ -40,4 +40,4 @@ Some earlier mockup details were illustrative. Explicit requirements and this sc
 
 ## Validation
 GitHub Actions provisions MySQL 8.4, lints PHP, executes tests, tests rollback/remigration and builds React.
-Local agent environment has no PHP/MySQL runtime; CI results must be checked before telling the user migration execution passed.
+Verified: PHP 8.5 syntax, six feature tests against MySQL 8.4, fresh migration/seeding, rollback/remigration, and React production build all passed in GitHub Actions run 38781876356. Local PHP-WASM syntax validation and frontend build also passed.

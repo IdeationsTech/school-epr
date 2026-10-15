@@ -37,7 +37,7 @@ Do not use migrate:fresh on a database containing records you need.
 Your other software keeps its own folder/database/.env; this app uses port 8001 and Vite 5174.
 
 ## Dependency locks
-Initial manifests target compatible majors. package-lock.json is committed. Composer dependencies still resolve on first install until composer.lock is committed; validation CI uploads its resolved lock as an artifact. Commit the verified Composer lock before a shared production deployment.
+Initial manifests target compatible majors. composer.lock and package-lock.json are committed. The Composer lock comes from the successful MySQL/React validation run. Use composer install and npm ci to reproduce tested versions.
 
 ## Development
 Run Laravel in one terminal and npm run dev in another.
