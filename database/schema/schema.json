@@ -1,0 +1,3650 @@
+[
+  {
+    "name": "schools",
+    "columns": [
+      {
+        "name": "name",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "code",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "timezone",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "currency",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      }
+    ],
+    "refs": {},
+    "unique": [
+      [
+        "code"
+      ]
+    ],
+    "checks": [],
+    "tenant": false,
+    "group": "platform"
+  },
+  {
+    "name": "plans",
+    "columns": [
+      {
+        "name": "code",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "student_limit",
+        "type": "uint",
+        "nullable": false
+      },
+      {
+        "name": "campus_limit",
+        "type": "uint",
+        "nullable": false
+      },
+      {
+        "name": "monthly_price",
+        "type": "money",
+        "nullable": false
+      },
+      {
+        "name": "features",
+        "type": "json",
+        "nullable": true
+      }
+    ],
+    "refs": {},
+    "unique": [
+      [
+        "code"
+      ]
+    ],
+    "checks": [],
+    "tenant": false,
+    "group": "platform"
+  },
+  {
+    "name": "permissions",
+    "columns": [
+      {
+        "name": "name",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "nullable": false
+      }
+    ],
+    "refs": {},
+    "unique": [
+      [
+        "name"
+      ]
+    ],
+    "checks": [],
+    "tenant": false,
+    "group": "access"
+  },
+  {
+    "name": "roles",
+    "columns": [
+      {
+        "name": "name",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "scope",
+        "type": "string",
+        "nullable": false
+      }
+    ],
+    "refs": {},
+    "unique": [
+      [
+        "name"
+      ]
+    ],
+    "checks": [],
+    "tenant": false,
+    "group": "access"
+  },
+  {
+    "name": "role_permissions",
+    "columns": [
+      {
+        "name": "role_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "permission_id",
+        "type": "id",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "role_id": "roles",
+      "permission_id": "permissions"
+    },
+    "unique": [
+      [
+        "role_id",
+        "permission_id"
+      ]
+    ],
+    "checks": [],
+    "tenant": false,
+    "group": "access"
+  },
+  {
+    "name": "campuses",
+    "columns": [
+      {
+        "name": "name",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "code",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "address",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "phone",
+        "type": "string",
+        "nullable": true
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      }
+    ],
+    "refs": {},
+    "unique": [
+      [
+        "school_id",
+        "code"
+      ]
+    ],
+    "checks": [],
+    "tenant": true,
+    "group": "platform"
+  },
+  {
+    "name": "subscriptions",
+    "columns": [
+      {
+        "name": "plan_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "starts_on",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "ends_on",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "price",
+        "type": "money",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "plan_id": "plans"
+    },
+    "unique": [],
+    "checks": [
+      "ends_on >= starts_on",
+      "price >= 0"
+    ],
+    "tenant": true,
+    "group": "platform"
+  },
+  {
+    "name": "subscription_invoices",
+    "columns": [
+      {
+        "name": "subscription_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "number",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "issued_on",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "due_on",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "amount",
+        "type": "money",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "subscription_id": "subscriptions"
+    },
+    "unique": [
+      [
+        "school_id",
+        "number"
+      ]
+    ],
+    "checks": [
+      "amount >= 0"
+    ],
+    "tenant": true,
+    "group": "platform"
+  },
+  {
+    "name": "subscription_payments",
+    "columns": [
+      {
+        "name": "subscription_invoice_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "amount",
+        "type": "money",
+        "nullable": false
+      },
+      {
+        "name": "paid_at",
+        "type": "datetime",
+        "nullable": false
+      },
+      {
+        "name": "method",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "reference",
+        "type": "string",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "subscription_invoice_id": "subscription_invoices"
+    },
+    "unique": [],
+    "checks": [
+      "amount > 0"
+    ],
+    "tenant": true,
+    "group": "platform"
+  },
+  {
+    "name": "school_settings",
+    "columns": [
+      {
+        "name": "key",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "value",
+        "type": "json",
+        "nullable": true
+      }
+    ],
+    "refs": {},
+    "unique": [
+      [
+        "school_id",
+        "key"
+      ]
+    ],
+    "checks": [],
+    "tenant": true,
+    "group": "platform"
+  },
+  {
+    "name": "school_memberships",
+    "columns": [
+      {
+        "name": "user_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "user_id": "users"
+    },
+    "unique": [
+      [
+        "school_id",
+        "user_id"
+      ]
+    ],
+    "checks": [],
+    "tenant": true,
+    "group": "access"
+  },
+  {
+    "name": "membership_roles",
+    "columns": [
+      {
+        "name": "membership_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "role_id",
+        "type": "id",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "membership_id": "school_memberships",
+      "role_id": "roles"
+    },
+    "unique": [
+      [
+        "school_id",
+        "membership_id",
+        "role_id"
+      ]
+    ],
+    "checks": [],
+    "tenant": true,
+    "group": "access"
+  },
+  {
+    "name": "membership_campuses",
+    "columns": [
+      {
+        "name": "membership_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "campus_id",
+        "type": "id",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "membership_id": "school_memberships",
+      "campus_id": "campuses"
+    },
+    "unique": [
+      [
+        "school_id",
+        "membership_id",
+        "campus_id"
+      ]
+    ],
+    "checks": [],
+    "tenant": true,
+    "group": "access"
+  },
+  {
+    "name": "files",
+    "columns": [
+      {
+        "name": "campus_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "uploaded_by",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "disk",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "path",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "original_name",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "mime_type",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "size_bytes",
+        "type": "uint",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "campus_id": "campuses",
+      "uploaded_by": "school_memberships"
+    },
+    "unique": [
+      [
+        "school_id",
+        "disk",
+        "path"
+      ]
+    ],
+    "checks": [],
+    "tenant": true,
+    "group": "operations"
+  },
+  {
+    "name": "staff_profiles",
+    "columns": [
+      {
+        "name": "membership_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "employee_no",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "designation",
+        "type": "string",
+        "nullable": true
+      },
+      {
+        "name": "hired_on",
+        "type": "date",
+        "nullable": true
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "membership_id": "school_memberships"
+    },
+    "unique": [
+      [
+        "school_id",
+        "membership_id"
+      ],
+      [
+        "school_id",
+        "employee_no"
+      ]
+    ],
+    "checks": [],
+    "tenant": true,
+    "group": "staff"
+  },
+  {
+    "name": "leave_requests",
+    "columns": [
+      {
+        "name": "staff_profile_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "starts_on",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "ends_on",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "leave_type",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "reason",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "approved_by",
+        "type": "id",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "staff_profile_id": "staff_profiles",
+      "approved_by": "school_memberships"
+    },
+    "unique": [],
+    "checks": [
+      "ends_on >= starts_on"
+    ],
+    "tenant": true,
+    "group": "staff"
+  },
+  {
+    "name": "academic_sessions",
+    "columns": [
+      {
+        "name": "name",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "starts_on",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "ends_on",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      }
+    ],
+    "refs": {},
+    "unique": [
+      [
+        "school_id",
+        "name"
+      ]
+    ],
+    "checks": [
+      "ends_on >= starts_on"
+    ],
+    "tenant": true,
+    "group": "academics"
+  },
+  {
+    "name": "academic_terms",
+    "columns": [
+      {
+        "name": "academic_session_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "starts_on",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "ends_on",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "position",
+        "type": "uint",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "academic_session_id": "academic_sessions"
+    },
+    "unique": [
+      [
+        "school_id",
+        "academic_session_id",
+        "name"
+      ]
+    ],
+    "checks": [
+      "ends_on >= starts_on"
+    ],
+    "tenant": true,
+    "group": "academics"
+  },
+  {
+    "name": "classes",
+    "columns": [
+      {
+        "name": "name",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "position",
+        "type": "uint",
+        "nullable": false
+      }
+    ],
+    "refs": {},
+    "unique": [
+      [
+        "school_id",
+        "name"
+      ]
+    ],
+    "checks": [],
+    "tenant": true,
+    "group": "academics"
+  },
+  {
+    "name": "sections",
+    "columns": [
+      {
+        "name": "campus_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "academic_session_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "class_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "capacity",
+        "type": "uint",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "campus_id": "campuses",
+      "academic_session_id": "academic_sessions",
+      "class_id": "classes"
+    },
+    "unique": [
+      [
+        "school_id",
+        "campus_id",
+        "academic_session_id",
+        "class_id",
+        "name"
+      ]
+    ],
+    "checks": [],
+    "tenant": true,
+    "group": "academics"
+  },
+  {
+    "name": "subjects",
+    "columns": [
+      {
+        "name": "name",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "code",
+        "type": "string",
+        "nullable": false
+      }
+    ],
+    "refs": {},
+    "unique": [
+      [
+        "school_id",
+        "code"
+      ]
+    ],
+    "checks": [],
+    "tenant": true,
+    "group": "academics"
+  },
+  {
+    "name": "section_subjects",
+    "columns": [
+      {
+        "name": "section_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "subject_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "required_for_diary",
+        "type": "bool",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "section_id": "sections",
+      "subject_id": "subjects"
+    },
+    "unique": [
+      [
+        "school_id",
+        "section_id",
+        "subject_id"
+      ]
+    ],
+    "checks": [],
+    "tenant": true,
+    "group": "academics"
+  },
+  {
+    "name": "teacher_assignments",
+    "columns": [
+      {
+        "name": "staff_profile_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "section_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "subject_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "is_class_teacher",
+        "type": "bool",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "staff_profile_id": "staff_profiles",
+      "section_id": "sections",
+      "subject_id": "subjects"
+    },
+    "unique": [],
+    "checks": [],
+    "tenant": true,
+    "group": "academics"
+  },
+  {
+    "name": "admission_inquiries",
+    "columns": [
+      {
+        "name": "campus_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "child_name",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "guardian_name",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "phone",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "follow_up_on",
+        "type": "date",
+        "nullable": true
+      },
+      {
+        "name": "notes",
+        "type": "text",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "campus_id": "campuses"
+    },
+    "unique": [],
+    "checks": [],
+    "tenant": true,
+    "group": "students"
+  },
+  {
+    "name": "admission_applications",
+    "columns": [
+      {
+        "name": "inquiry_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "campus_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "class_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "academic_session_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "application_no",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "student_name",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "birth_date",
+        "type": "date",
+        "nullable": true
+      },
+      {
+        "name": "guardian_details",
+        "type": "json",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "inquiry_id": "admission_inquiries",
+      "campus_id": "campuses",
+      "class_id": "classes",
+      "academic_session_id": "academic_sessions"
+    },
+    "unique": [
+      [
+        "school_id",
+        "application_no"
+      ]
+    ],
+    "checks": [],
+    "tenant": true,
+    "group": "students"
+  },
+  {
+    "name": "students",
+    "columns": [
+      {
+        "name": "admission_no",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "first_name",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "last_name",
+        "type": "string",
+        "nullable": true
+      },
+      {
+        "name": "birth_date",
+        "type": "date",
+        "nullable": true
+      },
+      {
+        "name": "gender",
+        "type": "string",
+        "nullable": true
+      },
+      {
+        "name": "admitted_on",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "application_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "photo_file_id",
+        "type": "id",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "application_id": "admission_applications",
+      "photo_file_id": "files"
+    },
+    "unique": [
+      [
+        "school_id",
+        "admission_no"
+      ]
+    ],
+    "checks": [],
+    "tenant": true,
+    "group": "students"
+  },
+  {
+    "name": "guardians",
+    "columns": [
+      {
+        "name": "name",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "phone",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "alternate_phone",
+        "type": "string",
+        "nullable": true
+      },
+      {
+        "name": "email",
+        "type": "string",
+        "nullable": true
+      },
+      {
+        "name": "address",
+        "type": "text",
+        "nullable": true
+      }
+    ],
+    "refs": {},
+    "unique": [],
+    "checks": [],
+    "tenant": true,
+    "group": "students"
+  },
+  {
+    "name": "student_guardians",
+    "columns": [
+      {
+        "name": "student_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "guardian_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "relationship",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "is_primary",
+        "type": "bool",
+        "nullable": false
+      },
+      {
+        "name": "can_receive_reports",
+        "type": "bool",
+        "nullable": false
+      },
+      {
+        "name": "can_pick_up",
+        "type": "bool",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "student_id": "students",
+      "guardian_id": "guardians"
+    },
+    "unique": [
+      [
+        "school_id",
+        "student_id",
+        "guardian_id"
+      ]
+    ],
+    "checks": [],
+    "tenant": true,
+    "group": "students"
+  },
+  {
+    "name": "enrollments",
+    "columns": [
+      {
+        "name": "student_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "section_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "roll_no",
+        "type": "string",
+        "nullable": true
+      },
+      {
+        "name": "starts_on",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "ends_on",
+        "type": "date",
+        "nullable": true
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "student_id": "students",
+      "section_id": "sections"
+    },
+    "unique": [
+      [
+        "school_id",
+        "student_id",
+        "section_id",
+        "starts_on"
+      ]
+    ],
+    "checks": [
+      "ends_on IS NULL OR ends_on >= starts_on"
+    ],
+    "tenant": true,
+    "group": "students"
+  },
+  {
+    "name": "student_documents",
+    "columns": [
+      {
+        "name": "student_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "file_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "document_type",
+        "type": "string",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "student_id": "students",
+      "file_id": "files"
+    },
+    "unique": [],
+    "checks": [],
+    "tenant": true,
+    "group": "students"
+  },
+  {
+    "name": "fee_heads",
+    "columns": [
+      {
+        "name": "name",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "code",
+        "type": "string",
+        "nullable": false
+      }
+    ],
+    "refs": {},
+    "unique": [
+      [
+        "school_id",
+        "code"
+      ]
+    ],
+    "checks": [],
+    "tenant": true,
+    "group": "fees"
+  },
+  {
+    "name": "fee_plans",
+    "columns": [
+      {
+        "name": "academic_session_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "class_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "campus_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "starts_on",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "ends_on",
+        "type": "date",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "academic_session_id": "academic_sessions",
+      "class_id": "classes",
+      "campus_id": "campuses"
+    },
+    "unique": [],
+    "checks": [
+      "ends_on IS NULL OR ends_on >= starts_on"
+    ],
+    "tenant": true,
+    "group": "fees"
+  },
+  {
+    "name": "fee_plan_items",
+    "columns": [
+      {
+        "name": "fee_plan_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "fee_head_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "amount",
+        "type": "money",
+        "nullable": false
+      },
+      {
+        "name": "frequency",
+        "type": "string",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "fee_plan_id": "fee_plans",
+      "fee_head_id": "fee_heads"
+    },
+    "unique": [],
+    "checks": [
+      "amount >= 0"
+    ],
+    "tenant": true,
+    "group": "fees"
+  },
+  {
+    "name": "student_concessions",
+    "columns": [
+      {
+        "name": "enrollment_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "fee_head_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "kind",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "value",
+        "type": "money",
+        "nullable": false
+      },
+      {
+        "name": "starts_on",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "ends_on",
+        "type": "date",
+        "nullable": true
+      },
+      {
+        "name": "reason",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "approved_by",
+        "type": "id",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "enrollment_id": "enrollments",
+      "fee_head_id": "fee_heads",
+      "approved_by": "school_memberships"
+    },
+    "unique": [],
+    "checks": [
+      "kind IN ('fixed','percent')",
+      "value >= 0",
+      "kind <> 'percent' OR value <= 100",
+      "ends_on IS NULL OR ends_on >= starts_on"
+    ],
+    "tenant": true,
+    "group": "fees"
+  },
+  {
+    "name": "invoices",
+    "columns": [
+      {
+        "name": "enrollment_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "number",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "period",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "kind",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "installment_no",
+        "type": "uint",
+        "nullable": false
+      },
+      {
+        "name": "issued_on",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "due_on",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "total",
+        "type": "money",
+        "nullable": false
+      },
+      {
+        "name": "void_reason",
+        "type": "text",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "enrollment_id": "enrollments"
+    },
+    "unique": [
+      [
+        "school_id",
+        "number"
+      ],
+      [
+        "school_id",
+        "enrollment_id",
+        "period",
+        "kind",
+        "installment_no"
+      ]
+    ],
+    "checks": [
+      "total >= 0"
+    ],
+    "tenant": true,
+    "group": "fees"
+  },
+  {
+    "name": "invoice_items",
+    "columns": [
+      {
+        "name": "invoice_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "fee_head_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "description",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "quantity",
+        "type": "decimal",
+        "nullable": false
+      },
+      {
+        "name": "unit_amount",
+        "type": "money",
+        "nullable": false
+      },
+      {
+        "name": "discount_amount",
+        "type": "money",
+        "nullable": false
+      },
+      {
+        "name": "line_total",
+        "type": "money",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "invoice_id": "invoices",
+      "fee_head_id": "fee_heads"
+    },
+    "unique": [],
+    "checks": [
+      "quantity > 0",
+      "unit_amount >= 0",
+      "discount_amount >= 0",
+      "line_total >= 0"
+    ],
+    "tenant": true,
+    "group": "fees"
+  },
+  {
+    "name": "bank_accounts",
+    "columns": [
+      {
+        "name": "campus_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "account_reference",
+        "type": "string",
+        "nullable": true
+      },
+      {
+        "name": "opening_balance",
+        "type": "money",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "campus_id": "campuses"
+    },
+    "unique": [],
+    "checks": [],
+    "tenant": true,
+    "group": "finance"
+  },
+  {
+    "name": "payments",
+    "columns": [
+      {
+        "name": "campus_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "student_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "bank_account_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "received_by",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "receipt_no",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "amount",
+        "type": "money",
+        "nullable": false
+      },
+      {
+        "name": "method",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "reference",
+        "type": "string",
+        "nullable": true
+      },
+      {
+        "name": "paid_at",
+        "type": "datetime",
+        "nullable": false
+      },
+      {
+        "name": "idempotency_key",
+        "type": "string",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "campus_id": "campuses",
+      "student_id": "students",
+      "bank_account_id": "bank_accounts",
+      "received_by": "school_memberships"
+    },
+    "unique": [
+      [
+        "school_id",
+        "receipt_no"
+      ],
+      [
+        "school_id",
+        "idempotency_key"
+      ]
+    ],
+    "checks": [
+      "amount > 0"
+    ],
+    "tenant": true,
+    "group": "fees"
+  },
+  {
+    "name": "payment_allocations",
+    "columns": [
+      {
+        "name": "payment_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "invoice_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "amount",
+        "type": "money",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "payment_id": "payments",
+      "invoice_id": "invoices"
+    },
+    "unique": [
+      [
+        "school_id",
+        "payment_id",
+        "invoice_id"
+      ]
+    ],
+    "checks": [
+      "amount > 0"
+    ],
+    "tenant": true,
+    "group": "fees"
+  },
+  {
+    "name": "payment_reversals",
+    "columns": [
+      {
+        "name": "payment_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "amount",
+        "type": "money",
+        "nullable": false
+      },
+      {
+        "name": "reason",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "approved_by",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "reversed_at",
+        "type": "datetime",
+        "nullable": true
+      },
+      {
+        "name": "idempotency_key",
+        "type": "string",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "payment_id": "payments",
+      "approved_by": "school_memberships"
+    },
+    "unique": [
+      [
+        "school_id",
+        "idempotency_key"
+      ]
+    ],
+    "checks": [
+      "amount > 0"
+    ],
+    "tenant": true,
+    "group": "fees"
+  },
+  {
+    "name": "reversal_allocations",
+    "columns": [
+      {
+        "name": "payment_reversal_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "payment_allocation_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "amount",
+        "type": "money",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "payment_reversal_id": "payment_reversals",
+      "payment_allocation_id": "payment_allocations"
+    },
+    "unique": [],
+    "checks": [
+      "amount > 0"
+    ],
+    "tenant": true,
+    "group": "fees"
+  },
+  {
+    "name": "cashier_closings",
+    "columns": [
+      {
+        "name": "campus_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "cashier_membership_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "closing_date",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "expected_cash",
+        "type": "money",
+        "nullable": false
+      },
+      {
+        "name": "counted_cash",
+        "type": "money",
+        "nullable": false
+      },
+      {
+        "name": "variance",
+        "type": "money",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "approved_by",
+        "type": "id",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "campus_id": "campuses",
+      "cashier_membership_id": "school_memberships",
+      "approved_by": "school_memberships"
+    },
+    "unique": [
+      [
+        "school_id",
+        "campus_id",
+        "cashier_membership_id",
+        "closing_date"
+      ]
+    ],
+    "checks": [
+      "counted_cash >= 0"
+    ],
+    "tenant": true,
+    "group": "finance"
+  },
+  {
+    "name": "expense_categories",
+    "columns": [
+      {
+        "name": "name",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "code",
+        "type": "string",
+        "nullable": false
+      }
+    ],
+    "refs": {},
+    "unique": [
+      [
+        "school_id",
+        "code"
+      ]
+    ],
+    "checks": [],
+    "tenant": true,
+    "group": "finance"
+  },
+  {
+    "name": "expenses",
+    "columns": [
+      {
+        "name": "campus_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "category_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "bank_account_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "amount",
+        "type": "money",
+        "nullable": false
+      },
+      {
+        "name": "incurred_on",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "method",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "approved_by",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "file_id",
+        "type": "id",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "campus_id": "campuses",
+      "category_id": "expense_categories",
+      "bank_account_id": "bank_accounts",
+      "approved_by": "school_memberships",
+      "file_id": "files"
+    },
+    "unique": [],
+    "checks": [
+      "amount > 0"
+    ],
+    "tenant": true,
+    "group": "finance"
+  },
+  {
+    "name": "attendance_sessions",
+    "columns": [
+      {
+        "name": "section_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "attendance_date",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "submitted_by",
+        "type": "id",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "section_id": "sections",
+      "submitted_by": "school_memberships"
+    },
+    "unique": [
+      [
+        "school_id",
+        "section_id",
+        "attendance_date"
+      ]
+    ],
+    "checks": [],
+    "tenant": true,
+    "group": "attendance"
+  },
+  {
+    "name": "attendance_records",
+    "columns": [
+      {
+        "name": "attendance_session_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "enrollment_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "remarks",
+        "type": "text",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "attendance_session_id": "attendance_sessions",
+      "enrollment_id": "enrollments"
+    },
+    "unique": [
+      [
+        "school_id",
+        "attendance_session_id",
+        "enrollment_id"
+      ]
+    ],
+    "checks": [
+      "status IN ('present','absent','late','leave')"
+    ],
+    "tenant": true,
+    "group": "attendance"
+  },
+  {
+    "name": "diaries",
+    "columns": [
+      {
+        "name": "section_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "diary_date",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "revision",
+        "type": "uint",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "published_by",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "published_at",
+        "type": "datetime",
+        "nullable": true
+      },
+      {
+        "name": "supersedes_id",
+        "type": "id",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "section_id": "sections",
+      "published_by": "school_memberships",
+      "supersedes_id": "diaries"
+    },
+    "unique": [
+      [
+        "school_id",
+        "section_id",
+        "diary_date",
+        "revision"
+      ]
+    ],
+    "checks": [
+      "revision > 0"
+    ],
+    "tenant": true,
+    "group": "diary"
+  },
+  {
+    "name": "diary_items",
+    "columns": [
+      {
+        "name": "diary_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "subject_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "author_membership_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "classwork",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "homework",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "no_homework",
+        "type": "bool",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "diary_id": "diaries",
+      "subject_id": "subjects",
+      "author_membership_id": "school_memberships"
+    },
+    "unique": [
+      [
+        "school_id",
+        "diary_id",
+        "subject_id"
+      ]
+    ],
+    "checks": [],
+    "tenant": true,
+    "group": "diary"
+  },
+  {
+    "name": "diary_shares",
+    "columns": [
+      {
+        "name": "diary_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "confirmed_by",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "confirmed_at",
+        "type": "datetime",
+        "nullable": false
+      },
+      {
+        "name": "channel",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "note",
+        "type": "text",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "diary_id": "diaries",
+      "confirmed_by": "school_memberships"
+    },
+    "unique": [],
+    "checks": [],
+    "tenant": true,
+    "group": "diary"
+  },
+  {
+    "name": "grading_schemes",
+    "columns": [
+      {
+        "name": "name",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "version",
+        "type": "uint",
+        "nullable": false
+      },
+      {
+        "name": "rules",
+        "type": "json",
+        "nullable": false
+      },
+      {
+        "name": "rounding_policy",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "tie_policy",
+        "type": "string",
+        "nullable": false
+      }
+    ],
+    "refs": {},
+    "unique": [
+      [
+        "school_id",
+        "name",
+        "version"
+      ]
+    ],
+    "checks": [
+      "version > 0"
+    ],
+    "tenant": true,
+    "group": "exams"
+  },
+  {
+    "name": "exam_cycles",
+    "columns": [
+      {
+        "name": "academic_session_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "academic_term_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "starts_on",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "ends_on",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "grading_scheme_id",
+        "type": "id",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "academic_session_id": "academic_sessions",
+      "academic_term_id": "academic_terms",
+      "grading_scheme_id": "grading_schemes"
+    },
+    "unique": [],
+    "checks": [
+      "ends_on >= starts_on"
+    ],
+    "tenant": true,
+    "group": "exams"
+  },
+  {
+    "name": "tests",
+    "columns": [
+      {
+        "name": "section_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "subject_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "exam_cycle_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "grading_scheme_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "test_date",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "max_marks",
+        "type": "decimal",
+        "nullable": false
+      },
+      {
+        "name": "assessment_type",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "section_id": "sections",
+      "subject_id": "subjects",
+      "exam_cycle_id": "exam_cycles",
+      "grading_scheme_id": "grading_schemes"
+    },
+    "unique": [],
+    "checks": [
+      "max_marks > 0"
+    ],
+    "tenant": true,
+    "group": "exams"
+  },
+  {
+    "name": "test_results",
+    "columns": [
+      {
+        "name": "test_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "enrollment_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "marks",
+        "type": "decimal",
+        "nullable": true
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "remarks",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "revision",
+        "type": "uint",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "test_id": "tests",
+      "enrollment_id": "enrollments"
+    },
+    "unique": [
+      [
+        "school_id",
+        "test_id",
+        "enrollment_id"
+      ]
+    ],
+    "checks": [
+      "status IN ('pending','present','absent','exempt')",
+      "(status = 'present' AND marks IS NOT NULL AND marks >= 0) OR (status <> 'present' AND marks IS NULL)",
+      "revision > 0"
+    ],
+    "tenant": true,
+    "group": "exams"
+  },
+  {
+    "name": "report_snapshots",
+    "columns": [
+      {
+        "name": "test_result_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "grading_scheme_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "revision",
+        "type": "uint",
+        "nullable": false
+      },
+      {
+        "name": "payload",
+        "type": "json",
+        "nullable": false
+      },
+      {
+        "name": "published_by",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "published_at",
+        "type": "datetime",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "test_result_id": "test_results",
+      "grading_scheme_id": "grading_schemes",
+      "published_by": "school_memberships"
+    },
+    "unique": [
+      [
+        "school_id",
+        "test_result_id",
+        "revision"
+      ]
+    ],
+    "checks": [
+      "revision > 0"
+    ],
+    "tenant": true,
+    "group": "exams"
+  },
+  {
+    "name": "exam_papers",
+    "columns": [
+      {
+        "name": "test_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "scheduled_on",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "starts_at",
+        "type": "time",
+        "nullable": false
+      },
+      {
+        "name": "ends_at",
+        "type": "time",
+        "nullable": false
+      },
+      {
+        "name": "room",
+        "type": "string",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "test_id": "tests"
+    },
+    "unique": [
+      [
+        "school_id",
+        "test_id"
+      ]
+    ],
+    "checks": [
+      "ends_at > starts_at"
+    ],
+    "tenant": true,
+    "group": "exams"
+  },
+  {
+    "name": "assessment_weightages",
+    "columns": [
+      {
+        "name": "exam_cycle_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "class_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "subject_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "assessment_type",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "weight",
+        "type": "decimal",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "exam_cycle_id": "exam_cycles",
+      "class_id": "classes",
+      "subject_id": "subjects"
+    },
+    "unique": [
+      [
+        "school_id",
+        "exam_cycle_id",
+        "class_id",
+        "subject_id",
+        "assessment_type"
+      ]
+    ],
+    "checks": [
+      "weight >= 0 AND weight <= 100"
+    ],
+    "tenant": true,
+    "group": "exams"
+  },
+  {
+    "name": "exam_candidates",
+    "columns": [
+      {
+        "name": "exam_cycle_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "enrollment_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "roll_no",
+        "type": "string",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "exam_cycle_id": "exam_cycles",
+      "enrollment_id": "enrollments"
+    },
+    "unique": [
+      [
+        "school_id",
+        "exam_cycle_id",
+        "enrollment_id"
+      ],
+      [
+        "school_id",
+        "exam_cycle_id",
+        "roll_no"
+      ]
+    ],
+    "checks": [],
+    "tenant": true,
+    "group": "exams"
+  },
+  {
+    "name": "consolidated_result_snapshots",
+    "columns": [
+      {
+        "name": "exam_cycle_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "enrollment_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "revision",
+        "type": "uint",
+        "nullable": false
+      },
+      {
+        "name": "grading_scheme_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "payload",
+        "type": "json",
+        "nullable": false
+      },
+      {
+        "name": "published_by",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "published_at",
+        "type": "datetime",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "exam_cycle_id": "exam_cycles",
+      "enrollment_id": "enrollments",
+      "grading_scheme_id": "grading_schemes",
+      "published_by": "school_memberships"
+    },
+    "unique": [
+      [
+        "school_id",
+        "exam_cycle_id",
+        "enrollment_id",
+        "revision"
+      ]
+    ],
+    "checks": [
+      "revision > 0"
+    ],
+    "tenant": true,
+    "group": "exams"
+  },
+  {
+    "name": "report_shares",
+    "columns": [
+      {
+        "name": "report_snapshot_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "consolidated_snapshot_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "guardian_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "confirmed_by",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "confirmed_at",
+        "type": "datetime",
+        "nullable": false
+      },
+      {
+        "name": "channel",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "recipient_phone",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "resend_reason",
+        "type": "text",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "report_snapshot_id": "report_snapshots",
+      "consolidated_snapshot_id": "consolidated_result_snapshots",
+      "guardian_id": "guardians",
+      "confirmed_by": "school_memberships"
+    },
+    "unique": [],
+    "checks": [
+      "(report_snapshot_id IS NULL) <> (consolidated_snapshot_id IS NULL)"
+    ],
+    "tenant": true,
+    "group": "sharing"
+  },
+  {
+    "name": "staff_attendance_records",
+    "columns": [
+      {
+        "name": "staff_profile_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "campus_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "attendance_date",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "arrived_at",
+        "type": "time",
+        "nullable": true
+      },
+      {
+        "name": "leave_request_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "recorded_by",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "remarks",
+        "type": "text",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "staff_profile_id": "staff_profiles",
+      "campus_id": "campuses",
+      "leave_request_id": "leave_requests",
+      "recorded_by": "school_memberships"
+    },
+    "unique": [
+      [
+        "school_id",
+        "staff_profile_id",
+        "attendance_date"
+      ]
+    ],
+    "checks": [
+      "status IN ('present','absent','late','leave')"
+    ],
+    "tenant": true,
+    "group": "payroll"
+  },
+  {
+    "name": "salary_structures",
+    "columns": [
+      {
+        "name": "staff_profile_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "starts_on",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "ends_on",
+        "type": "date",
+        "nullable": true
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "staff_profile_id": "staff_profiles"
+    },
+    "unique": [
+      [
+        "school_id",
+        "staff_profile_id",
+        "starts_on"
+      ]
+    ],
+    "checks": [
+      "ends_on IS NULL OR ends_on >= starts_on"
+    ],
+    "tenant": true,
+    "group": "payroll"
+  },
+  {
+    "name": "salary_structure_items",
+    "columns": [
+      {
+        "name": "salary_structure_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "kind",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "amount",
+        "type": "money",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "salary_structure_id": "salary_structures"
+    },
+    "unique": [],
+    "checks": [
+      "kind IN ('basic','allowance','deduction')",
+      "amount >= 0"
+    ],
+    "tenant": true,
+    "group": "payroll"
+  },
+  {
+    "name": "staff_advances",
+    "columns": [
+      {
+        "name": "staff_profile_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "amount",
+        "type": "money",
+        "nullable": false
+      },
+      {
+        "name": "paid_on",
+        "type": "date",
+        "nullable": true
+      },
+      {
+        "name": "monthly_recovery",
+        "type": "money",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "approved_by",
+        "type": "id",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "staff_profile_id": "staff_profiles",
+      "approved_by": "school_memberships"
+    },
+    "unique": [],
+    "checks": [
+      "amount > 0",
+      "monthly_recovery > 0"
+    ],
+    "tenant": true,
+    "group": "payroll"
+  },
+  {
+    "name": "payroll_runs",
+    "columns": [
+      {
+        "name": "campus_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "period",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "revision",
+        "type": "uint",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "approved_by",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "approved_at",
+        "type": "datetime",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "campus_id": "campuses",
+      "approved_by": "school_memberships"
+    },
+    "unique": [
+      [
+        "school_id",
+        "campus_id",
+        "period",
+        "revision"
+      ]
+    ],
+    "checks": [
+      "revision > 0"
+    ],
+    "tenant": true,
+    "group": "payroll"
+  },
+  {
+    "name": "payroll_items",
+    "columns": [
+      {
+        "name": "payroll_run_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "staff_profile_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "salary_structure_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "gross_amount",
+        "type": "money",
+        "nullable": false
+      },
+      {
+        "name": "deduction_amount",
+        "type": "money",
+        "nullable": false
+      },
+      {
+        "name": "advance_recovery",
+        "type": "money",
+        "nullable": false
+      },
+      {
+        "name": "net_amount",
+        "type": "money",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "payroll_run_id": "payroll_runs",
+      "staff_profile_id": "staff_profiles",
+      "salary_structure_id": "salary_structures"
+    },
+    "unique": [
+      [
+        "school_id",
+        "payroll_run_id",
+        "staff_profile_id"
+      ]
+    ],
+    "checks": [
+      "gross_amount >= 0",
+      "deduction_amount >= 0",
+      "advance_recovery >= 0",
+      "net_amount >= 0",
+      "net_amount = gross_amount - deduction_amount - advance_recovery"
+    ],
+    "tenant": true,
+    "group": "payroll"
+  },
+  {
+    "name": "payroll_item_components",
+    "columns": [
+      {
+        "name": "payroll_item_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "name",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "kind",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "amount",
+        "type": "money",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "payroll_item_id": "payroll_items"
+    },
+    "unique": [],
+    "checks": [
+      "amount >= 0"
+    ],
+    "tenant": true,
+    "group": "payroll"
+  },
+  {
+    "name": "salary_payments",
+    "columns": [
+      {
+        "name": "campus_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "staff_profile_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "bank_account_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "amount",
+        "type": "money",
+        "nullable": false
+      },
+      {
+        "name": "paid_at",
+        "type": "datetime",
+        "nullable": false
+      },
+      {
+        "name": "method",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "recorded_by",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "reference",
+        "type": "string",
+        "nullable": true
+      },
+      {
+        "name": "idempotency_key",
+        "type": "string",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "campus_id": "campuses",
+      "staff_profile_id": "staff_profiles",
+      "bank_account_id": "bank_accounts",
+      "recorded_by": "school_memberships"
+    },
+    "unique": [
+      [
+        "school_id",
+        "idempotency_key"
+      ]
+    ],
+    "checks": [
+      "amount > 0"
+    ],
+    "tenant": true,
+    "group": "payroll"
+  },
+  {
+    "name": "salary_payment_allocations",
+    "columns": [
+      {
+        "name": "salary_payment_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "payroll_item_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "amount",
+        "type": "money",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "salary_payment_id": "salary_payments",
+      "payroll_item_id": "payroll_items"
+    },
+    "unique": [
+      [
+        "school_id",
+        "salary_payment_id",
+        "payroll_item_id"
+      ]
+    ],
+    "checks": [
+      "amount > 0"
+    ],
+    "tenant": true,
+    "group": "payroll"
+  },
+  {
+    "name": "advance_recoveries",
+    "columns": [
+      {
+        "name": "staff_advance_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "payroll_item_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "amount",
+        "type": "money",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "staff_advance_id": "staff_advances",
+      "payroll_item_id": "payroll_items"
+    },
+    "unique": [
+      [
+        "school_id",
+        "staff_advance_id",
+        "payroll_item_id"
+      ]
+    ],
+    "checks": [
+      "amount > 0"
+    ],
+    "tenant": true,
+    "group": "payroll"
+  },
+  {
+    "name": "timetable_slots",
+    "columns": [
+      {
+        "name": "section_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "subject_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "staff_profile_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "weekday",
+        "type": "uint",
+        "nullable": false
+      },
+      {
+        "name": "starts_at",
+        "type": "time",
+        "nullable": false
+      },
+      {
+        "name": "ends_at",
+        "type": "time",
+        "nullable": false
+      },
+      {
+        "name": "room",
+        "type": "string",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "section_id": "sections",
+      "subject_id": "subjects",
+      "staff_profile_id": "staff_profiles"
+    },
+    "unique": [],
+    "checks": [
+      "weekday BETWEEN 1 AND 7",
+      "ends_at > starts_at"
+    ],
+    "tenant": true,
+    "group": "operations"
+  },
+  {
+    "name": "calendar_events",
+    "columns": [
+      {
+        "name": "campus_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "starts_at",
+        "type": "datetime",
+        "nullable": false
+      },
+      {
+        "name": "ends_at",
+        "type": "datetime",
+        "nullable": false
+      },
+      {
+        "name": "kind",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "campus_id": "campuses"
+    },
+    "unique": [],
+    "checks": [
+      "ends_at >= starts_at"
+    ],
+    "tenant": true,
+    "group": "operations"
+  },
+  {
+    "name": "ptm_appointments",
+    "columns": [
+      {
+        "name": "enrollment_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "guardian_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "staff_profile_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "starts_at",
+        "type": "datetime",
+        "nullable": false
+      },
+      {
+        "name": "ends_at",
+        "type": "datetime",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "notes",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "follow_up_on",
+        "type": "date",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "enrollment_id": "enrollments",
+      "guardian_id": "guardians",
+      "staff_profile_id": "staff_profiles"
+    },
+    "unique": [],
+    "checks": [
+      "ends_at > starts_at"
+    ],
+    "tenant": true,
+    "group": "operations"
+  },
+  {
+    "name": "certificate_templates",
+    "columns": [
+      {
+        "name": "name",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "type",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "body",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "version",
+        "type": "uint",
+        "nullable": false
+      }
+    ],
+    "refs": {},
+    "unique": [
+      [
+        "school_id",
+        "name",
+        "version"
+      ]
+    ],
+    "checks": [],
+    "tenant": true,
+    "group": "operations"
+  },
+  {
+    "name": "certificate_issues",
+    "columns": [
+      {
+        "name": "student_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "template_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "number",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "payload",
+        "type": "json",
+        "nullable": false
+      },
+      {
+        "name": "issued_by",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "issued_at",
+        "type": "datetime",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "student_id": "students",
+      "template_id": "certificate_templates",
+      "issued_by": "school_memberships"
+    },
+    "unique": [
+      [
+        "school_id",
+        "number"
+      ]
+    ],
+    "checks": [],
+    "tenant": true,
+    "group": "operations"
+  },
+  {
+    "name": "notices",
+    "columns": [
+      {
+        "name": "campus_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "body",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "published_by",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "published_at",
+        "type": "datetime",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "campus_id": "campuses",
+      "published_by": "school_memberships"
+    },
+    "unique": [],
+    "checks": [],
+    "tenant": true,
+    "group": "operations"
+  },
+  {
+    "name": "support_tickets",
+    "columns": [
+      {
+        "name": "opened_by",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "subject",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "description",
+        "type": "text",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "opened_by": "school_memberships"
+    },
+    "unique": [],
+    "checks": [],
+    "tenant": true,
+    "group": "platform"
+  },
+  {
+    "name": "support_replies",
+    "columns": [
+      {
+        "name": "support_ticket_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "author_user_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "body",
+        "type": "text",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "support_ticket_id": "support_tickets",
+      "author_user_id": "users"
+    },
+    "unique": [],
+    "checks": [],
+    "tenant": true,
+    "group": "platform"
+  },
+  {
+    "name": "audit_logs",
+    "columns": [
+      {
+        "name": "actor_membership_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "action",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "target_type",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "target_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "changes",
+        "type": "json",
+        "nullable": true
+      },
+      {
+        "name": "occurred_at",
+        "type": "datetime",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "actor_membership_id": "school_memberships"
+    },
+    "unique": [],
+    "checks": [],
+    "tenant": true,
+    "group": "operations"
+  },
+  {
+    "name": "visitor_logs",
+    "columns": [
+      {
+        "name": "campus_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "visitor_name",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "purpose",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "entered_at",
+        "type": "datetime",
+        "nullable": false
+      },
+      {
+        "name": "exited_at",
+        "type": "datetime",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "campus_id": "campuses"
+    },
+    "unique": [],
+    "checks": [
+      "exited_at IS NULL OR exited_at >= entered_at"
+    ],
+    "tenant": true,
+    "group": "future"
+  },
+  {
+    "name": "student_gate_passes",
+    "columns": [
+      {
+        "name": "enrollment_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "pickup_guardian_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "approved_by",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "reason",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "departed_at",
+        "type": "datetime",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "enrollment_id": "enrollments",
+      "pickup_guardian_id": "guardians",
+      "approved_by": "school_memberships"
+    },
+    "unique": [],
+    "checks": [],
+    "tenant": true,
+    "group": "future"
+  },
+  {
+    "name": "parent_complaints",
+    "columns": [
+      {
+        "name": "campus_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "student_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "guardian_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "assigned_to",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "subject",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "follow_up_on",
+        "type": "date",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "campus_id": "campuses",
+      "student_id": "students",
+      "guardian_id": "guardians",
+      "assigned_to": "school_memberships"
+    },
+    "unique": [],
+    "checks": [],
+    "tenant": true,
+    "group": "future"
+  },
+  {
+    "name": "complaint_updates",
+    "columns": [
+      {
+        "name": "parent_complaint_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "author_membership_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "body",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "parent_complaint_id": "parent_complaints",
+      "author_membership_id": "school_memberships"
+    },
+    "unique": [],
+    "checks": [],
+    "tenant": true,
+    "group": "future"
+  },
+  {
+    "name": "student_observations",
+    "columns": [
+      {
+        "name": "enrollment_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "author_membership_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "kind",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "note",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "observed_on",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "follow_up_on",
+        "type": "date",
+        "nullable": true
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "enrollment_id": "enrollments",
+      "author_membership_id": "school_memberships"
+    },
+    "unique": [],
+    "checks": [],
+    "tenant": true,
+    "group": "future"
+  }
+]
