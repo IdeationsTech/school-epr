@@ -3,7 +3,9 @@ use App\Http\Controllers\Api\SessionController;
 use App\Http\Controllers\Api\SchoolController;
 use App\Http\Middleware\SetSchoolContext;
 use Illuminate\Support\Facades\Route;
-Route::view('/', 'app');
+foreach (['/','/school','/campus','/users','/roles'] as $path) {
+    Route::view($path, 'app');
+}
 Route::prefix('app-api')->group(function (): void {
     Route::get('/session', [SessionController::class, 'show']);
     Route::post('/login', [SessionController::class, 'login'])->middleware('throttle:20,1');

@@ -16,6 +16,15 @@ test('desktop owner can sign in, save setup, create a campus and manage access',
     await page.getByRole('button',{name:'Save school profile'}).click();
     await expect(page.getByRole('status')).toHaveText('School profile saved.');
     await page.getByRole('navigation').getByRole('button',{name:'Campuses',exact:true}).click();
+    await expect(page).toHaveURL(/\/campus$/);
+    await page.reload();
+    await expect(page.getByRole('heading',{name:'Campuses',exact:true})).toBeVisible();
+    await page.goBack();
+    await expect(page).toHaveURL(/\/school$/);
+    await expect(page.getByRole('heading',{name:'School profile',exact:true})).toBeVisible();
+    await page.goForward();
+    await expect(page).toHaveURL(/\/campus$/);
+    await expect(page.getByRole('heading',{name:'Campuses',exact:true})).toBeVisible();
     await page.getByLabel('Campus name').fill('Second Campus');
     await page.getByLabel('Campus code').fill('SECOND');
     const phone=page.getByLabel('Phone',{exact:true});

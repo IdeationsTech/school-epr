@@ -71,8 +71,16 @@ function Roles({onChanged}:{onChanged:()=>Promise<void>}){
  return <form className="panel" onSubmit={submit}><h2>Roles & permissions</h2><p className="muted mb-5">Customize role permissions for this school. Owner access remains protected.</p><ErrorBox message={error}/>{success&&<p role="status" className="success-box">{success}</p>}<div className="role-tabs">{matrix?.roles.map(r=><button type="button" className={roleId===Number(r.id)?'selected':''} key={r.id} onClick={()=>{setRoleId(Number(r.id));setSuccess('');}}><ShieldCheck size={17}/>{r.name}</button>)}</div>{!matrix?<p className="muted">Loading permissions…</p>:<div className="permission-grid">{matrix.permissions.map(p=><label className="permission-choice" key={p.id}><input type="checkbox" checked={owner||enabled.includes(Number(p.id))} disabled={owner||reserved.includes(p.name)} onChange={()=>setEnabled(enabled.includes(Number(p.id))?enabled.filter(x=>x!==Number(p.id)):[...enabled,Number(p.id)])}/><span><strong>{p.name}</strong><small>{reserved.includes(p.name)?'Owner administration':p.description}</small></span></label>)}</div>}<div className="form-footer"><p className="text-xs muted">Action permissions and campus/class scope work together.</p><button className="primary" disabled={busy||owner||!matrix}>{busy?<Busy/>:'Save permissions'}</button></div></form>;
 }
 
+const screenPaths:Record<string,string>={dashboard:'/',school:'/school',campuses:'/campus',members:'/users',roles:'/roles'};
+function screenFromPath(){return Object.keys(screenPaths).find(key=>screenPaths[key]===window.location.pathname.replace(/\/$/,'')||screenPaths[key]===window.location.pathname)??'dashboard';}
 function App(){
- const [session,setSession]=useState<Session|null>(null),[data,setData]=useState<Bootstrap|null>(null),[loading,setLoading]=useState(true),[error,setError]=useState(''),[view,setView]=useState('dashboard'),[menu,setMenu]=useState(false),[switching,setSwitching]=useState(false);
+ const [session,setSession]=useState<Session|null>(null),[data,setData]=useState<Bootstrap|null>(null),[loading,setLoading]=useState(true),[error,setError]=useState(''),[view,setCurrentView]=useState(screenFromPath),[menu,setMenu]=useState(false),[switching,setSwitching]=useState(false);
+ function setView(next:string){
+  const path=screenPaths[next]??'/';
+  if(window.location.pathname!==path)window.history.pushState({},'',path);
+  setCurrentView(next);setMenu(false);
+ }
+ useEffect(()=>{const back=()=>{setCurrentView(screenFromPath());setMenu(false);};window.addEventListener('popstate',back);return()=>window.removeEventListener('popstate',back);},[]);
  async function refresh(){setData(await api<Bootstrap>('/bootstrap'));}
  async function initialize(){setError('');try{const s=await api<Session>('/session');setSession(s);if(s.user)await refresh();else setData(null);}catch(e){setError((e as Error).message);if(e instanceof ApiError&&e.status===401)setSession(null);}finally{setLoading(false);}}
  useEffect(()=>{void initialize();},[]);
