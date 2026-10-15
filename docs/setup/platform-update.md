@@ -19,7 +19,9 @@ Two new tables bring the database to **95 tables**. No existing records are repl
 php artisan platform:admin
 ```
 
-Enter your existing owner account email. This grants **platform access** to that specific account; its password does not change. Initial provider access is intentionally granted from the trusted server terminal, not from a public signup screen. After that, new schools and owners are created through the panel.
+Enter your **platform administrator name, a new email address, a new password and its confirmation**. Use at least 12 characters for the password; it stays hidden while typing. The email must not already belong to a school owner or any other account.
+
+This creates a separate user with platform access and **no school membership**. Existing school owners and their passwords remain unchanged. Initial provider creation uses the trusted server terminal. After that, new schools and owners are created through the panel.
 
 Start the app if it is not already running:
 
@@ -27,7 +29,7 @@ Start the app if it is not already running:
 php artisan serve --host=127.0.0.1 --port=8001
 ```
 
-Open http://127.0.0.1:8001/admin and sign in with the same email/password. If already signed in, refresh using Ctrl+F5. A provider who is also a school member can use **School workspace** and **Super Admin** to switch workspaces.
+Open http://127.0.0.1:8001/admin and sign in with the **new platform email/password**. If already signed in, refresh using Ctrl+F5. Use the separate school owner credentials when testing the school workspace. If you previously promoted an existing school owner with the older version of this command, that earlier grant is not automatically removed.
 
 ## First school from the panel
 

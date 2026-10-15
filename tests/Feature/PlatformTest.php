@@ -100,10 +100,39 @@ class PlatformTest extends TestCase
         $this->assertDatabaseHas('subscriptions',['school_id'=>$sid,'price'=>'5000.00']);
         $this->putJson('/app-api/platform/plans/'.$plan,['name'=>'Invalid','code'=>'BASIC','student_limit'=>0,'campus_limit'=>0,'monthly_price'=>'-1','annual_price'=>'-1','active'=>true])->assertUnprocessable();
     }
-    public function test_platform_admin_command_grants_existing_user_without_password_reset():void
+    public function test_platform_command_creates_separate_admin_with_no_school_membership():void
     {
-        $u=User::factory()->create();$hash=$u->password;
-        $this->artisan('platform:admin')->expectsQuestion('Existing account email for platform administrator',$u->email)->assertSuccessful();
-        $this->assertDatabaseHas('platform_admins',['user_id'=>$u->id,'active'=>true]);$this->assertSame($hash,$u->fresh()->password);
+        $schoolOwner=User::factory()->create();$ownerHash=$schoolOwner->password;
+        $this->artisan('platform:admin')
+            ->expectsQuestion('Platform administrator name','Service Owner')
+            ->expectsQuestion('New platform administrator email','ADMIN@example.test')
+            ->expectsQuestion('Platform administrator password (at least 12 characters)','PlatformPassword123!')
+            ->expectsQuestion('Confirm platform administrator password','PlatformPassword123!')->assertSuccessful();
+        $admin=DB::table('users')->where('email','admin@example.test')->first();
+        $this->assertNotSame($schoolOwner->id,$admin->id);
+        $this->assertTrue(Hash::check('PlatformPassword123!',$admin->password));
+        $this->assertDatabaseHas('platform_admins',['user_id'=>$admin->id,'active'=>true]);
+        $this->assertDatabaseMissing('platform_admins',['user_id'=>$schoolOwner->id]);
+        $this->assertDatabaseMissing('school_memberships',['user_id'=>$admin->id]);
+        $this->assertSame($ownerHash,$schoolOwner->fresh()->password);
+        $this->assertDatabaseHas('platform_audit_logs',['actor_user_id'=>$admin->id,'action'=>'platform.admin_created']);
+        $this->postJson('/app-api/login',['email'=>'admin@example.test','password'=>'PlatformPassword123!'])->assertOk()->assertJsonPath('is_platform_admin',true);
+        $this->getJson('/app-api/platform/dashboard')->assertOk();
+    }
+    public function test_platform_command_rejects_existing_email_without_promoting_or_resetting_account():void
+    {
+        $user=User::factory()->create();$hash=$user->password;
+        $this->artisan('platform:admin')->expectsQuestion('Platform administrator name','Service Owner')
+            ->expectsQuestion('New platform administrator email',$user->email)->assertFailed();
+        $this->assertDatabaseCount('users',1);$this->assertDatabaseCount('platform_admins',0);
+        $this->assertSame($hash,$user->fresh()->password);
+    }
+    public function test_platform_command_rejects_invalid_password_without_partial_account():void
+    {
+        $this->artisan('platform:admin')->expectsQuestion('Platform administrator name','Service Owner')
+            ->expectsQuestion('New platform administrator email','admin@example.test')
+            ->expectsQuestion('Platform administrator password (at least 12 characters)','short')
+            ->expectsQuestion('Confirm platform administrator password','different')->assertFailed();
+        $this->assertDatabaseCount('users',0);$this->assertDatabaseCount('platform_admins',0);
     }
 }
