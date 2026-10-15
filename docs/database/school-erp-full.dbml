@@ -1,0 +1,1937 @@
+// School ERP — implemented database ERD
+// 83 domain + 8 Laravel infrastructure + 1 migration tracking = 92 tables.
+// Paste this entire file into the DBML editor at https://dbdiagram.io/.
+// Diagram only: Laravel migrations remain the source for database creation.
+// Composite references preserve school isolation. No invented logical FKs.
+
+Project school_erp {
+  database_type: 'MySQL'
+  Note: 'MySQL 8.4 school ERP. 92 implemented tables. Future-only tables are grouped separately. Status values are strings unless a check explicitly restricts them. Cross-row business rules require application services.'
+}
+
+Table users {
+  id "bigint unsigned" [pk, increment, not null]
+  name varchar(255) [not null]
+  email varchar(255) [not null, unique]
+  email_verified_at timestamp [null]
+  password varchar(255) [not null]
+  remember_token varchar(100) [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
+Table password_reset_tokens {
+  email varchar(255) [pk, not null]
+  token varchar(255) [not null]
+  created_at timestamp [null]
+}
+
+Table sessions {
+  id varchar(255) [pk, not null]
+  user_id "bigint unsigned" [null, note: 'Indexed Laravel identity reference; no physical foreign key exists in the migration.']
+  ip_address varchar(45) [null]
+  user_agent text [null]
+  payload longtext [not null]
+  last_activity int [not null]
+  indexes {
+    user_id
+    last_activity
+  }
+}
+
+Table cache {
+  key varchar(255) [pk, not null]
+  value mediumtext [not null]
+  expiration bigint [not null]
+  indexes {
+    expiration
+  }
+}
+
+Table cache_locks {
+  key varchar(255) [pk, not null]
+  owner varchar(255) [not null]
+  expiration bigint [not null]
+  indexes {
+    expiration
+  }
+}
+
+Table jobs {
+  id "bigint unsigned" [pk, increment, not null]
+  queue varchar(255) [not null]
+  payload longtext [not null]
+  attempts "smallint unsigned" [not null]
+  reserved_at "int unsigned" [null]
+  available_at "int unsigned" [not null]
+  created_at "int unsigned" [not null]
+  indexes {
+    queue
+  }
+}
+
+Table job_batches {
+  id varchar(255) [pk, not null]
+  name varchar(255) [not null]
+  total_jobs int [not null]
+  pending_jobs int [not null]
+  failed_jobs int [not null]
+  failed_job_ids longtext [not null]
+  options mediumtext [null]
+  cancelled_at int [null]
+  created_at int [not null]
+  finished_at int [null]
+}
+
+Table failed_jobs {
+  id "bigint unsigned" [pk, increment, not null]
+  uuid varchar(255) [not null, unique]
+  connection varchar(255) [not null]
+  queue varchar(255) [not null]
+  payload longtext [not null]
+  exception longtext [not null]
+  failed_at timestamp [not null, default: `CURRENT_TIMESTAMP`]
+  indexes {
+    (connection, queue, failed_at)
+  }
+}
+
+Table migrations {
+  id "int unsigned" [pk, increment, not null]
+  migration varchar(255) [not null]
+  batch int [not null]
+}
+
+Table schools {
+  id "bigint unsigned" [pk, increment, not null]
+  name varchar(160) [not null]
+  code varchar(160) [not null]
+  timezone varchar(160) [not null]
+  currency varchar(160) [not null]
+  status varchar(160) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    code [unique, name: 't10_u0']
+  }
+}
+
+Table plans {
+  id "bigint unsigned" [pk, increment, not null]
+  code varchar(160) [not null]
+  name varchar(160) [not null]
+  student_limit "int unsigned" [not null]
+  campus_limit "int unsigned" [not null]
+  monthly_price decimal(12,2) [not null]
+  features json [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    code [unique, name: 't11_u0']
+  }
+}
+
+Table permissions {
+  id "bigint unsigned" [pk, increment, not null]
+  name varchar(160) [not null]
+  description varchar(160) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    name [unique, name: 't12_u0']
+  }
+}
+
+Table roles {
+  id "bigint unsigned" [pk, increment, not null]
+  name varchar(160) [not null]
+  scope varchar(160) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    name [unique, name: 't13_u0']
+  }
+}
+
+Table role_permissions {
+  id "bigint unsigned" [pk, increment, not null]
+  role_id "bigint unsigned" [not null]
+  permission_id "bigint unsigned" [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (role_id, permission_id) [unique, name: 't14_u0']
+  }
+}
+
+Table campuses {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  name varchar(160) [not null]
+  code varchar(160) [not null]
+  address text [null]
+  phone varchar(160) [null]
+  status varchar(160) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't15_school_id']
+    (school_id, code) [unique, name: 't15_u0']
+  }
+}
+
+Table subscriptions {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  plan_id "bigint unsigned" [not null]
+  starts_on date [not null]
+  ends_on date [not null]
+  status varchar(160) [not null]
+  price decimal(12,2) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't16_school_id']
+  }
+  checks {
+    `ends_on >= starts_on` [name: 't16_check0']
+    `price >= 0` [name: 't16_check1']
+  }
+}
+
+Table subscription_invoices {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  subscription_id "bigint unsigned" [not null]
+  number varchar(160) [not null]
+  issued_on date [not null]
+  due_on date [not null]
+  amount decimal(12,2) [not null]
+  status varchar(160) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't17_school_id']
+    (school_id, number) [unique, name: 't17_u0']
+  }
+  checks {
+    `amount >= 0` [name: 't17_check0']
+  }
+}
+
+Table subscription_payments {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  subscription_invoice_id "bigint unsigned" [not null]
+  amount decimal(12,2) [not null]
+  paid_at datetime [not null]
+  method varchar(160) [not null]
+  reference varchar(160) [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't18_school_id']
+  }
+  checks {
+    `amount > 0` [name: 't18_check0']
+  }
+}
+
+Table school_settings {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  key varchar(160) [not null]
+  value json [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't19_school_id']
+    (school_id, key) [unique, name: 't19_u0']
+  }
+}
+
+Table school_memberships {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  user_id "bigint unsigned" [not null]
+  status varchar(160) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't20_school_id']
+    (school_id, user_id) [unique, name: 't20_u0']
+  }
+}
+
+Table membership_roles {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  membership_id "bigint unsigned" [not null]
+  role_id "bigint unsigned" [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't21_school_id']
+    (school_id, membership_id, role_id) [unique, name: 't21_u0']
+  }
+}
+
+Table membership_campuses {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  membership_id "bigint unsigned" [not null]
+  campus_id "bigint unsigned" [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't22_school_id']
+    (school_id, membership_id, campus_id) [unique, name: 't22_u0']
+  }
+}
+
+Table files {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  campus_id "bigint unsigned" [null]
+  uploaded_by "bigint unsigned" [null]
+  disk varchar(160) [not null]
+  path varchar(160) [not null]
+  original_name varchar(160) [not null]
+  mime_type varchar(160) [not null]
+  size_bytes "int unsigned" [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't23_school_id']
+    (school_id, disk, path) [unique, name: 't23_u0']
+  }
+}
+
+Table staff_profiles {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  membership_id "bigint unsigned" [not null]
+  employee_no varchar(160) [not null]
+  designation varchar(160) [null]
+  hired_on date [null]
+  status varchar(160) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't24_school_id']
+    (school_id, membership_id) [unique, name: 't24_u0']
+    (school_id, employee_no) [unique, name: 't24_u1']
+  }
+}
+
+Table leave_requests {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  staff_profile_id "bigint unsigned" [not null]
+  starts_on date [not null]
+  ends_on date [not null]
+  leave_type varchar(160) [not null]
+  reason text [null]
+  status varchar(160) [not null]
+  approved_by "bigint unsigned" [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't25_school_id']
+  }
+  checks {
+    `ends_on >= starts_on` [name: 't25_check0']
+  }
+}
+
+Table academic_sessions {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  name varchar(160) [not null]
+  starts_on date [not null]
+  ends_on date [not null]
+  status varchar(160) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't26_school_id']
+    (school_id, name) [unique, name: 't26_u0']
+  }
+  checks {
+    `ends_on >= starts_on` [name: 't26_check0']
+  }
+}
+
+Table academic_terms {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  academic_session_id "bigint unsigned" [not null]
+  name varchar(160) [not null]
+  starts_on date [not null]
+  ends_on date [not null]
+  position "int unsigned" [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't27_school_id']
+    (school_id, academic_session_id, name) [unique, name: 't27_u0']
+  }
+  checks {
+    `ends_on >= starts_on` [name: 't27_check0']
+  }
+}
+
+Table classes {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  name varchar(160) [not null]
+  position "int unsigned" [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't28_school_id']
+    (school_id, name) [unique, name: 't28_u0']
+  }
+}
+
+Table sections {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  campus_id "bigint unsigned" [not null]
+  academic_session_id "bigint unsigned" [not null]
+  class_id "bigint unsigned" [not null]
+  name varchar(160) [not null]
+  capacity "int unsigned" [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't29_school_id']
+    (school_id, campus_id, academic_session_id, class_id, name) [unique, name: 't29_u0']
+  }
+}
+
+Table subjects {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  name varchar(160) [not null]
+  code varchar(160) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't30_school_id']
+    (school_id, code) [unique, name: 't30_u0']
+  }
+}
+
+Table section_subjects {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  section_id "bigint unsigned" [not null]
+  subject_id "bigint unsigned" [not null]
+  required_for_diary boolean [not null, default: false]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't31_school_id']
+    (school_id, section_id, subject_id) [unique, name: 't31_u0']
+  }
+}
+
+Table teacher_assignments {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  staff_profile_id "bigint unsigned" [not null]
+  section_id "bigint unsigned" [not null]
+  subject_id "bigint unsigned" [null]
+  is_class_teacher boolean [not null, default: false]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't32_school_id']
+  }
+}
+
+Table admission_inquiries {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  campus_id "bigint unsigned" [not null]
+  child_name varchar(160) [not null]
+  guardian_name varchar(160) [not null]
+  phone varchar(160) [not null]
+  status varchar(160) [not null]
+  follow_up_on date [null]
+  notes text [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't33_school_id']
+  }
+}
+
+Table admission_applications {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  inquiry_id "bigint unsigned" [null]
+  campus_id "bigint unsigned" [not null]
+  class_id "bigint unsigned" [not null]
+  academic_session_id "bigint unsigned" [not null]
+  application_no varchar(160) [not null]
+  student_name varchar(160) [not null]
+  birth_date date [null]
+  guardian_details json [not null]
+  status varchar(160) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't34_school_id']
+    (school_id, application_no) [unique, name: 't34_u0']
+  }
+}
+
+Table students {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  admission_no varchar(160) [not null]
+  first_name varchar(160) [not null]
+  last_name varchar(160) [null]
+  birth_date date [null]
+  gender varchar(160) [null]
+  admitted_on date [not null]
+  status varchar(160) [not null]
+  application_id "bigint unsigned" [null]
+  photo_file_id "bigint unsigned" [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't35_school_id']
+    (school_id, admission_no) [unique, name: 't35_u0']
+  }
+}
+
+Table guardians {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  name varchar(160) [not null]
+  phone varchar(160) [not null]
+  alternate_phone varchar(160) [null]
+  email varchar(160) [null]
+  address text [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't36_school_id']
+  }
+}
+
+Table student_guardians {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  student_id "bigint unsigned" [not null]
+  guardian_id "bigint unsigned" [not null]
+  relationship varchar(160) [not null]
+  is_primary boolean [not null, default: false]
+  can_receive_reports boolean [not null, default: false]
+  can_pick_up boolean [not null, default: false]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't37_school_id']
+    (school_id, student_id, guardian_id) [unique, name: 't37_u0']
+  }
+}
+
+Table enrollments {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  student_id "bigint unsigned" [not null]
+  section_id "bigint unsigned" [not null]
+  roll_no varchar(160) [null]
+  starts_on date [not null]
+  ends_on date [null]
+  status varchar(160) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't38_school_id']
+    (school_id, student_id, section_id, starts_on) [unique, name: 't38_u0']
+  }
+  checks {
+    `ends_on IS NULL OR ends_on >= starts_on` [name: 't38_check0']
+  }
+}
+
+Table student_documents {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  student_id "bigint unsigned" [not null]
+  file_id "bigint unsigned" [not null]
+  document_type varchar(160) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't39_school_id']
+  }
+}
+
+Table fee_heads {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  name varchar(160) [not null]
+  code varchar(160) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't40_school_id']
+    (school_id, code) [unique, name: 't40_u0']
+  }
+}
+
+Table fee_plans {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  academic_session_id "bigint unsigned" [not null]
+  class_id "bigint unsigned" [not null]
+  campus_id "bigint unsigned" [null]
+  name varchar(160) [not null]
+  starts_on date [not null]
+  ends_on date [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't41_school_id']
+  }
+  checks {
+    `ends_on IS NULL OR ends_on >= starts_on` [name: 't41_check0']
+  }
+}
+
+Table fee_plan_items {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  fee_plan_id "bigint unsigned" [not null]
+  fee_head_id "bigint unsigned" [not null]
+  amount decimal(12,2) [not null]
+  frequency varchar(160) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't42_school_id']
+  }
+  checks {
+    `amount >= 0` [name: 't42_check0']
+  }
+}
+
+Table student_concessions {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  enrollment_id "bigint unsigned" [not null]
+  fee_head_id "bigint unsigned" [not null]
+  kind varchar(160) [not null]
+  value decimal(12,2) [not null]
+  starts_on date [not null]
+  ends_on date [null]
+  reason text [null]
+  approved_by "bigint unsigned" [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't43_school_id']
+  }
+  checks {
+    `kind IN ('fixed','percent')` [name: 't43_check0']
+    `value >= 0` [name: 't43_check1']
+    `kind <> 'percent' OR value <= 100` [name: 't43_check2']
+    `ends_on IS NULL OR ends_on >= starts_on` [name: 't43_check3']
+  }
+}
+
+Table invoices {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  enrollment_id "bigint unsigned" [not null]
+  number varchar(160) [not null]
+  period date [not null]
+  kind varchar(160) [not null]
+  installment_no "int unsigned" [not null]
+  issued_on date [not null]
+  due_on date [not null]
+  status varchar(160) [not null]
+  total decimal(12,2) [not null]
+  void_reason text [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't44_school_id']
+    (school_id, number) [unique, name: 't44_u0']
+    (school_id, enrollment_id, period, kind, installment_no) [unique, name: 't44_u1']
+  }
+  checks {
+    `total >= 0` [name: 't44_check0']
+  }
+}
+
+Table invoice_items {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  invoice_id "bigint unsigned" [not null]
+  fee_head_id "bigint unsigned" [null]
+  description varchar(160) [not null]
+  quantity decimal(12,2) [not null]
+  unit_amount decimal(12,2) [not null]
+  discount_amount decimal(12,2) [not null]
+  line_total decimal(12,2) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't45_school_id']
+  }
+  checks {
+    `quantity > 0` [name: 't45_check0']
+    `unit_amount >= 0` [name: 't45_check1']
+    `discount_amount >= 0` [name: 't45_check2']
+    `line_total >= 0` [name: 't45_check3']
+  }
+}
+
+Table bank_accounts {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  campus_id "bigint unsigned" [null]
+  name varchar(160) [not null]
+  account_reference varchar(160) [null]
+  opening_balance decimal(12,2) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't46_school_id']
+  }
+}
+
+Table payments {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  campus_id "bigint unsigned" [not null]
+  student_id "bigint unsigned" [not null]
+  bank_account_id "bigint unsigned" [null]
+  received_by "bigint unsigned" [not null]
+  receipt_no varchar(160) [not null]
+  amount decimal(12,2) [not null]
+  method varchar(160) [not null]
+  reference varchar(160) [null]
+  paid_at datetime [not null]
+  idempotency_key varchar(160) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't47_school_id']
+    (school_id, receipt_no) [unique, name: 't47_u0']
+    (school_id, idempotency_key) [unique, name: 't47_u1']
+  }
+  checks {
+    `amount > 0` [name: 't47_check0']
+  }
+}
+
+Table payment_allocations {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  payment_id "bigint unsigned" [not null]
+  invoice_id "bigint unsigned" [not null]
+  amount decimal(12,2) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't48_school_id']
+    (school_id, payment_id, invoice_id) [unique, name: 't48_u0']
+  }
+  checks {
+    `amount > 0` [name: 't48_check0']
+  }
+}
+
+Table payment_reversals {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  payment_id "bigint unsigned" [not null]
+  amount decimal(12,2) [not null]
+  reason text [not null]
+  status varchar(160) [not null]
+  approved_by "bigint unsigned" [null]
+  reversed_at datetime [null]
+  idempotency_key varchar(160) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't49_school_id']
+    (school_id, idempotency_key) [unique, name: 't49_u0']
+  }
+  checks {
+    `amount > 0` [name: 't49_check0']
+  }
+}
+
+Table reversal_allocations {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  payment_reversal_id "bigint unsigned" [not null]
+  payment_allocation_id "bigint unsigned" [not null]
+  amount decimal(12,2) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't50_school_id']
+  }
+  checks {
+    `amount > 0` [name: 't50_check0']
+  }
+}
+
+Table cashier_closings {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  campus_id "bigint unsigned" [not null]
+  cashier_membership_id "bigint unsigned" [not null]
+  closing_date date [not null]
+  expected_cash decimal(12,2) [not null]
+  counted_cash decimal(12,2) [not null]
+  variance decimal(12,2) [not null]
+  status varchar(160) [not null]
+  approved_by "bigint unsigned" [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't51_school_id']
+    (school_id, campus_id, cashier_membership_id, closing_date) [unique, name: 't51_u0']
+  }
+  checks {
+    `counted_cash >= 0` [name: 't51_check0']
+  }
+}
+
+Table expense_categories {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  name varchar(160) [not null]
+  code varchar(160) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't52_school_id']
+    (school_id, code) [unique, name: 't52_u0']
+  }
+}
+
+Table expenses {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  campus_id "bigint unsigned" [not null]
+  category_id "bigint unsigned" [not null]
+  bank_account_id "bigint unsigned" [null]
+  amount decimal(12,2) [not null]
+  incurred_on date [not null]
+  description text [not null]
+  method varchar(160) [not null]
+  status varchar(160) [not null]
+  approved_by "bigint unsigned" [null]
+  file_id "bigint unsigned" [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't53_school_id']
+  }
+  checks {
+    `amount > 0` [name: 't53_check0']
+  }
+}
+
+Table attendance_sessions {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  section_id "bigint unsigned" [not null]
+  attendance_date date [not null]
+  status varchar(160) [not null]
+  submitted_by "bigint unsigned" [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't54_school_id']
+    (school_id, section_id, attendance_date) [unique, name: 't54_u0']
+  }
+}
+
+Table attendance_records {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  attendance_session_id "bigint unsigned" [not null]
+  enrollment_id "bigint unsigned" [not null]
+  status varchar(160) [not null]
+  remarks text [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't55_school_id']
+    (school_id, attendance_session_id, enrollment_id) [unique, name: 't55_u0']
+  }
+  checks {
+    `status IN ('present','absent','late','leave')` [name: 't55_check0']
+  }
+}
+
+Table diaries {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  section_id "bigint unsigned" [not null]
+  diary_date date [not null]
+  revision "int unsigned" [not null]
+  status varchar(160) [not null]
+  published_by "bigint unsigned" [null]
+  published_at datetime [null]
+  supersedes_id "bigint unsigned" [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't56_school_id']
+    (school_id, section_id, diary_date, revision) [unique, name: 't56_u0']
+  }
+  checks {
+    `revision > 0` [name: 't56_check0']
+  }
+}
+
+Table diary_items {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  diary_id "bigint unsigned" [not null]
+  subject_id "bigint unsigned" [not null]
+  author_membership_id "bigint unsigned" [not null]
+  classwork text [null]
+  homework text [null]
+  no_homework boolean [not null, default: false]
+  status varchar(160) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't57_school_id']
+    (school_id, diary_id, subject_id) [unique, name: 't57_u0']
+  }
+}
+
+Table diary_shares {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  diary_id "bigint unsigned" [not null]
+  confirmed_by "bigint unsigned" [not null]
+  confirmed_at datetime [not null]
+  channel varchar(160) [not null]
+  note text [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't58_school_id']
+  }
+}
+
+Table grading_schemes {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  name varchar(160) [not null]
+  version "int unsigned" [not null]
+  rules json [not null]
+  rounding_policy varchar(160) [not null]
+  tie_policy varchar(160) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't59_school_id']
+    (school_id, name, version) [unique, name: 't59_u0']
+  }
+  checks {
+    `version > 0` [name: 't59_check0']
+  }
+}
+
+Table exam_cycles {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  academic_session_id "bigint unsigned" [not null]
+  academic_term_id "bigint unsigned" [null]
+  name varchar(160) [not null]
+  starts_on date [not null]
+  ends_on date [not null]
+  status varchar(160) [not null]
+  grading_scheme_id "bigint unsigned" [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't60_school_id']
+  }
+  checks {
+    `ends_on >= starts_on` [name: 't60_check0']
+  }
+}
+
+Table tests {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  section_id "bigint unsigned" [not null]
+  subject_id "bigint unsigned" [not null]
+  exam_cycle_id "bigint unsigned" [null]
+  grading_scheme_id "bigint unsigned" [not null]
+  title varchar(160) [not null]
+  test_date date [not null]
+  max_marks decimal(12,2) [not null]
+  assessment_type varchar(160) [not null]
+  status varchar(160) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't61_school_id']
+  }
+  checks {
+    `max_marks > 0` [name: 't61_check0']
+  }
+}
+
+Table test_results {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  test_id "bigint unsigned" [not null]
+  enrollment_id "bigint unsigned" [not null]
+  marks decimal(12,2) [null]
+  status varchar(160) [not null]
+  remarks text [null]
+  revision "int unsigned" [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't62_school_id']
+    (school_id, test_id, enrollment_id) [unique, name: 't62_u0']
+  }
+  checks {
+    `status IN ('pending','present','absent','exempt')` [name: 't62_check0']
+    `(status = 'present' AND marks IS NOT NULL AND marks >= 0) OR (status <> 'present' AND marks IS NULL)` [name: 't62_check1']
+    `revision > 0` [name: 't62_check2']
+  }
+}
+
+Table report_snapshots {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  test_result_id "bigint unsigned" [not null]
+  grading_scheme_id "bigint unsigned" [not null]
+  revision "int unsigned" [not null]
+  payload json [not null]
+  published_by "bigint unsigned" [not null]
+  published_at datetime [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't63_school_id']
+    (school_id, test_result_id, revision) [unique, name: 't63_u0']
+  }
+  checks {
+    `revision > 0` [name: 't63_check0']
+  }
+}
+
+Table exam_papers {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  test_id "bigint unsigned" [not null]
+  scheduled_on date [not null]
+  starts_at time [not null]
+  ends_at time [not null]
+  room varchar(160) [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't64_school_id']
+    (school_id, test_id) [unique, name: 't64_u0']
+  }
+  checks {
+    `ends_at > starts_at` [name: 't64_check0']
+  }
+}
+
+Table assessment_weightages {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  exam_cycle_id "bigint unsigned" [not null]
+  class_id "bigint unsigned" [not null]
+  subject_id "bigint unsigned" [not null]
+  assessment_type varchar(160) [not null]
+  weight decimal(12,2) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't65_school_id']
+    (school_id, exam_cycle_id, class_id, subject_id, assessment_type) [unique, name: 't65_u0']
+  }
+  checks {
+    `weight >= 0 AND weight <= 100` [name: 't65_check0']
+  }
+}
+
+Table exam_candidates {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  exam_cycle_id "bigint unsigned" [not null]
+  enrollment_id "bigint unsigned" [not null]
+  roll_no varchar(160) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't66_school_id']
+    (school_id, exam_cycle_id, enrollment_id) [unique, name: 't66_u0']
+    (school_id, exam_cycle_id, roll_no) [unique, name: 't66_u1']
+  }
+}
+
+Table consolidated_result_snapshots {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  exam_cycle_id "bigint unsigned" [not null]
+  enrollment_id "bigint unsigned" [not null]
+  revision "int unsigned" [not null]
+  grading_scheme_id "bigint unsigned" [not null]
+  payload json [not null]
+  published_by "bigint unsigned" [not null]
+  published_at datetime [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't67_school_id']
+    (school_id, exam_cycle_id, enrollment_id, revision) [unique, name: 't67_u0']
+  }
+  checks {
+    `revision > 0` [name: 't67_check0']
+  }
+}
+
+Table report_shares {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  report_snapshot_id "bigint unsigned" [null]
+  consolidated_snapshot_id "bigint unsigned" [null]
+  guardian_id "bigint unsigned" [not null]
+  confirmed_by "bigint unsigned" [not null]
+  confirmed_at datetime [not null]
+  channel varchar(160) [not null]
+  recipient_phone varchar(160) [not null]
+  resend_reason text [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't68_school_id']
+  }
+  checks {
+    `(report_snapshot_id IS NULL) <> (consolidated_snapshot_id IS NULL)` [name: 't68_check0']
+  }
+}
+
+Table staff_attendance_records {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  staff_profile_id "bigint unsigned" [not null]
+  campus_id "bigint unsigned" [not null]
+  attendance_date date [not null]
+  status varchar(160) [not null]
+  arrived_at time [null]
+  leave_request_id "bigint unsigned" [null]
+  recorded_by "bigint unsigned" [not null]
+  remarks text [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't69_school_id']
+    (school_id, staff_profile_id, attendance_date) [unique, name: 't69_u0']
+  }
+  checks {
+    `status IN ('present','absent','late','leave')` [name: 't69_check0']
+  }
+}
+
+Table salary_structures {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  staff_profile_id "bigint unsigned" [not null]
+  starts_on date [not null]
+  ends_on date [null]
+  status varchar(160) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't70_school_id']
+    (school_id, staff_profile_id, starts_on) [unique, name: 't70_u0']
+  }
+  checks {
+    `ends_on IS NULL OR ends_on >= starts_on` [name: 't70_check0']
+  }
+}
+
+Table salary_structure_items {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  salary_structure_id "bigint unsigned" [not null]
+  name varchar(160) [not null]
+  kind varchar(160) [not null]
+  amount decimal(12,2) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't71_school_id']
+  }
+  checks {
+    `kind IN ('basic','allowance','deduction')` [name: 't71_check0']
+    `amount >= 0` [name: 't71_check1']
+  }
+}
+
+Table staff_advances {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  staff_profile_id "bigint unsigned" [not null]
+  amount decimal(12,2) [not null]
+  paid_on date [null]
+  monthly_recovery decimal(12,2) [not null]
+  status varchar(160) [not null]
+  approved_by "bigint unsigned" [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't72_school_id']
+  }
+  checks {
+    `amount > 0` [name: 't72_check0']
+    `monthly_recovery > 0` [name: 't72_check1']
+  }
+}
+
+Table payroll_runs {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  campus_id "bigint unsigned" [not null]
+  period date [not null]
+  revision "int unsigned" [not null]
+  status varchar(160) [not null]
+  approved_by "bigint unsigned" [null]
+  approved_at datetime [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't73_school_id']
+    (school_id, campus_id, period, revision) [unique, name: 't73_u0']
+  }
+  checks {
+    `revision > 0` [name: 't73_check0']
+  }
+}
+
+Table payroll_items {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  payroll_run_id "bigint unsigned" [not null]
+  staff_profile_id "bigint unsigned" [not null]
+  salary_structure_id "bigint unsigned" [not null]
+  gross_amount decimal(12,2) [not null]
+  deduction_amount decimal(12,2) [not null]
+  advance_recovery decimal(12,2) [not null]
+  net_amount decimal(12,2) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't74_school_id']
+    (school_id, payroll_run_id, staff_profile_id) [unique, name: 't74_u0']
+  }
+  checks {
+    `gross_amount >= 0` [name: 't74_check0']
+    `deduction_amount >= 0` [name: 't74_check1']
+    `advance_recovery >= 0` [name: 't74_check2']
+    `net_amount >= 0` [name: 't74_check3']
+    `net_amount = gross_amount - deduction_amount - advance_recovery` [name: 't74_check4']
+  }
+}
+
+Table payroll_item_components {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  payroll_item_id "bigint unsigned" [not null]
+  name varchar(160) [not null]
+  kind varchar(160) [not null]
+  amount decimal(12,2) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't75_school_id']
+  }
+  checks {
+    `amount >= 0` [name: 't75_check0']
+  }
+}
+
+Table salary_payments {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  campus_id "bigint unsigned" [not null]
+  staff_profile_id "bigint unsigned" [not null]
+  bank_account_id "bigint unsigned" [null]
+  amount decimal(12,2) [not null]
+  paid_at datetime [not null]
+  method varchar(160) [not null]
+  recorded_by "bigint unsigned" [not null]
+  reference varchar(160) [null]
+  idempotency_key varchar(160) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't76_school_id']
+    (school_id, idempotency_key) [unique, name: 't76_u0']
+  }
+  checks {
+    `amount > 0` [name: 't76_check0']
+  }
+}
+
+Table salary_payment_allocations {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  salary_payment_id "bigint unsigned" [not null]
+  payroll_item_id "bigint unsigned" [not null]
+  amount decimal(12,2) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't77_school_id']
+    (school_id, salary_payment_id, payroll_item_id) [unique, name: 't77_u0']
+  }
+  checks {
+    `amount > 0` [name: 't77_check0']
+  }
+}
+
+Table advance_recoveries {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  staff_advance_id "bigint unsigned" [not null]
+  payroll_item_id "bigint unsigned" [not null]
+  amount decimal(12,2) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't78_school_id']
+    (school_id, staff_advance_id, payroll_item_id) [unique, name: 't78_u0']
+  }
+  checks {
+    `amount > 0` [name: 't78_check0']
+  }
+}
+
+Table timetable_slots {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  section_id "bigint unsigned" [not null]
+  subject_id "bigint unsigned" [not null]
+  staff_profile_id "bigint unsigned" [not null]
+  weekday "int unsigned" [not null]
+  starts_at time [not null]
+  ends_at time [not null]
+  room varchar(160) [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't79_school_id']
+  }
+  checks {
+    `weekday BETWEEN 1 AND 7` [name: 't79_check0']
+    `ends_at > starts_at` [name: 't79_check1']
+  }
+}
+
+Table calendar_events {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  campus_id "bigint unsigned" [null]
+  title varchar(160) [not null]
+  starts_at datetime [not null]
+  ends_at datetime [not null]
+  kind varchar(160) [not null]
+  description text [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't80_school_id']
+  }
+  checks {
+    `ends_at >= starts_at` [name: 't80_check0']
+  }
+}
+
+Table ptm_appointments {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  enrollment_id "bigint unsigned" [not null]
+  guardian_id "bigint unsigned" [not null]
+  staff_profile_id "bigint unsigned" [not null]
+  starts_at datetime [not null]
+  ends_at datetime [not null]
+  status varchar(160) [not null]
+  notes text [null]
+  follow_up_on date [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't81_school_id']
+  }
+  checks {
+    `ends_at > starts_at` [name: 't81_check0']
+  }
+}
+
+Table certificate_templates {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  name varchar(160) [not null]
+  type varchar(160) [not null]
+  body text [not null]
+  version "int unsigned" [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't82_school_id']
+    (school_id, name, version) [unique, name: 't82_u0']
+  }
+}
+
+Table certificate_issues {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  student_id "bigint unsigned" [not null]
+  template_id "bigint unsigned" [not null]
+  number varchar(160) [not null]
+  payload json [not null]
+  issued_by "bigint unsigned" [not null]
+  issued_at datetime [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't83_school_id']
+    (school_id, number) [unique, name: 't83_u0']
+  }
+}
+
+Table notices {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  campus_id "bigint unsigned" [null]
+  title varchar(160) [not null]
+  body text [not null]
+  published_by "bigint unsigned" [null]
+  published_at datetime [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't84_school_id']
+  }
+}
+
+Table support_tickets {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  opened_by "bigint unsigned" [not null]
+  subject varchar(160) [not null]
+  status varchar(160) [not null]
+  description text [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't85_school_id']
+  }
+}
+
+Table support_replies {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  support_ticket_id "bigint unsigned" [not null]
+  author_user_id "bigint unsigned" [not null]
+  body text [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't86_school_id']
+  }
+}
+
+Table audit_logs {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  actor_membership_id "bigint unsigned" [null]
+  action varchar(160) [not null]
+  target_type varchar(160) [not null]
+  target_id "bigint unsigned" [null]
+  changes json [null]
+  occurred_at datetime [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't87_school_id']
+  }
+}
+
+Table visitor_logs {
+  Note: 'Future-only storage. No active screens, routes or default permission grants.'
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  campus_id "bigint unsigned" [not null]
+  visitor_name varchar(160) [not null]
+  purpose varchar(160) [not null]
+  entered_at datetime [not null]
+  exited_at datetime [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't88_school_id']
+  }
+  checks {
+    `exited_at IS NULL OR exited_at >= entered_at` [name: 't88_check0']
+  }
+}
+
+Table student_gate_passes {
+  Note: 'Future-only storage. No active screens, routes or default permission grants.'
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  enrollment_id "bigint unsigned" [not null]
+  pickup_guardian_id "bigint unsigned" [null]
+  approved_by "bigint unsigned" [not null]
+  reason text [not null]
+  departed_at datetime [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't89_school_id']
+  }
+}
+
+Table parent_complaints {
+  Note: 'Future-only storage. No active screens, routes or default permission grants.'
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  campus_id "bigint unsigned" [not null]
+  student_id "bigint unsigned" [null]
+  guardian_id "bigint unsigned" [null]
+  assigned_to "bigint unsigned" [null]
+  subject varchar(160) [not null]
+  status varchar(160) [not null]
+  follow_up_on date [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't90_school_id']
+  }
+}
+
+Table complaint_updates {
+  Note: 'Future-only storage. No active screens, routes or default permission grants.'
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  parent_complaint_id "bigint unsigned" [not null]
+  author_membership_id "bigint unsigned" [not null]
+  body text [not null]
+  status varchar(160) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't91_school_id']
+  }
+}
+
+Table student_observations {
+  Note: 'Future-only storage. No active screens, routes or default permission grants.'
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  enrollment_id "bigint unsigned" [not null]
+  author_membership_id "bigint unsigned" [not null]
+  kind varchar(160) [not null]
+  note text [not null]
+  observed_on date [not null]
+  follow_up_on date [null]
+  status varchar(160) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't92_school_id']
+  }
+}
+
+// Physical foreign keys from the integrity migration.
+Ref t14_fk0: role_permissions.role_id > roles.id [delete: restrict, update: no action]
+Ref t14_fk1: role_permissions.permission_id > permissions.id [delete: restrict, update: no action]
+Ref t15_fk0: campuses.school_id > schools.id [delete: restrict, update: no action]
+Ref t16_fk0: subscriptions.school_id > schools.id [delete: restrict, update: no action]
+Ref t16_fk1: subscriptions.plan_id > plans.id [delete: restrict, update: no action]
+Ref t17_fk0: subscription_invoices.school_id > schools.id [delete: restrict, update: no action]
+Ref t17_fk1: subscription_invoices.(school_id, subscription_id) > subscriptions.(school_id, id) [delete: restrict, update: no action]
+Ref t18_fk0: subscription_payments.school_id > schools.id [delete: restrict, update: no action]
+Ref t18_fk1: subscription_payments.(school_id, subscription_invoice_id) > subscription_invoices.(school_id, id) [delete: restrict, update: no action]
+Ref t19_fk0: school_settings.school_id > schools.id [delete: restrict, update: no action]
+Ref t20_fk0: school_memberships.school_id > schools.id [delete: restrict, update: no action]
+Ref t20_fk1: school_memberships.user_id > users.id [delete: restrict, update: no action]
+Ref t21_fk0: membership_roles.school_id > schools.id [delete: restrict, update: no action]
+Ref t21_fk1: membership_roles.(school_id, membership_id) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t21_fk2: membership_roles.role_id > roles.id [delete: restrict, update: no action]
+Ref t22_fk0: membership_campuses.school_id > schools.id [delete: restrict, update: no action]
+Ref t22_fk1: membership_campuses.(school_id, membership_id) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t22_fk2: membership_campuses.(school_id, campus_id) > campuses.(school_id, id) [delete: restrict, update: no action]
+Ref t23_fk0: files.school_id > schools.id [delete: restrict, update: no action]
+Ref t23_fk1: files.(school_id, campus_id) > campuses.(school_id, id) [delete: restrict, update: no action]
+Ref t23_fk2: files.(school_id, uploaded_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t24_fk0: staff_profiles.school_id > schools.id [delete: restrict, update: no action]
+Ref t24_fk1: staff_profiles.(school_id, membership_id) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t25_fk0: leave_requests.school_id > schools.id [delete: restrict, update: no action]
+Ref t25_fk1: leave_requests.(school_id, staff_profile_id) > staff_profiles.(school_id, id) [delete: restrict, update: no action]
+Ref t25_fk2: leave_requests.(school_id, approved_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t26_fk0: academic_sessions.school_id > schools.id [delete: restrict, update: no action]
+Ref t27_fk0: academic_terms.school_id > schools.id [delete: restrict, update: no action]
+Ref t27_fk1: academic_terms.(school_id, academic_session_id) > academic_sessions.(school_id, id) [delete: restrict, update: no action]
+Ref t28_fk0: classes.school_id > schools.id [delete: restrict, update: no action]
+Ref t29_fk0: sections.school_id > schools.id [delete: restrict, update: no action]
+Ref t29_fk1: sections.(school_id, campus_id) > campuses.(school_id, id) [delete: restrict, update: no action]
+Ref t29_fk2: sections.(school_id, academic_session_id) > academic_sessions.(school_id, id) [delete: restrict, update: no action]
+Ref t29_fk3: sections.(school_id, class_id) > classes.(school_id, id) [delete: restrict, update: no action]
+Ref t30_fk0: subjects.school_id > schools.id [delete: restrict, update: no action]
+Ref t31_fk0: section_subjects.school_id > schools.id [delete: restrict, update: no action]
+Ref t31_fk1: section_subjects.(school_id, section_id) > sections.(school_id, id) [delete: restrict, update: no action]
+Ref t31_fk2: section_subjects.(school_id, subject_id) > subjects.(school_id, id) [delete: restrict, update: no action]
+Ref t32_fk0: teacher_assignments.school_id > schools.id [delete: restrict, update: no action]
+Ref t32_fk1: teacher_assignments.(school_id, staff_profile_id) > staff_profiles.(school_id, id) [delete: restrict, update: no action]
+Ref t32_fk2: teacher_assignments.(school_id, section_id) > sections.(school_id, id) [delete: restrict, update: no action]
+Ref t32_fk3: teacher_assignments.(school_id, subject_id) > subjects.(school_id, id) [delete: restrict, update: no action]
+Ref t33_fk0: admission_inquiries.school_id > schools.id [delete: restrict, update: no action]
+Ref t33_fk1: admission_inquiries.(school_id, campus_id) > campuses.(school_id, id) [delete: restrict, update: no action]
+Ref t34_fk0: admission_applications.school_id > schools.id [delete: restrict, update: no action]
+Ref t34_fk1: admission_applications.(school_id, inquiry_id) > admission_inquiries.(school_id, id) [delete: restrict, update: no action]
+Ref t34_fk2: admission_applications.(school_id, campus_id) > campuses.(school_id, id) [delete: restrict, update: no action]
+Ref t34_fk3: admission_applications.(school_id, class_id) > classes.(school_id, id) [delete: restrict, update: no action]
+Ref t34_fk4: admission_applications.(school_id, academic_session_id) > academic_sessions.(school_id, id) [delete: restrict, update: no action]
+Ref t35_fk0: students.school_id > schools.id [delete: restrict, update: no action]
+Ref t35_fk1: students.(school_id, application_id) > admission_applications.(school_id, id) [delete: restrict, update: no action]
+Ref t35_fk2: students.(school_id, photo_file_id) > files.(school_id, id) [delete: restrict, update: no action]
+Ref t36_fk0: guardians.school_id > schools.id [delete: restrict, update: no action]
+Ref t37_fk0: student_guardians.school_id > schools.id [delete: restrict, update: no action]
+Ref t37_fk1: student_guardians.(school_id, student_id) > students.(school_id, id) [delete: restrict, update: no action]
+Ref t37_fk2: student_guardians.(school_id, guardian_id) > guardians.(school_id, id) [delete: restrict, update: no action]
+Ref t38_fk0: enrollments.school_id > schools.id [delete: restrict, update: no action]
+Ref t38_fk1: enrollments.(school_id, student_id) > students.(school_id, id) [delete: restrict, update: no action]
+Ref t38_fk2: enrollments.(school_id, section_id) > sections.(school_id, id) [delete: restrict, update: no action]
+Ref t39_fk0: student_documents.school_id > schools.id [delete: restrict, update: no action]
+Ref t39_fk1: student_documents.(school_id, student_id) > students.(school_id, id) [delete: restrict, update: no action]
+Ref t39_fk2: student_documents.(school_id, file_id) > files.(school_id, id) [delete: restrict, update: no action]
+Ref t40_fk0: fee_heads.school_id > schools.id [delete: restrict, update: no action]
+Ref t41_fk0: fee_plans.school_id > schools.id [delete: restrict, update: no action]
+Ref t41_fk1: fee_plans.(school_id, academic_session_id) > academic_sessions.(school_id, id) [delete: restrict, update: no action]
+Ref t41_fk2: fee_plans.(school_id, class_id) > classes.(school_id, id) [delete: restrict, update: no action]
+Ref t41_fk3: fee_plans.(school_id, campus_id) > campuses.(school_id, id) [delete: restrict, update: no action]
+Ref t42_fk0: fee_plan_items.school_id > schools.id [delete: restrict, update: no action]
+Ref t42_fk1: fee_plan_items.(school_id, fee_plan_id) > fee_plans.(school_id, id) [delete: restrict, update: no action]
+Ref t42_fk2: fee_plan_items.(school_id, fee_head_id) > fee_heads.(school_id, id) [delete: restrict, update: no action]
+Ref t43_fk0: student_concessions.school_id > schools.id [delete: restrict, update: no action]
+Ref t43_fk1: student_concessions.(school_id, enrollment_id) > enrollments.(school_id, id) [delete: restrict, update: no action]
+Ref t43_fk2: student_concessions.(school_id, fee_head_id) > fee_heads.(school_id, id) [delete: restrict, update: no action]
+Ref t43_fk3: student_concessions.(school_id, approved_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t44_fk0: invoices.school_id > schools.id [delete: restrict, update: no action]
+Ref t44_fk1: invoices.(school_id, enrollment_id) > enrollments.(school_id, id) [delete: restrict, update: no action]
+Ref t45_fk0: invoice_items.school_id > schools.id [delete: restrict, update: no action]
+Ref t45_fk1: invoice_items.(school_id, invoice_id) > invoices.(school_id, id) [delete: restrict, update: no action]
+Ref t45_fk2: invoice_items.(school_id, fee_head_id) > fee_heads.(school_id, id) [delete: restrict, update: no action]
+Ref t46_fk0: bank_accounts.school_id > schools.id [delete: restrict, update: no action]
+Ref t46_fk1: bank_accounts.(school_id, campus_id) > campuses.(school_id, id) [delete: restrict, update: no action]
+Ref t47_fk0: payments.school_id > schools.id [delete: restrict, update: no action]
+Ref t47_fk1: payments.(school_id, campus_id) > campuses.(school_id, id) [delete: restrict, update: no action]
+Ref t47_fk2: payments.(school_id, student_id) > students.(school_id, id) [delete: restrict, update: no action]
+Ref t47_fk3: payments.(school_id, bank_account_id) > bank_accounts.(school_id, id) [delete: restrict, update: no action]
+Ref t47_fk4: payments.(school_id, received_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t48_fk0: payment_allocations.school_id > schools.id [delete: restrict, update: no action]
+Ref t48_fk1: payment_allocations.(school_id, payment_id) > payments.(school_id, id) [delete: restrict, update: no action]
+Ref t48_fk2: payment_allocations.(school_id, invoice_id) > invoices.(school_id, id) [delete: restrict, update: no action]
+Ref t49_fk0: payment_reversals.school_id > schools.id [delete: restrict, update: no action]
+Ref t49_fk1: payment_reversals.(school_id, payment_id) > payments.(school_id, id) [delete: restrict, update: no action]
+Ref t49_fk2: payment_reversals.(school_id, approved_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t50_fk0: reversal_allocations.school_id > schools.id [delete: restrict, update: no action]
+Ref t50_fk1: reversal_allocations.(school_id, payment_reversal_id) > payment_reversals.(school_id, id) [delete: restrict, update: no action]
+Ref t50_fk2: reversal_allocations.(school_id, payment_allocation_id) > payment_allocations.(school_id, id) [delete: restrict, update: no action]
+Ref t51_fk0: cashier_closings.school_id > schools.id [delete: restrict, update: no action]
+Ref t51_fk1: cashier_closings.(school_id, campus_id) > campuses.(school_id, id) [delete: restrict, update: no action]
+Ref t51_fk2: cashier_closings.(school_id, cashier_membership_id) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t51_fk3: cashier_closings.(school_id, approved_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t52_fk0: expense_categories.school_id > schools.id [delete: restrict, update: no action]
+Ref t53_fk0: expenses.school_id > schools.id [delete: restrict, update: no action]
+Ref t53_fk1: expenses.(school_id, campus_id) > campuses.(school_id, id) [delete: restrict, update: no action]
+Ref t53_fk2: expenses.(school_id, category_id) > expense_categories.(school_id, id) [delete: restrict, update: no action]
+Ref t53_fk3: expenses.(school_id, bank_account_id) > bank_accounts.(school_id, id) [delete: restrict, update: no action]
+Ref t53_fk4: expenses.(school_id, approved_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t53_fk5: expenses.(school_id, file_id) > files.(school_id, id) [delete: restrict, update: no action]
+Ref t54_fk0: attendance_sessions.school_id > schools.id [delete: restrict, update: no action]
+Ref t54_fk1: attendance_sessions.(school_id, section_id) > sections.(school_id, id) [delete: restrict, update: no action]
+Ref t54_fk2: attendance_sessions.(school_id, submitted_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t55_fk0: attendance_records.school_id > schools.id [delete: restrict, update: no action]
+Ref t55_fk1: attendance_records.(school_id, attendance_session_id) > attendance_sessions.(school_id, id) [delete: restrict, update: no action]
+Ref t55_fk2: attendance_records.(school_id, enrollment_id) > enrollments.(school_id, id) [delete: restrict, update: no action]
+Ref t56_fk0: diaries.school_id > schools.id [delete: restrict, update: no action]
+Ref t56_fk1: diaries.(school_id, section_id) > sections.(school_id, id) [delete: restrict, update: no action]
+Ref t56_fk2: diaries.(school_id, published_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t56_fk3: diaries.(school_id, supersedes_id) > diaries.(school_id, id) [delete: restrict, update: no action]
+Ref t57_fk0: diary_items.school_id > schools.id [delete: restrict, update: no action]
+Ref t57_fk1: diary_items.(school_id, diary_id) > diaries.(school_id, id) [delete: restrict, update: no action]
+Ref t57_fk2: diary_items.(school_id, subject_id) > subjects.(school_id, id) [delete: restrict, update: no action]
+Ref t57_fk3: diary_items.(school_id, author_membership_id) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t58_fk0: diary_shares.school_id > schools.id [delete: restrict, update: no action]
+Ref t58_fk1: diary_shares.(school_id, diary_id) > diaries.(school_id, id) [delete: restrict, update: no action]
+Ref t58_fk2: diary_shares.(school_id, confirmed_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t59_fk0: grading_schemes.school_id > schools.id [delete: restrict, update: no action]
+Ref t60_fk0: exam_cycles.school_id > schools.id [delete: restrict, update: no action]
+Ref t60_fk1: exam_cycles.(school_id, academic_session_id) > academic_sessions.(school_id, id) [delete: restrict, update: no action]
+Ref t60_fk2: exam_cycles.(school_id, academic_term_id) > academic_terms.(school_id, id) [delete: restrict, update: no action]
+Ref t60_fk3: exam_cycles.(school_id, grading_scheme_id) > grading_schemes.(school_id, id) [delete: restrict, update: no action]
+Ref t61_fk0: tests.school_id > schools.id [delete: restrict, update: no action]
+Ref t61_fk1: tests.(school_id, section_id) > sections.(school_id, id) [delete: restrict, update: no action]
+Ref t61_fk2: tests.(school_id, subject_id) > subjects.(school_id, id) [delete: restrict, update: no action]
+Ref t61_fk3: tests.(school_id, exam_cycle_id) > exam_cycles.(school_id, id) [delete: restrict, update: no action]
+Ref t61_fk4: tests.(school_id, grading_scheme_id) > grading_schemes.(school_id, id) [delete: restrict, update: no action]
+Ref t62_fk0: test_results.school_id > schools.id [delete: restrict, update: no action]
+Ref t62_fk1: test_results.(school_id, test_id) > tests.(school_id, id) [delete: restrict, update: no action]
+Ref t62_fk2: test_results.(school_id, enrollment_id) > enrollments.(school_id, id) [delete: restrict, update: no action]
+Ref t63_fk0: report_snapshots.school_id > schools.id [delete: restrict, update: no action]
+Ref t63_fk1: report_snapshots.(school_id, test_result_id) > test_results.(school_id, id) [delete: restrict, update: no action]
+Ref t63_fk2: report_snapshots.(school_id, grading_scheme_id) > grading_schemes.(school_id, id) [delete: restrict, update: no action]
+Ref t63_fk3: report_snapshots.(school_id, published_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t64_fk0: exam_papers.school_id > schools.id [delete: restrict, update: no action]
+Ref t64_fk1: exam_papers.(school_id, test_id) > tests.(school_id, id) [delete: restrict, update: no action]
+Ref t65_fk0: assessment_weightages.school_id > schools.id [delete: restrict, update: no action]
+Ref t65_fk1: assessment_weightages.(school_id, exam_cycle_id) > exam_cycles.(school_id, id) [delete: restrict, update: no action]
+Ref t65_fk2: assessment_weightages.(school_id, class_id) > classes.(school_id, id) [delete: restrict, update: no action]
+Ref t65_fk3: assessment_weightages.(school_id, subject_id) > subjects.(school_id, id) [delete: restrict, update: no action]
+Ref t66_fk0: exam_candidates.school_id > schools.id [delete: restrict, update: no action]
+Ref t66_fk1: exam_candidates.(school_id, exam_cycle_id) > exam_cycles.(school_id, id) [delete: restrict, update: no action]
+Ref t66_fk2: exam_candidates.(school_id, enrollment_id) > enrollments.(school_id, id) [delete: restrict, update: no action]
+Ref t67_fk0: consolidated_result_snapshots.school_id > schools.id [delete: restrict, update: no action]
+Ref t67_fk1: consolidated_result_snapshots.(school_id, exam_cycle_id) > exam_cycles.(school_id, id) [delete: restrict, update: no action]
+Ref t67_fk2: consolidated_result_snapshots.(school_id, enrollment_id) > enrollments.(school_id, id) [delete: restrict, update: no action]
+Ref t67_fk3: consolidated_result_snapshots.(school_id, grading_scheme_id) > grading_schemes.(school_id, id) [delete: restrict, update: no action]
+Ref t67_fk4: consolidated_result_snapshots.(school_id, published_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t68_fk0: report_shares.school_id > schools.id [delete: restrict, update: no action]
+Ref t68_fk1: report_shares.(school_id, report_snapshot_id) > report_snapshots.(school_id, id) [delete: restrict, update: no action]
+Ref t68_fk2: report_shares.(school_id, consolidated_snapshot_id) > consolidated_result_snapshots.(school_id, id) [delete: restrict, update: no action]
+Ref t68_fk3: report_shares.(school_id, guardian_id) > guardians.(school_id, id) [delete: restrict, update: no action]
+Ref t68_fk4: report_shares.(school_id, confirmed_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t69_fk0: staff_attendance_records.school_id > schools.id [delete: restrict, update: no action]
+Ref t69_fk1: staff_attendance_records.(school_id, staff_profile_id) > staff_profiles.(school_id, id) [delete: restrict, update: no action]
+Ref t69_fk2: staff_attendance_records.(school_id, campus_id) > campuses.(school_id, id) [delete: restrict, update: no action]
+Ref t69_fk3: staff_attendance_records.(school_id, leave_request_id) > leave_requests.(school_id, id) [delete: restrict, update: no action]
+Ref t69_fk4: staff_attendance_records.(school_id, recorded_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t70_fk0: salary_structures.school_id > schools.id [delete: restrict, update: no action]
+Ref t70_fk1: salary_structures.(school_id, staff_profile_id) > staff_profiles.(school_id, id) [delete: restrict, update: no action]
+Ref t71_fk0: salary_structure_items.school_id > schools.id [delete: restrict, update: no action]
+Ref t71_fk1: salary_structure_items.(school_id, salary_structure_id) > salary_structures.(school_id, id) [delete: restrict, update: no action]
+Ref t72_fk0: staff_advances.school_id > schools.id [delete: restrict, update: no action]
+Ref t72_fk1: staff_advances.(school_id, staff_profile_id) > staff_profiles.(school_id, id) [delete: restrict, update: no action]
+Ref t72_fk2: staff_advances.(school_id, approved_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t73_fk0: payroll_runs.school_id > schools.id [delete: restrict, update: no action]
+Ref t73_fk1: payroll_runs.(school_id, campus_id) > campuses.(school_id, id) [delete: restrict, update: no action]
+Ref t73_fk2: payroll_runs.(school_id, approved_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t74_fk0: payroll_items.school_id > schools.id [delete: restrict, update: no action]
+Ref t74_fk1: payroll_items.(school_id, payroll_run_id) > payroll_runs.(school_id, id) [delete: restrict, update: no action]
+Ref t74_fk2: payroll_items.(school_id, staff_profile_id) > staff_profiles.(school_id, id) [delete: restrict, update: no action]
+Ref t74_fk3: payroll_items.(school_id, salary_structure_id) > salary_structures.(school_id, id) [delete: restrict, update: no action]
+Ref t75_fk0: payroll_item_components.school_id > schools.id [delete: restrict, update: no action]
+Ref t75_fk1: payroll_item_components.(school_id, payroll_item_id) > payroll_items.(school_id, id) [delete: restrict, update: no action]
+Ref t76_fk0: salary_payments.school_id > schools.id [delete: restrict, update: no action]
+Ref t76_fk1: salary_payments.(school_id, campus_id) > campuses.(school_id, id) [delete: restrict, update: no action]
+Ref t76_fk2: salary_payments.(school_id, staff_profile_id) > staff_profiles.(school_id, id) [delete: restrict, update: no action]
+Ref t76_fk3: salary_payments.(school_id, bank_account_id) > bank_accounts.(school_id, id) [delete: restrict, update: no action]
+Ref t76_fk4: salary_payments.(school_id, recorded_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t77_fk0: salary_payment_allocations.school_id > schools.id [delete: restrict, update: no action]
+Ref t77_fk1: salary_payment_allocations.(school_id, salary_payment_id) > salary_payments.(school_id, id) [delete: restrict, update: no action]
+Ref t77_fk2: salary_payment_allocations.(school_id, payroll_item_id) > payroll_items.(school_id, id) [delete: restrict, update: no action]
+Ref t78_fk0: advance_recoveries.school_id > schools.id [delete: restrict, update: no action]
+Ref t78_fk1: advance_recoveries.(school_id, staff_advance_id) > staff_advances.(school_id, id) [delete: restrict, update: no action]
+Ref t78_fk2: advance_recoveries.(school_id, payroll_item_id) > payroll_items.(school_id, id) [delete: restrict, update: no action]
+Ref t79_fk0: timetable_slots.school_id > schools.id [delete: restrict, update: no action]
+Ref t79_fk1: timetable_slots.(school_id, section_id) > sections.(school_id, id) [delete: restrict, update: no action]
+Ref t79_fk2: timetable_slots.(school_id, subject_id) > subjects.(school_id, id) [delete: restrict, update: no action]
+Ref t79_fk3: timetable_slots.(school_id, staff_profile_id) > staff_profiles.(school_id, id) [delete: restrict, update: no action]
+Ref t80_fk0: calendar_events.school_id > schools.id [delete: restrict, update: no action]
+Ref t80_fk1: calendar_events.(school_id, campus_id) > campuses.(school_id, id) [delete: restrict, update: no action]
+Ref t81_fk0: ptm_appointments.school_id > schools.id [delete: restrict, update: no action]
+Ref t81_fk1: ptm_appointments.(school_id, enrollment_id) > enrollments.(school_id, id) [delete: restrict, update: no action]
+Ref t81_fk2: ptm_appointments.(school_id, guardian_id) > guardians.(school_id, id) [delete: restrict, update: no action]
+Ref t81_fk3: ptm_appointments.(school_id, staff_profile_id) > staff_profiles.(school_id, id) [delete: restrict, update: no action]
+Ref t82_fk0: certificate_templates.school_id > schools.id [delete: restrict, update: no action]
+Ref t83_fk0: certificate_issues.school_id > schools.id [delete: restrict, update: no action]
+Ref t83_fk1: certificate_issues.(school_id, student_id) > students.(school_id, id) [delete: restrict, update: no action]
+Ref t83_fk2: certificate_issues.(school_id, template_id) > certificate_templates.(school_id, id) [delete: restrict, update: no action]
+Ref t83_fk3: certificate_issues.(school_id, issued_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t84_fk0: notices.school_id > schools.id [delete: restrict, update: no action]
+Ref t84_fk1: notices.(school_id, campus_id) > campuses.(school_id, id) [delete: restrict, update: no action]
+Ref t84_fk2: notices.(school_id, published_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t85_fk0: support_tickets.school_id > schools.id [delete: restrict, update: no action]
+Ref t85_fk1: support_tickets.(school_id, opened_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t86_fk0: support_replies.school_id > schools.id [delete: restrict, update: no action]
+Ref t86_fk1: support_replies.(school_id, support_ticket_id) > support_tickets.(school_id, id) [delete: restrict, update: no action]
+Ref t86_fk2: support_replies.author_user_id > users.id [delete: restrict, update: no action]
+Ref t87_fk0: audit_logs.school_id > schools.id [delete: restrict, update: no action]
+Ref t87_fk1: audit_logs.(school_id, actor_membership_id) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t88_fk0: visitor_logs.school_id > schools.id [delete: restrict, update: no action]
+Ref t88_fk1: visitor_logs.(school_id, campus_id) > campuses.(school_id, id) [delete: restrict, update: no action]
+Ref t89_fk0: student_gate_passes.school_id > schools.id [delete: restrict, update: no action]
+Ref t89_fk1: student_gate_passes.(school_id, enrollment_id) > enrollments.(school_id, id) [delete: restrict, update: no action]
+Ref t89_fk2: student_gate_passes.(school_id, pickup_guardian_id) > guardians.(school_id, id) [delete: restrict, update: no action]
+Ref t89_fk3: student_gate_passes.(school_id, approved_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t90_fk0: parent_complaints.school_id > schools.id [delete: restrict, update: no action]
+Ref t90_fk1: parent_complaints.(school_id, campus_id) > campuses.(school_id, id) [delete: restrict, update: no action]
+Ref t90_fk2: parent_complaints.(school_id, student_id) > students.(school_id, id) [delete: restrict, update: no action]
+Ref t90_fk3: parent_complaints.(school_id, guardian_id) > guardians.(school_id, id) [delete: restrict, update: no action]
+Ref t90_fk4: parent_complaints.(school_id, assigned_to) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t91_fk0: complaint_updates.school_id > schools.id [delete: restrict, update: no action]
+Ref t91_fk1: complaint_updates.(school_id, parent_complaint_id) > parent_complaints.(school_id, id) [delete: restrict, update: no action]
+Ref t91_fk2: complaint_updates.(school_id, author_membership_id) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t92_fk0: student_observations.school_id > schools.id [delete: restrict, update: no action]
+Ref t92_fk1: student_observations.(school_id, enrollment_id) > enrollments.(school_id, id) [delete: restrict, update: no action]
+Ref t92_fk2: student_observations.(school_id, author_membership_id) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+
+TableGroup laravel_infrastructure {
+  users
+  password_reset_tokens
+  sessions
+  cache
+  cache_locks
+  jobs
+  job_batches
+  failed_jobs
+  migrations
+}
+
+TableGroup platform {
+  schools
+  plans
+  campuses
+  subscriptions
+  subscription_invoices
+  subscription_payments
+  school_settings
+  support_tickets
+  support_replies
+}
+
+TableGroup access {
+  permissions
+  roles
+  role_permissions
+  school_memberships
+  membership_roles
+  membership_campuses
+}
+
+TableGroup operations {
+  files
+  timetable_slots
+  calendar_events
+  ptm_appointments
+  certificate_templates
+  certificate_issues
+  notices
+  audit_logs
+}
+
+TableGroup staff {
+  staff_profiles
+  leave_requests
+}
+
+TableGroup academics {
+  academic_sessions
+  academic_terms
+  classes
+  sections
+  subjects
+  section_subjects
+  teacher_assignments
+}
+
+TableGroup students {
+  admission_inquiries
+  admission_applications
+  students
+  guardians
+  student_guardians
+  enrollments
+  student_documents
+}
+
+TableGroup fees {
+  fee_heads
+  fee_plans
+  fee_plan_items
+  student_concessions
+  invoices
+  invoice_items
+  payments
+  payment_allocations
+  payment_reversals
+  reversal_allocations
+}
+
+TableGroup finance {
+  bank_accounts
+  cashier_closings
+  expense_categories
+  expenses
+}
+
+TableGroup attendance {
+  attendance_sessions
+  attendance_records
+}
+
+TableGroup diary {
+  diaries
+  diary_items
+  diary_shares
+}
+
+TableGroup exams {
+  grading_schemes
+  exam_cycles
+  tests
+  test_results
+  report_snapshots
+  exam_papers
+  assessment_weightages
+  exam_candidates
+  consolidated_result_snapshots
+}
+
+TableGroup sharing {
+  report_shares
+}
+
+TableGroup payroll {
+  staff_attendance_records
+  salary_structures
+  salary_structure_items
+  staff_advances
+  payroll_runs
+  payroll_items
+  payroll_item_components
+  salary_payments
+  salary_payment_allocations
+  advance_recoveries
+}
+
+TableGroup future {
+  visitor_logs
+  student_gate_passes
+  parent_complaints
+  complaint_updates
+  student_observations
+}
