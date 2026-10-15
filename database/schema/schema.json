@@ -3680,5 +3680,68 @@
     "checks": [],
     "tenant": true,
     "group": "access"
+  },
+  {
+    "name": "platform_admins",
+    "columns": [
+      {
+        "name": "user_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "active",
+        "type": "bool",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "user_id": "users"
+    },
+    "unique": [
+      [
+        "user_id"
+      ]
+    ],
+    "checks": [],
+    "tenant": false,
+    "group": "platform"
+  },
+  {
+    "name": "platform_audit_logs",
+    "columns": [
+      {
+        "name": "actor_user_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "action",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "target_type",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "target_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "changes",
+        "type": "json",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "actor_user_id": "users"
+    },
+    "unique": [],
+    "checks": [],
+    "tenant": false,
+    "group": "platform"
   }
 ]

@@ -1,6 +1,6 @@
 export type Campus = {id:number; name:string; code:string; address?:string; phone?:string; status?:string};
 export type School = {id:number; name:string; code:string; timezone:string; currency:string};
-export type Session = {user:{id:number;name:string;email:string}|null; schools:School[]; school_id:number|null};
+export type Session = {is_platform_admin?:boolean;user:{id:number;name:string;email:string}|null; schools:School[]; school_id:number|null};
 export type Bootstrap = {school:School; contact:{email:string;phone:string;address?:string}; roles:string[]; permissions:string[]; is_owner:boolean; campuses:Campus[]; counts:{campuses:number;users?:number}};
 export type Role = {id:number;name:string};
 export type Permission = {id:number;name:string;description:string};

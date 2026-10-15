@@ -48,7 +48,9 @@ jobs:
       - name: Seed browser fixture
         env:
           DEMO_ADMIN_PASSWORD: BrowserTestPassword123!
-        run: php artisan db:seed --class=DemoSchoolSeeder --force
+        run: |
+          php artisan db:seed --class=DemoSchoolSeeder --force
+          php artisan db:seed --class=PlatformBrowserSeeder --force
       - name: Start local test server
         run: APP_ENV=local php artisan serve --host=127.0.0.1 --port=8001 > /tmp/school-server.log 2>&1 &
       - name: Browser functional checks

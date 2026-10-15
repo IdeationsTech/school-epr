@@ -82,5 +82,7 @@
   "parent_complaints": "future",
   "complaint_updates": "future",
   "student_observations": "future",
-  "school_role_permissions": "access"
+  "school_role_permissions": "access",
+  "platform_admins": "platform",
+  "platform_audit_logs": "platform"
 }

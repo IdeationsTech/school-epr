@@ -1,12 +1,12 @@
 // School ERP — implemented database ERD
-// 84 domain + 8 Laravel infrastructure + 1 migration tracking = 93 tables.
+// 86 domain + 8 Laravel infrastructure + 1 migration tracking = 95 tables.
 // Paste this entire file into the DBML editor at https://dbdiagram.io/.
 // Diagram only: Laravel migrations remain the source for database creation.
 // Composite references preserve school isolation. No invented logical FKs.
 
 Project school_erp {
   database_type: 'MySQL'
-  Note: 'MySQL 8.4 school ERP. 93 implemented tables. Future-only tables are grouped separately. Status values are strings unless a check explicitly restricts them. Cross-row business rules require application services.'
+  Note: 'MySQL 8.4 school ERP. 95 implemented tables. Future-only tables are grouped separately. Status values are strings unless a check explicitly restricts them. Cross-row business rules require application services.'
 }
 
 Table users {
@@ -1578,6 +1578,28 @@ Table school_role_permissions {
   }
 }
 
+Table platform_admins {
+  id "bigint unsigned" [pk, increment, not null]
+  user_id "bigint unsigned" [not null]
+  active boolean [not null, default: false]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    user_id [unique, name: 't94_u0']
+  }
+}
+
+Table platform_audit_logs {
+  id "bigint unsigned" [pk, increment, not null]
+  actor_user_id "bigint unsigned" [not null]
+  action varchar(160) [not null]
+  target_type varchar(160) [not null]
+  target_id "bigint unsigned" [not null]
+  changes json [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+}
+
 // Physical foreign keys from the integrity migration.
 Ref t14_fk0: role_permissions.role_id > roles.id [delete: restrict, update: no action]
 Ref t14_fk1: role_permissions.permission_id > permissions.id [delete: restrict, update: no action]
@@ -1815,6 +1837,8 @@ Ref t92_fk2: student_observations.(school_id, author_membership_id) > school_mem
 Ref t93_fk0: school_role_permissions.school_id > schools.id [delete: restrict, update: no action]
 Ref t93_fk1: school_role_permissions.role_id > roles.id [delete: restrict, update: no action]
 Ref t93_fk2: school_role_permissions.permission_id > permissions.id [delete: restrict, update: no action]
+Ref t94_fk0: platform_admins.user_id > users.id [delete: restrict, update: no action]
+Ref t95_fk0: platform_audit_logs.actor_user_id > users.id [delete: restrict, update: no action]
 
 TableGroup laravel_infrastructure {
   users
@@ -1838,6 +1862,8 @@ TableGroup platform {
   school_settings
   support_tickets
   support_replies
+  platform_admins
+  platform_audit_logs
 }
 
 TableGroup access {

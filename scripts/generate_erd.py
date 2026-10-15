@@ -1,4 +1,4 @@
-"""Generate the 93-table DBML diagram from the committed schema contract.
+"""Generate the 95-table DBML diagram from the committed schema contract.
 
 Run from any directory: python scripts/generate_erd.py
 Only diagram files are written; this script never connects to MySQL.
@@ -15,14 +15,14 @@ def q(value):
 
 out = [
     '// School ERP — implemented database ERD',
-    '// 84 domain + 8 Laravel infrastructure + 1 migration tracking = 93 tables.',
+    '// 86 domain + 8 Laravel infrastructure + 1 migration tracking = 95 tables.',
     '// Paste this entire file into the DBML editor at https://dbdiagram.io/.',
     '// Diagram only: Laravel migrations remain the source for database creation.',
     '// Composite references preserve school isolation. No invented logical FKs.',
     '',
     "Project school_erp {",
     "  database_type: 'MySQL'",
-    "  Note: 'MySQL 8.4 school ERP. 93 implemented tables. Future-only tables are grouped separately. Status values are strings unless a check explicitly restricts them. Cross-row business rules require application services.'",
+    "  Note: 'MySQL 8.4 school ERP. 95 implemented tables. Future-only tables are grouped separately. Status values are strings unless a check explicitly restricts them. Cross-row business rules require application services.'",
     '}',
     '',
 ]
@@ -126,5 +126,5 @@ for group, tables in groups.items():
 
 destination = ROOT / 'docs/database/school-erp-full.dbml'
 destination.write_text('\n'.join(out))
-assert len(framework) + len(domain) == 93
-print(json.dumps({'tables': 93, 'foreign_keys': len(refs), 'file': str(destination)}))
+assert len(framework) + len(domain) == 95
+print(json.dumps({'tables': 95, 'foreign_keys': len(refs), 'file': str(destination)}))

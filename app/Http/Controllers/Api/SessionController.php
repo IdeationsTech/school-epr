@@ -19,6 +19,7 @@ class SessionController extends Controller
             ->where('school_memberships.user_id', $user->id)->where('school_memberships.status', 'active')
             ->where('schools.status', 'active')->orderBy('schools.name')->get(['schools.id', 'schools.name', 'schools.code']) : [];
         return response()->json(['user' => $user ? ['id' => $user->id, 'name' => $user->name, 'email' => $user->email] : null,
+            'is_platform_admin' => $user ? DB::table('platform_admins')->where('user_id',$user->id)->where('active',true)->exists() : false,
             'schools' => $schools, 'school_id' => $request->session()->get('school_id'), 'csrf_token' => csrf_token()]);
     }
 
@@ -34,14 +35,16 @@ class SessionController extends Controller
             RateLimiter::hit($key, 60);
             throw ValidationException::withMessages(['email' => 'Email or password is incorrect.']);
         }
-        $sid = DB::table('school_memberships')->join('schools', 'schools.id', '=', 'school_memberships.school_id')
-            ->where('school_memberships.user_id', Auth::id())->where('school_memberships.status', 'active')
-            ->where('schools.status', 'active')->orderBy('schools.id')->value('schools.id');
-        if (!$sid) {
+        $candidateIds=DB::table('school_memberships')->join('schools','schools.id','=','school_memberships.school_id')
+            ->where('school_memberships.user_id',Auth::id())->where('school_memberships.status','active')
+            ->where('schools.status','active')->orderBy('schools.id')->pluck('schools.id');
+        $sid=$candidateIds->first(fn($id)=>\App\Services\SchoolAvailability::allowed((int)$id));
+        $admin=DB::table('platform_admins')->where('user_id',Auth::id())->where('active',true)->exists();
+        if (!$sid && !$admin) {
             Auth::logout();
             $request->session()->invalidate(); $request->session()->regenerateToken();
             RateLimiter::hit($key, 60);
-            return response()->json(['message' => 'No active school access. Contact the owner.', 'csrf_token' => csrf_token()], 403);
+            return response()->json(['message' => 'School access is inactive or the subscription has expired. Contact the provider.', 'csrf_token' => csrf_token()], 403);
         }
         RateLimiter::clear($key);
         $request->session()->regenerate();
@@ -62,6 +65,7 @@ class SessionController extends Controller
         $allowed = DB::table('school_memberships')->join('schools', 'schools.id', '=', 'school_memberships.school_id')
             ->where('school_memberships.user_id', $request->user()->id)->where('school_memberships.school_id', $id)
             ->where('school_memberships.status', 'active')->where('schools.status', 'active')->exists();
+        abort_unless(\App\Services\SchoolAvailability::allowed((int)$id),403,'School subscription has expired.');
         abort_unless($allowed, 403, 'School access is not authorized.');
         $request->session()->put('school_id', (int) $id);
         $request->session()->forget('campus_id');

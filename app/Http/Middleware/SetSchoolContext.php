@@ -20,6 +20,7 @@ class SetSchoolContext
             ->where('school_memberships.school_id', $schoolId)->where('school_memberships.status', 'active')
             ->where('schools.status', 'active')->select('school_memberships.*')->first();
         abort_unless($m, 403, 'School access is inactive or not authorized.');
+        abort_unless(\App\Services\SchoolAvailability::allowed((int)$m->school_id),403,'School subscription has expired. Contact the provider.');
         $request->attributes->set('school_membership', $m);
         $context->set((int) $m->school_id);
         try { return $next($request); }

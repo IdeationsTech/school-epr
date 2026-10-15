@@ -64,6 +64,11 @@ class SchoolController extends Controller
         $d['phone']=\App\Rules\PakistanPhone::canonical($d['phone']);
         DB::transaction(function () use ($m,$d,$campus,$request): void {
             DB::table('schools')->where('id',$m->school_id)->lockForUpdate()->first();
+            if($d['status']==='active') {
+                $limit=\App\Services\SchoolAvailability::campusLimit((int)$m->school_id);
+                $count=DB::table('campuses')->where('school_id',$m->school_id)->where('status','active')->when($campus,fn($q)=>$q->where('id','<>',$campus))->count();
+                if($limit!==null && $count >= $limit)throw ValidationException::withMessages(['status'=>'Your package campus limit has been reached. Contact the provider.']);
+            }
             if ($campus && $d['status']==='inactive') {
                 $others = DB::table('campuses')->where('school_id',$m->school_id)->where('status','active')->where('id','<>',$campus)->count();
                 if (!$others) { throw ValidationException::withMessages(['status'=>'At least one active campus is required.']); }
