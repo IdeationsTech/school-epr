@@ -1,4 +1,4 @@
-# School ERP — Product & Design Blueprint v1.1
+# School ERP — Product & Design Blueprint v1.2
 Date: 15 October 2026
 Repository: IdeationsTech/school-epr
 Audience: Pakistani private schools, 500–1,000 students, 1–2 campuses.
@@ -227,7 +227,9 @@ This section supersedes earlier references to all payroll being deferred. Initia
 
 ### Decisions for our target schools
 Already covered: admissions, students/families, fees, student attendance, multi-campus, teacher allocations, timetable, certificates, manual diary/test sharing, expenses, access and audit.
-Add to planned first production release:
+Scope amendment: only items 1–2 below remain in the first production release. Items 3–5 are deferred per owner decision; retain basic database structure only, with no current UI, navigation, permissions grants or workflows.
+
+Module detail:
 1. Staff attendance and basic payroll: daily present/absent/late/leave; salary effective dates, fixed allowances/deductions, approved advances/recoveries, monthly calculation preview, approval, payslips, partial salary payment and outstanding balance. Attendance affects pay only through an explicitly configured school policy and approved review. Draft payroll recalculation never duplicates payment; finalized payroll is immutable and corrected via adjustment. No statutory compliance claim; statutory components require separately verified rules before implementation.
 2. Term/annual exams beyond class tests: exam terms, per-subject papers, manual datesheet with conflict warnings, roll slips, subject totals/pass rules, configurable assessment weightages, consolidated term/annual cards and class gazette. Absent/exempt handling, rounding and tie/position policy explicit. Reuse existing tests/results and snapshot sharing, do not duplicate marks storage. Auto timetable solving, seating optimization, invigilator scheduling and question bank remain later.
 3. Front office: minimal visitor entry/exit, student early-leave gate passes with authorized pickup contact, reason, approver and departure time. Inquiry follow-ups reuse admissions. Do not require CNIC copies or excessive visitor identifiers by default.
@@ -252,7 +254,7 @@ Retain agreed communications: manual WhatsApp group diary and individual report 
 | 49 | Consolidated results and gazette | Subject results, term/annual cards, publish revision |
 | 50 | Student observations | Behaviour/achievement entries and follow-ups |
 
-Screen count is now 50 planned principal screens: original 40 concepts plus 10 new specifications. New images have NOT been generated in this review.
+Active screen count is now 46: original 40 concepts plus screens 41–43 and 47–49. Screens 44–46 and 50 are future-only specifications and are not part of the current build. Existing identifiers are preserved to avoid renumbering references. New images have NOT been generated in this review.
 
 ### Database planning impact
 Original 50 core tables are a baseline, not final schema. All feature commitments must be represented before migrations are authored.
@@ -281,3 +283,7 @@ https://www.edusuite.pk/module/payroll-management-system/
 https://www.edusuite.pk/module/exam-management-system/
 Front Office linked directly from module directory (visitor, gate-pass and complaint features reviewed).
 Reference product descriptions inform coverage; our module priority, schema and controls are independent design recommendations.
+
+## 14. Owner scope decision — 15 October 2026
+Front office (including visitors and student gate passes), parent complaints, and behaviour/achievements are deferred. Preserve minimal future database entities/relationships for visitor_logs, student_gate_passes, parent_complaints, complaint_updates and student_observations; do not expose these modules in the current product. Their schema remains provisional until database design. No tables or migrations have been created yet.
+Basic payroll/staff attendance and consolidated term/annual exams remain current-release additions. Current build has 46 principal screens, retaining original screen IDs. Sections 13's future module descriptions describe future capability only where overridden here.
