@@ -176,6 +176,7 @@ class AccessSetupTest extends TestCase
         $base=['name'=>'School','timezone'=>'Asia/Karachi','currency'=>'PKR'];
         $this->putJson('/app-api/school',$base)->assertUnprocessable()->assertJsonValidationErrors(['phone','address']);
         $this->putJson('/app-api/school',$base+['phone'=>'abcdefghijk','address'=>'School Road Lahore'])->assertUnprocessable()->assertJsonValidationErrors(['phone']);
+        $this->putJson('/app-api/school',$base+['phone'=>'+92300123456','address'=>'School Road Lahore'])->assertUnprocessable()->assertJsonValidationErrors(['phone']);
         $this->postJson('/app-api/campuses',['name'=>'Branch','code'=>'BRANCH','status'=>'active'])->assertUnprocessable()->assertJsonValidationErrors(['phone','address']);
         $this->postJson('/app-api/campuses',['name'=>'Branch','code'=>'BRANCH','status'=>'active','phone'=>'+92 300 1234567','address'=>'School Road Lahore'])->assertOk();
     }

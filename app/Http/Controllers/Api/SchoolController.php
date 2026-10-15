@@ -34,8 +34,9 @@ class SchoolController extends Controller
     {
         abort_unless($this->access->can($request,'school.manage'),403);
         $m = $this->access->membership($request);
-        $d = $request->validate(['name'=>'required|string|max:160', 'timezone'=>['required',Rule::in(['Asia/Karachi'])],
+        $d = $request->validate(['name'=>'required|string|min:2|max:160', 'timezone'=>['required',Rule::in(['Asia/Karachi'])],
             'currency'=>['required',Rule::in(['PKR'])], 'phone'=>['required',new \App\Rules\PakistanPhone()], 'address'=>'required|string|min:8|max:2000', 'email'=>'nullable|email|max:160']);
+        $d['phone']=\App\Rules\PakistanPhone::canonical($d['phone']);
         DB::transaction(function () use ($m,$d,$request): void {
             DB::table('schools')->where('id',$m->school_id)->update(['name'=>$d['name'],'timezone'=>$d['timezone'],'currency'=>$d['currency'],'updated_at'=>now()]);
             DB::table('school_settings')->updateOrInsert(['school_id'=>$m->school_id,'key'=>'contact'],[
@@ -57,9 +58,10 @@ class SchoolController extends Controller
         abort_unless($this->access->can($request,'campuses.manage'),403);
         $m = $this->access->membership($request);
         if ($campus) { abort_unless(DB::table('campuses')->where('school_id',$m->school_id)->where('id',$campus)->exists(),404); }
-        $d = $request->validate(['name'=>'required|string|max:160','code'=>['required','alpha_dash','max:30',
+        $d = $request->validate(['name'=>'required|string|min:2|max:160','code'=>['required','alpha_dash','max:30',
             Rule::unique('campuses','code')->where('school_id',$m->school_id)->ignore($campus)],
             'address'=>'required|string|min:8|max:2000','phone'=>['required',new \App\Rules\PakistanPhone()],'status'=>['required',Rule::in(['active','inactive'])]]);
+        $d['phone']=\App\Rules\PakistanPhone::canonical($d['phone']);
         DB::transaction(function () use ($m,$d,$campus,$request): void {
             DB::table('schools')->where('id',$m->school_id)->lockForUpdate()->first();
             if ($campus && $d['status']==='inactive') {
@@ -121,7 +123,7 @@ class SchoolController extends Controller
         $rules=['status'=>['required',Rule::in(['active','inactive'])], 'role_ids'=>'required|array|min:1',
             'role_ids.*'=>['required','integer',Rule::exists('roles','id')->where('scope','school')],
             'campus_ids'=>'required|array|min:1','campus_ids.*'=>['required','integer',Rule::exists('campuses','id')->where('school_id',$sid)->where('status','active')]];
-        if (!$member) { $rules += ['name'=>'required|string|max:160','email'=>'required|email|max:160|unique:users,email','password'=>['required','string','min:12','confirmed',new \App\Rules\PasswordByteLimit()]]; }
+        if (!$member) { $rules += ['name'=>'required|string|min:2|max:160','email'=>'required|email|max:160|unique:users,email','password'=>['required','string','min:12','confirmed',new \App\Rules\PasswordByteLimit()]]; }
         $d=$request->validate($rules);
         DB::transaction(function () use ($request,$d,$target,$member,$actor,$sid): void {
             DB::table('schools')->where('id',$sid)->lockForUpdate()->first();
