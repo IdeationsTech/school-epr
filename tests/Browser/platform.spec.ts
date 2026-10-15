@@ -43,6 +43,7 @@ test('provider onboards a school, receives a partial payment and suspends access
     await page.getByRole('button',{name:'Suspend school',exact:true}).click();
     await expect(page.getByRole('status')).toHaveText('School status updated.');
     await page.setViewportSize({width:390,height:844});
+    await expect(page.locator('.sidebar')).toHaveCSS('transform','matrix(1, 0, 0, 1, -260, 0)');
     expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
     await page.screenshot({path:'test-results/platform-school-mobile.png',fullPage:true});
     await page.getByRole('button',{name:'Sign out',exact:true}).click();
