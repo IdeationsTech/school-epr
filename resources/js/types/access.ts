@@ -1,0 +1,9 @@
+export type Campus = {id:number; name:string; code:string; address?:string; phone?:string; status?:string};
+export type School = {id:number; name:string; code:string; timezone:string; currency:string};
+export type Session = {user:{id:number;name:string;email:string}|null; schools:School[]; school_id:number|null};
+export type Bootstrap = {school:School; contact:{email:string;phone:string}; roles:string[]; permissions:string[]; is_owner:boolean; campuses:Campus[]; counts:{campuses:number;users?:number}};
+export type Role = {id:number;name:string};
+export type Permission = {id:number;name:string;description:string};
+export type Member = {id:number;user_id:number;name:string;email:string;status:string;role_ids:number[];campus_ids:number[]};
+export type MembersData = {members:Member[];roles:Role[];campuses:Campus[]};
+export type Matrix = {roles:Role[];permissions:Permission[];defaults:{role_id:number;permission_id:number}[];overrides:{role_id:number;permission_id:number;enabled:boolean}[]};

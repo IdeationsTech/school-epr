@@ -1,12 +1,12 @@
 // School ERP — implemented database ERD
-// 83 domain + 8 Laravel infrastructure + 1 migration tracking = 92 tables.
+// 84 domain + 8 Laravel infrastructure + 1 migration tracking = 93 tables.
 // Paste this entire file into the DBML editor at https://dbdiagram.io/.
 // Diagram only: Laravel migrations remain the source for database creation.
 // Composite references preserve school isolation. No invented logical FKs.
 
 Project school_erp {
   database_type: 'MySQL'
-  Note: 'MySQL 8.4 school ERP. 92 implemented tables. Future-only tables are grouped separately. Status values are strings unless a check explicitly restricts them. Cross-row business rules require application services.'
+  Note: 'MySQL 8.4 school ERP. 93 implemented tables. Future-only tables are grouped separately. Status values are strings unless a check explicitly restricts them. Cross-row business rules require application services.'
 }
 
 Table users {
@@ -1564,6 +1564,20 @@ Table student_observations {
   }
 }
 
+Table school_role_permissions {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  role_id "bigint unsigned" [not null]
+  permission_id "bigint unsigned" [not null]
+  enabled boolean [not null, default: false]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't93_school_id']
+    (school_id, role_id, permission_id) [unique, name: 't93_u0']
+  }
+}
+
 // Physical foreign keys from the integrity migration.
 Ref t14_fk0: role_permissions.role_id > roles.id [delete: restrict, update: no action]
 Ref t14_fk1: role_permissions.permission_id > permissions.id [delete: restrict, update: no action]
@@ -1798,6 +1812,9 @@ Ref t91_fk2: complaint_updates.(school_id, author_membership_id) > school_member
 Ref t92_fk0: student_observations.school_id > schools.id [delete: restrict, update: no action]
 Ref t92_fk1: student_observations.(school_id, enrollment_id) > enrollments.(school_id, id) [delete: restrict, update: no action]
 Ref t92_fk2: student_observations.(school_id, author_membership_id) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t93_fk0: school_role_permissions.school_id > schools.id [delete: restrict, update: no action]
+Ref t93_fk1: school_role_permissions.role_id > roles.id [delete: restrict, update: no action]
+Ref t93_fk2: school_role_permissions.permission_id > permissions.id [delete: restrict, update: no action]
 
 TableGroup laravel_infrastructure {
   users
@@ -1830,6 +1847,7 @@ TableGroup access {
   school_memberships
   membership_roles
   membership_campuses
+  school_role_permissions
 }
 
 TableGroup operations {

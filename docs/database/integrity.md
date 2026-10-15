@@ -1,7 +1,7 @@
 # Database contract and implementation boundary
 
 ## Implemented structure
-83 domain tables are enumerated in schema.md and database/schema/schema.json.
+84 domain tables are enumerated in schema.md and database/schema/schema.json.
 3 framework migrations create users/password resets/sessions, cache/locks, jobs/batches/failed jobs.
 Domain migrations create tables first; the last migration installs foreign keys and MySQL checks.
 The MySQL minimum for this scaffold is 8.4, matching the supplied 8.4.11 server.
@@ -41,3 +41,6 @@ Some earlier mockup details were illustrative. Explicit requirements and this sc
 ## Validation
 GitHub Actions provisions MySQL 8.4, lints PHP, executes tests, tests rollback/remigration and builds React.
 Verified: PHP 8.5 syntax, six feature tests against MySQL 8.4, fresh migration/seeding, rollback/remigration, and React production build all passed in GitHub Actions run 38781876356. Local PHP-WASM syntax validation and frontend build also passed.
+
+## Access release
+The 2026_10_16 migration adds school_role_permissions. Current access/setup routes establish authenticated SchoolContext and validate roles, school ownership and campus scope. Module business rules listed above remain pending for future domain endpoints. Total installed tables: 93.

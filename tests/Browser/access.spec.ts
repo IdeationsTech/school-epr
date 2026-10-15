@@ -1,0 +1,50 @@
+import {test,expect} from '@playwright/test';
+async function login(page:import('@playwright/test').Page){
+    await page.goto('/');
+    await page.getByLabel('Email address').fill('owner@demo.example');
+    await page.getByLabel('Password',{exact:true}).fill('BrowserTestPassword123!');
+    await page.getByRole('button',{name:'Sign in',exact:true}).click();
+    await expect(page.getByRole('heading',{name:'Overview',exact:true})).toBeVisible();
+}
+test('desktop owner can sign in, save setup, create a campus and manage access',async({page})=>{
+    await page.goto('/');
+    await page.screenshot({path:'test-results/login-desktop.png',fullPage:true});
+    await login(page);
+    await page.getByRole('navigation').getByRole('button',{name:'School profile',exact:true}).click();
+    await page.getByLabel('Contact phone').fill('03001234567');
+    await page.getByRole('button',{name:'Save school profile'}).click();
+    await expect(page.getByRole('status')).toHaveText('School profile saved.');
+    await page.getByRole('navigation').getByRole('button',{name:'Campuses',exact:true}).click();
+    await page.getByLabel('Campus name').fill('Second Campus');
+    await page.getByLabel('Campus code').fill('SECOND');
+    await page.getByRole('button',{name:'Save campus',exact:true}).click();
+    await expect(page.getByRole('status')).toHaveText('Campus saved.');
+    await page.getByRole('navigation').getByRole('button',{name:'Users & access'}).click();
+    await page.getByLabel('Full name').fill('Browser Teacher');
+    await page.getByLabel('Email',{exact:true}).fill('browserteacher@example.test');
+    await page.getByLabel('Initial password (12+ characters)').fill('TeacherPassword123!');
+    await page.getByLabel('Confirm password').fill('TeacherPassword123!');
+    await page.getByRole('checkbox',{name:'teacher',exact:true}).check();
+    await page.getByRole('checkbox',{name:'Main Campus',exact:true}).check();
+    await page.getByRole('button',{name:'Save user access'}).click();
+    await expect(page.getByRole('status')).toHaveText('User access saved.');
+    await page.getByRole('navigation').getByRole('button',{name:'Roles & permissions'}).click();
+    await page.getByRole('checkbox',{name:/diary.write/}).uncheck();
+    await page.getByRole('button',{name:'Save permissions'}).click();
+    await expect(page.getByRole('status')).toHaveText('Permissions saved for this school.');
+    await page.screenshot({path:'test-results/permissions-desktop.png',fullPage:true});
+    await page.getByRole('button',{name:'Sign out',exact:true}).click();
+    await expect(page.getByRole('heading',{name:'Welcome back'})).toBeVisible();
+});
+test('mobile navigation and login fit a 390px viewport',async({page})=>{
+    await page.setViewportSize({width:390,height:844});
+    await login(page);
+    await expect(page.getByRole('button',{name:'Open menu',exact:true})).toBeVisible();
+    await page.getByRole('button',{name:'Open menu',exact:true}).click();
+    await page.getByRole('navigation').getByRole('button',{name:'School profile',exact:true}).click();
+    await expect(page.getByLabel('School name')).toBeVisible();
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+    await page.screenshot({path:'test-results/school-mobile.png',fullPage:true});
+    await page.getByRole('button',{name:'Sign out',exact:true}).click();
+    await expect(page.getByRole('heading',{name:'Welcome back'})).toBeVisible();
+});

@@ -44,6 +44,21 @@ jobs:
       - run: php artisan migrate --seed --force
       - run: npm ci --ignore-scripts
       - run: npm run build
+      - run: npx playwright install --with-deps chromium
+      - name: Seed browser fixture
+        env:
+          DEMO_ADMIN_PASSWORD: BrowserTestPassword123!
+        run: php artisan db:seed --class=DemoSchoolSeeder --force
+      - name: Start local test server
+        run: APP_ENV=local php artisan serve --host=127.0.0.1 --port=8001 > /tmp/school-server.log 2>&1 &
+      - name: Browser functional checks
+        run: npx playwright test
+      - name: Browser screenshots and traces
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: access-browser-results
+          path: test-results
       - uses: actions/upload-artifact@v4
         with:
           name: resolved-dependency-locks

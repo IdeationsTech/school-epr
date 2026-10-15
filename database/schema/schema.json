@@ -3646,5 +3646,39 @@
     "checks": [],
     "tenant": true,
     "group": "future"
+  },
+  {
+    "name": "school_role_permissions",
+    "columns": [
+      {
+        "name": "role_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "permission_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "enabled",
+        "type": "bool",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "role_id": "roles",
+      "permission_id": "permissions"
+    },
+    "unique": [
+      [
+        "school_id",
+        "role_id",
+        "permission_id"
+      ]
+    ],
+    "checks": [],
+    "tenant": true,
+    "group": "access"
   }
 ]

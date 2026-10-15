@@ -1,6 +1,6 @@
 # Implemented database inventory
 
-83 domain tables; framework tables are additional. Schema is initial scaffolding, not implemented business workflows.
+84 domain tables; framework tables are additional. Schema is initial scaffolding, not implemented business workflows.
 
 | Table | Group | References |
 |---|---|---|
@@ -91,3 +91,5 @@
 All tenant rows use school_id; foreign keys to tenant parents include school_id. Money uses DECIMAL(12,2). Deletion is restricted.
 Cross-record business invariants (allocation balances, student matching, class membership on the date, marks ≤ test maximum, weight totals and immutable publication) require transactional services; schema checks alone cannot enforce them.
 Future-only tables: visitor_logs, student_gate_passes, parent_complaints, complaint_updates, student_observations. No UI/API for them.
+
+| school_role_permissions | access | role_id → roles, permission_id → permissions |

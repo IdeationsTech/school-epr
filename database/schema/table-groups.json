@@ -81,5 +81,6 @@
   "student_gate_passes": "future",
   "parent_complaints": "future",
   "complaint_updates": "future",
-  "student_observations": "future"
+  "student_observations": "future",
+  "school_role_permissions": "access"
 }
