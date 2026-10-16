@@ -248,7 +248,7 @@
       {
         "name": "license_id",
         "type": "id",
-        "nullable": true
+        "nullable": false
       },
       {
         "name": "kind",
@@ -265,22 +265,22 @@
       {
         "name": "student_limit",
         "type": "uint",
-        "nullable": true
+        "nullable": false
       },
       {
         "name": "campus_limit",
         "type": "uint",
-        "nullable": true
+        "nullable": false
       },
       {
         "name": "modules",
         "type": "json",
-        "nullable": true
+        "nullable": false
       },
       {
         "name": "package_name",
         "type": "string",
-        "nullable": true
+        "nullable": false
       }
     ],
     "refs": {
@@ -889,7 +889,22 @@
     "unique": [],
     "checks": [],
     "tenant": true,
-    "group": "academics"
+    "group": "academics",
+    "composite_refs": [
+      {
+        "columns": [
+          "school_id",
+          "section_id",
+          "subject_id"
+        ],
+        "table": "section_subjects",
+        "references": [
+          "school_id",
+          "section_id",
+          "subject_id"
+        ]
+      }
+    ]
   },
   {
     "name": "admission_inquiries",
@@ -1078,7 +1093,8 @@
       ]
     ],
     "checks": [
-      "(identity_number IS NULL AND identity_type IS NULL) OR (identity_number IS NOT NULL AND identity_number REGEXP '^[0-9]{13}$' AND identity_type IS NOT NULL AND identity_type IN ('cnic','b_form'))"
+      "(identity_number IS NULL AND identity_type IS NULL) OR (identity_number IS NOT NULL AND identity_number REGEXP '^[0-9]{13}$' AND identity_type IS NOT NULL AND identity_type IN ('cnic','b_form'))",
+      "birth_date IS NULL OR birth_date <= admitted_on"
     ],
     "tenant": true,
     "group": "students"
@@ -1477,6 +1493,11 @@
         "name": "void_reason",
         "type": "text",
         "nullable": true
+      },
+      {
+        "name": "fee_assignment_id",
+        "type": "id",
+        "nullable": true
       }
     ],
     "refs": {
@@ -1499,7 +1520,22 @@
       "total >= 0"
     ],
     "tenant": true,
-    "group": "fees"
+    "group": "fees",
+    "composite_refs": [
+      {
+        "columns": [
+          "school_id",
+          "enrollment_id",
+          "fee_assignment_id"
+        ],
+        "table": "student_fee_assignments",
+        "references": [
+          "school_id",
+          "enrollment_id",
+          "id"
+        ]
+      }
+    ]
   },
   {
     "name": "invoice_items",
@@ -1549,7 +1585,8 @@
       "quantity > 0",
       "unit_amount >= 0",
       "discount_amount >= 0",
-      "line_total >= 0"
+      "line_total >= 0",
+      "discount_amount <= ROUND(quantity * unit_amount, 2) AND line_total = ROUND(quantity * unit_amount, 2) - discount_amount"
     ],
     "tenant": true,
     "group": "fees"
@@ -1735,11 +1772,38 @@
         "name": "idempotency_key",
         "type": "string",
         "nullable": false
+      },
+      {
+        "name": "kind",
+        "type": "string",
+        "nullable": true
+      },
+      {
+        "name": "refund_method",
+        "type": "string",
+        "nullable": true
+      },
+      {
+        "name": "refund_reference",
+        "type": "string",
+        "nullable": true
+      },
+      {
+        "name": "refund_bank_account_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "reversed_by",
+        "type": "id",
+        "nullable": true
       }
     ],
     "refs": {
       "payment_id": "payments",
-      "approved_by": "school_memberships"
+      "approved_by": "school_memberships",
+      "refund_bank_account_id": "bank_accounts",
+      "reversed_by": "school_memberships"
     },
     "unique": [
       [
@@ -1748,7 +1812,10 @@
       ]
     ],
     "checks": [
-      "amount > 0"
+      "amount > 0",
+      "kind IS NULL OR kind IN ('correction','refund')",
+      "refund_method IS NULL OR refund_method IN ('cash','bank_transfer','jazzcash','easypaisa')",
+      "kind IS NULL OR kind <> 'refund' OR refund_method IS NOT NULL"
     ],
     "tenant": true,
     "group": "fees"
@@ -1841,7 +1908,8 @@
       ]
     ],
     "checks": [
-      "counted_cash >= 0"
+      "counted_cash >= 0",
+      "variance = counted_cash - expected_cash"
     ],
     "tenant": true,
     "group": "finance"
@@ -2324,7 +2392,22 @@
       "max_marks > 0"
     ],
     "tenant": true,
-    "group": "exams"
+    "group": "exams",
+    "composite_refs": [
+      {
+        "columns": [
+          "school_id",
+          "section_id",
+          "subject_id"
+        ],
+        "table": "section_subjects",
+        "references": [
+          "school_id",
+          "section_id",
+          "subject_id"
+        ]
+      }
+    ]
   },
   {
     "name": "test_results",
@@ -3199,7 +3282,22 @@
       "ends_at > starts_at"
     ],
     "tenant": true,
-    "group": "operations"
+    "group": "operations",
+    "composite_refs": [
+      {
+        "columns": [
+          "school_id",
+          "section_id",
+          "subject_id"
+        ],
+        "table": "section_subjects",
+        "references": [
+          "school_id",
+          "section_id",
+          "subject_id"
+        ]
+      }
+    ]
   },
   {
     "name": "calendar_events",
@@ -3987,5 +4085,62 @@
     "checks": [],
     "tenant": false,
     "group": "platform"
+  },
+  {
+    "name": "student_fee_assignments",
+    "columns": [
+      {
+        "name": "enrollment_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "fee_plan_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "assigned_by",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "starts_on",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "ends_on",
+        "type": "date",
+        "nullable": true
+      },
+      {
+        "name": "reason",
+        "type": "text",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "enrollment_id": "enrollments",
+      "fee_plan_id": "fee_plans",
+      "assigned_by": "school_memberships"
+    },
+    "unique": [
+      [
+        "school_id",
+        "enrollment_id",
+        "id"
+      ],
+      [
+        "school_id",
+        "enrollment_id",
+        "starts_on"
+      ]
+    ],
+    "checks": [
+      "ends_on IS NULL OR ends_on >= starts_on"
+    ],
+    "tenant": true,
+    "group": "fees"
   }
 ]

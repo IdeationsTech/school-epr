@@ -30,4 +30,7 @@ class PaymentReversal extends SchoolModel
     {
         return $this->belongsTo(SchoolMembership::class, 'approved_by');
     }
+    public function refundBankAccount(): BelongsTo { return $this->belongsTo(BankAccount::class,'refund_bank_account_id'); }
+    public function reversedBy(): BelongsTo { return $this->belongsTo(SchoolMembership::class,'reversed_by'); }
+
 }

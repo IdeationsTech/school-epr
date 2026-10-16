@@ -2,10 +2,10 @@
 
 Laravel 13 + React/TypeScript + Tailwind + MySQL 8.4 foundation for Pakistani schools (500–1,000 students, 1–2 campuses).
 
-**Current delivery:** session login/logout, responsive owner workspace, school/campus settings, users/roles/campus access, school-specific permission overrides, first-owner CLI setup and 90 domain tables.
+**Current delivery:** session login/logout, responsive owner workspace, school/campus settings, users/roles/campus access, school-specific permission overrides, first-owner CLI setup and 91 domain tables.
 **Next modules:** admissions/students, fees, diary, attendance and exams. Those domain tables exist, but the application workflows are not implemented yet.
 
-Existing installation? Follow [Update 2](docs/setup/access-update.md) to pull, migrate and create your first owner account. Full schema now has 99 tables.
+Existing installation? Follow [Update 2](docs/setup/access-update.md) to pull, migrate and create your first owner account. Full schema now has 100 tables.
 
 Start here: [Windows setup](docs/setup/windows.md).
 Database: [table inventory](docs/database/schema.md) · [schema contract](docs/database/integrity.md).
@@ -52,3 +52,7 @@ School onboarding, packages, subscription invoices, partial payments, renewal an
 ## Complete provider workflow
 
 See [license/billing/support update](docs/setup/platform-complete-update.md) and [database audit](docs/database/platform-audit.md). Run `php artisan database:verify` after migration. Identity storage for guardian CNIC and student CNIC/B-Form is included; admissions entry screens follow separately.
+
+## Full scope/schema audit
+
+See [scope coverage and remaining service rules](docs/database/scope-coverage-audit.md) and [safe database-only update](docs/setup/scope-audit-update.md). Structural verification now inspects actual keys/check definitions, not just counts.

@@ -88,5 +88,6 @@
   "school_licenses": "platform",
   "subscription_payment_reversals": "platform",
   "subscription_invoice_adjustments": "platform",
-  "provider_settings": "platform"
+  "provider_settings": "platform",
+  "student_fee_assignments": "fees"
 }

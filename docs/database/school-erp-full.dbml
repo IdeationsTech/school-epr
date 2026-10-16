@@ -1,12 +1,12 @@
 // School ERP — implemented database ERD
-// 90 domain + 8 Laravel infrastructure + 1 migration tracking = 99 tables.
+// 91 domain + 8 Laravel infrastructure + 1 migration tracking = 100 tables.
 // Paste this entire file into the DBML editor at https://dbdiagram.io/.
 // Diagram only: Laravel migrations remain the source for database creation.
 // Composite references preserve school isolation. No invented logical FKs.
 
 Project school_erp {
   database_type: 'MySQL'
-  Note: 'MySQL 8.4 school ERP. 99 implemented tables. Future-only tables are grouped separately. Status values are strings unless a check explicitly restricts them. Cross-row business rules require application services.'
+  Note: 'MySQL 8.4 school ERP. 100 implemented tables. Future-only tables are grouped separately. Status values are strings unless a check explicitly restricts them. Cross-row business rules require application services.'
 }
 
 Table users {
@@ -194,13 +194,13 @@ Table subscriptions {
   ends_on date [not null]
   status varchar(160) [not null]
   price decimal(12,2) [not null]
-  license_id "bigint unsigned" [null]
+  license_id "bigint unsigned" [not null]
   kind varchar(160) [not null, default: 'paid']
   grace_days "int unsigned" [not null, default: 0]
-  student_limit "int unsigned" [null]
-  campus_limit "int unsigned" [null]
-  modules json [null]
-  package_name varchar(160) [null]
+  student_limit "int unsigned" [not null]
+  campus_limit "int unsigned" [not null]
+  modules json [not null]
+  package_name varchar(160) [not null]
   created_at timestamp [null]
   updated_at timestamp [null]
   indexes {
@@ -525,6 +525,7 @@ Table students {
   }
   checks {
     `(identity_number IS NULL AND identity_type IS NULL) OR (identity_number IS NOT NULL AND identity_number REGEXP '^[0-9]{13}$' AND identity_type IS NOT NULL AND identity_type IN ('cnic','b_form'))` [name: 't35_check0']
+    `birth_date IS NULL OR birth_date <= admitted_on` [name: 't35_check1']
   }
 }
 
@@ -684,6 +685,7 @@ Table invoices {
   status varchar(160) [not null]
   total decimal(12,2) [not null]
   void_reason text [null]
+  fee_assignment_id "bigint unsigned" [null]
   created_at timestamp [null]
   updated_at timestamp [null]
   indexes {
@@ -716,6 +718,7 @@ Table invoice_items {
     `unit_amount >= 0` [name: 't45_check1']
     `discount_amount >= 0` [name: 't45_check2']
     `line_total >= 0` [name: 't45_check3']
+    `discount_amount <= ROUND(quantity * unit_amount, 2) AND line_total = ROUND(quantity * unit_amount, 2) - discount_amount` [name: 't45_check4']
   }
 }
 
@@ -785,6 +788,11 @@ Table payment_reversals {
   approved_by "bigint unsigned" [null]
   reversed_at datetime [null]
   idempotency_key varchar(160) [not null]
+  kind varchar(160) [null]
+  refund_method varchar(160) [null]
+  refund_reference varchar(160) [null]
+  refund_bank_account_id "bigint unsigned" [null]
+  reversed_by "bigint unsigned" [null]
   created_at timestamp [null]
   updated_at timestamp [null]
   indexes {
@@ -793,6 +801,9 @@ Table payment_reversals {
   }
   checks {
     `amount > 0` [name: 't49_check0']
+    `kind IS NULL OR kind IN ('correction','refund')` [name: 't49_check1']
+    `refund_method IS NULL OR refund_method IN ('cash','bank_transfer','jazzcash','easypaisa')` [name: 't49_check2']
+    `kind IS NULL OR kind <> 'refund' OR refund_method IS NOT NULL` [name: 't49_check3']
   }
 }
 
@@ -831,6 +842,7 @@ Table cashier_closings {
   }
   checks {
     `counted_cash >= 0` [name: 't51_check0']
+    `variance = counted_cash - expected_cash` [name: 't51_check1']
   }
 }
 
@@ -1690,7 +1702,28 @@ Table provider_settings {
   }
 }
 
-// Physical foreign keys from the integrity migration.
+Table student_fee_assignments {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  enrollment_id "bigint unsigned" [not null]
+  fee_plan_id "bigint unsigned" [not null]
+  assigned_by "bigint unsigned" [null]
+  starts_on date [not null]
+  ends_on date [null]
+  reason text [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't100_school_id']
+    (school_id, enrollment_id, id) [unique, name: 't100_u0']
+    (school_id, enrollment_id, starts_on) [unique, name: 't100_u1']
+  }
+  checks {
+    `ends_on IS NULL OR ends_on >= starts_on` [name: 't100_check0']
+  }
+}
+
+// Physical foreign keys from all committed migrations.
 Ref t14_fk0: role_permissions.role_id > roles.id [delete: restrict, update: no action]
 Ref t14_fk1: role_permissions.permission_id > permissions.id [delete: restrict, update: no action]
 Ref t15_fk0: campuses.school_id > schools.id [delete: restrict, update: no action]
@@ -1784,6 +1817,8 @@ Ref t48_fk2: payment_allocations.(school_id, invoice_id) > invoices.(school_id, 
 Ref t49_fk0: payment_reversals.school_id > schools.id [delete: restrict, update: no action]
 Ref t49_fk1: payment_reversals.(school_id, payment_id) > payments.(school_id, id) [delete: restrict, update: no action]
 Ref t49_fk2: payment_reversals.(school_id, approved_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t49_fk3: payment_reversals.(school_id, refund_bank_account_id) > bank_accounts.(school_id, id) [delete: restrict, update: no action]
+Ref t49_fk4: payment_reversals.(school_id, reversed_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
 Ref t50_fk0: reversal_allocations.school_id > schools.id [delete: restrict, update: no action]
 Ref t50_fk1: reversal_allocations.(school_id, payment_reversal_id) > payment_reversals.(school_id, id) [delete: restrict, update: no action]
 Ref t50_fk2: reversal_allocations.(school_id, payment_allocation_id) > payment_allocations.(school_id, id) [delete: restrict, update: no action]
@@ -1938,6 +1973,14 @@ Ref t97_fk2: subscription_payment_reversals.actor_user_id > users.id [delete: re
 Ref t98_fk0: subscription_invoice_adjustments.school_id > schools.id [delete: restrict, update: no action]
 Ref t98_fk1: subscription_invoice_adjustments.(school_id, invoice_id) > subscription_invoices.(school_id, id) [delete: restrict, update: no action]
 Ref t98_fk2: subscription_invoice_adjustments.actor_user_id > users.id [delete: restrict, update: no action]
+Ref t100_fk0: student_fee_assignments.school_id > schools.id [delete: restrict, update: no action]
+Ref t100_fk1: student_fee_assignments.(school_id, enrollment_id) > enrollments.(school_id, id) [delete: restrict, update: no action]
+Ref t100_fk2: student_fee_assignments.(school_id, fee_plan_id) > fee_plans.(school_id, id) [delete: restrict, update: no action]
+Ref t100_fk3: student_fee_assignments.(school_id, assigned_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t32_extra_fk0: teacher_assignments.(school_id, section_id, subject_id) > section_subjects.(school_id, section_id, subject_id) [delete: restrict, update: no action]
+Ref t44_extra_fk0: invoices.(school_id, enrollment_id, fee_assignment_id) > student_fee_assignments.(school_id, enrollment_id, id) [delete: restrict, update: no action]
+Ref t61_extra_fk0: tests.(school_id, section_id, subject_id) > section_subjects.(school_id, section_id, subject_id) [delete: restrict, update: no action]
+Ref t79_extra_fk0: timetable_slots.(school_id, section_id, subject_id) > section_subjects.(school_id, section_id, subject_id) [delete: restrict, update: no action]
 
 TableGroup laravel_infrastructure {
   users
@@ -2026,6 +2069,7 @@ TableGroup fees {
   payment_allocations
   payment_reversals
   reversal_allocations
+  student_fee_assignments
 }
 
 TableGroup finance {

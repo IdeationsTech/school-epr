@@ -15,6 +15,7 @@ class Invoice extends SchoolModel
     {
         return [
             'enrollment_id' => 'integer',
+            'fee_assignment_id' => 'integer',
             'period' => 'date',
             'installment_no' => 'integer',
             'issued_on' => 'date',
@@ -27,4 +28,9 @@ class Invoice extends SchoolModel
     {
         return $this->belongsTo(Enrollment::class, 'enrollment_id');
     }
+    public function feeAssignment(): BelongsTo
+    {
+        return $this->belongsTo(StudentFeeAssignment::class, 'fee_assignment_id');
+    }
+
 }

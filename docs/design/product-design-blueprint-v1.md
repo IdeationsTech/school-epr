@@ -1,9 +1,11 @@
-# School ERP — Product & Design Blueprint v1.2
+# School ERP — Product & Design Blueprint v1.3
 Date: 15 October 2026
 Repository: IdeationsTech/school-epr
 Audience: Pakistani private schools, 500–1,000 students, 1–2 campuses.
 Stack: Laravel/PHP, React/TypeScript, Tailwind CSS, MySQL. Dependency versions to be verified against supplied runtimes before implementation.
 Status: design specification; no application or migrations implemented yet.
+
+> Database table inventories in the early design sections are historical estimates. The current scope/storage map and implementation boundaries are documented in [the 16 October audit](../database/scope-coverage-audit.md); the executable schema contract and additive migrations govern actual database structure.
 
 ## 1. Agreed scope
 Cloud web app; desktop admin/accountant workflows and responsive teacher workflows.

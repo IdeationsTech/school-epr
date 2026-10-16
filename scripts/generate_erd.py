@@ -1,4 +1,4 @@
-"""Generate the 99-table DBML diagram from the committed schema contract.
+"""Generate the 100-table DBML diagram from the committed schema contract.
 
 Run from any directory: python scripts/generate_erd.py
 Only diagram files are written; this script never connects to MySQL.
@@ -15,14 +15,14 @@ def q(value):
 
 out = [
     '// School ERP — implemented database ERD',
-    '// 90 domain + 8 Laravel infrastructure + 1 migration tracking = 99 tables.',
+    '// 91 domain + 8 Laravel infrastructure + 1 migration tracking = 100 tables.',
     '// Paste this entire file into the DBML editor at https://dbdiagram.io/.',
     '// Diagram only: Laravel migrations remain the source for database creation.',
     '// Composite references preserve school isolation. No invented logical FKs.',
     '',
     "Project school_erp {",
     "  database_type: 'MySQL'",
-    "  Note: 'MySQL 8.4 school ERP. 99 implemented tables. Future-only tables are grouped separately. Status values are strings unless a check explicitly restricts them. Cross-row business rules require application services.'",
+    "  Note: 'MySQL 8.4 school ERP. 100 implemented tables. Future-only tables are grouped separately. Status values are strings unless a check explicitly restricts them. Cross-row business rules require application services.'",
     '}',
     '',
 ]
@@ -119,7 +119,12 @@ for idx, t in enumerate(domain, 10):
         source = '(school_id, ' + column + ')' if composite else column
         parent = '(school_id, id)' if composite else 'id'
         refs.append(f"Ref t{idx}_fk{j}: {t['name']}.{source} > {target}.{parent} [delete: restrict, update: no action]")
-out += ['// Physical foreign keys from the integrity migration.', *refs, '']
+for idx,t in enumerate(domain,10):
+    for j,r in enumerate(t.get('composite_refs',[])):
+        child='('+', '.join(r['columns'])+')'
+        parent='('+', '.join(r['references'])+')'
+        refs.append(f"Ref t{idx}_extra_fk{j}: {t['name']}.{child} > {r['table']}.{parent} [delete: restrict, update: no action]")
+out += ['// Physical foreign keys from all committed migrations.', *refs, '']
 
 groups = {'laravel_infrastructure': list(framework)}
 for t in domain:
@@ -129,5 +134,5 @@ for group, tables in groups.items():
 
 destination = ROOT / 'docs/database/school-erp-full.dbml'
 destination.write_text('\n'.join(out))
-assert len(framework) + len(domain) == 99
-print(json.dumps({'tables': 99, 'foreign_keys': len(refs), 'file': str(destination)}))
+assert len(framework) + len(domain) == 100
+print(json.dumps({'tables': 100, 'foreign_keys': len(refs), 'file': str(destination)}))
