@@ -170,3 +170,21 @@
 .platform-login input:not([type=checkbox]){border:1px solid var(--admin-border);background:var(--admin-recessed)}
 .platform-workspace .phone-input input{border:0;background:transparent}
 .platform-workspace :is(input[type=search],.search-box input){border-color:var(--admin-accent)}
+
+/* Sign out uses its teal label color as a persistent filled action. */
+.platform-workspace .secondary[aria-label="Sign out"]{
+ background:var(--admin-teal);
+ color:var(--admin-bg);
+ border-color:var(--admin-border);
+ box-shadow:var(--admin-shadow-small);
+}
+.platform-workspace .secondary[aria-label="Sign out"]:hover:not(:disabled){
+ background:var(--admin-teal);
+ color:var(--admin-bg);
+ filter:brightness(1.12);
+ box-shadow:var(--admin-shadow-hover);
+}
+.platform-workspace .secondary[aria-label="Sign out"]:active:not(:disabled){
+ filter:brightness(.94);
+ box-shadow:var(--admin-shadow-inset);
+}
