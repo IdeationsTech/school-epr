@@ -49,9 +49,9 @@ test('provider onboards a school, receives a partial payment and suspends access
     await expect(page.getByText('6 of 6 checks complete.',{exact:false})).toBeVisible();
     await page.getByRole('button',{name:'School audit',exact:true}).click();
     await expect(page.getByRole('heading',{name:'Platform audit trail',exact:true})).toBeVisible();
-    await expect(page.getByText('school.onboarding_updated',{exact:true})).toBeVisible();
+    await expect(page.getByRole('row').filter({hasText:'school.onboarding_updated'})).toBeVisible();
     await page.reload();
-    await expect(page.getByText('school.onboarding_updated',{exact:true})).toBeVisible();
+    await expect(page.getByRole('row').filter({hasText:'school.onboarding_updated'})).toBeVisible();
     await page.getByRole('navigation').getByRole('button',{name:'Subscriptions',exact:true}).click();
     await page.getByLabel('Search subscriptions').fill('Pilot Academy');
     await page.getByRole('button',{name:'Search',exact:true}).click();
