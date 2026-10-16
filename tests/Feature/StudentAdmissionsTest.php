@@ -66,4 +66,18 @@ class StudentAdmissionsTest extends TestCase
  public function test_license_limit_and_module_entitlement_are_enforced():void {
   $f=$this->fixture();$this->login($f);$license=\App\Services\LicenseService::ensure($f['sid']);$plan=DB::table('plans')->first();DB::table('subscriptions')->insert(['school_id'=>$f['sid'],'plan_id'=>$plan->id,'license_id'=>$license->id,'kind'=>'paid','grace_days'=>0,'student_limit'=>1,'campus_limit'=>2,'modules'=>json_encode(['student_admissions']),'package_name'=>'Test','price'=>'1000.00','starts_on'=>'2026-01-01','ends_on'=>'2027-12-31','status'=>'active']);$this->admit($this->data($f));$d=$this->data($f,'ADM-2');$d['identity_number']=null;$d['identity_type']=null;$this->postJson('/app-api/students',$d)->assertUnprocessable();DB::table('subscriptions')->where('school_id',$f['sid'])->update(['modules'=>'[]']);$this->getJson('/app-api/students')->assertForbidden();$this->artisan('database:verify')->assertSuccessful();
  }
+ public function test_shared_profiles_require_all_campus_access_and_permission_overrides_apply():void {
+  $f=$this->fixture();$this->login($f);$id=$this->admit($this->data($f));$gid=DB::table('student_guardians')->where('student_id',$id)->value('guardian_id');
+  $campus=DB::table('campuses')->insertGetId(['school_id'=>$f['sid'],'name'=>'Branch','code'=>'BRANCH','status'=>'active']);$section=DB::table('sections')->insertGetId(['school_id'=>$f['sid'],'campus_id'=>$campus,'academic_session_id'=>$f['session'],'class_id'=>$f['class'],'name'=>'B','capacity'=>20]);
+  $d=$this->data($f,'ADM-2');$d['identity_number']=null;$d['identity_type']=null;$d['section_id']=$section;$d['guardian']=['id'=>$gid,'relationship'=>'father','is_primary'=>true,'can_receive_reports'=>true,'can_pick_up'=>true];$this->admit($d);
+  $rid=DB::table('roles')->where('name','principal')->value('id');DB::table('membership_roles')->where('membership_id',$f['mid'])->update(['role_id'=>$rid]);
+  $this->putJson('/app-api/guardians/'.$gid,$this->data($f)['guardian'])->assertNotFound();
+  $this->getJson('/app-api/students/'.$id)->assertOk()->assertJsonCount(0,'guardians.0.siblings');
+  DB::table('school_role_permissions')->insert(['school_id'=>$f['sid'],'role_id'=>$rid,'permission_id'=>DB::table('permissions')->where('name','students.manage')->value('id'),'enabled'=>false]);
+  $this->putJson('/app-api/students/'.$id,$this->data($f))->assertForbidden();$this->getJson('/app-api/students/setup')->assertJsonPath('can_manage',false);
+ }
+ public function test_guest_and_provider_have_no_implicit_student_access():void {
+  $this->getJson('/app-api/students')->assertUnauthorized();$this->seed(DatabaseSeeder::class);$user=User::factory()->create();DB::table('platform_admins')->insert(['user_id'=>$user->id,'active'=>true]);$this->actingAs($user)->getJson('/app-api/students')->assertForbidden();
+ }
+
 }

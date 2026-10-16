@@ -57,6 +57,7 @@ Route::prefix('app-api')->group(function (): void {
         Route::get('/students',[\App\Http\Controllers\Api\StudentsController::class,'index']);
         Route::post('/students',[\App\Http\Controllers\Api\StudentsController::class,'store']);
         Route::get('/students/{student}',[\App\Http\Controllers\Api\StudentsController::class,'show'])->whereNumber('student');
+        Route::get('/students/{student}/photo',[\App\Http\Controllers\Api\StudentsController::class,'photo'])->whereNumber('student');
         Route::put('/students/{student}',[\App\Http\Controllers\Api\StudentsController::class,'update'])->whereNumber('student');
         Route::post('/students/{student}/guardians',[\App\Http\Controllers\Api\StudentsController::class,'link'])->whereNumber('student');
         Route::delete('/students/{student}/guardians/{guardian}',[\App\Http\Controllers\Api\StudentsController::class,'unlink'])->whereNumber(['student','guardian']);

@@ -29,3 +29,5 @@
 @media(max-width:1000px){.school-workspace .student-filters{grid-template-columns:repeat(2,minmax(0,1fr))}.school-workspace .student-documents{grid-template-columns:1fr}}
 @media(max-width:600px){.school-workspace .student-form-grid,.school-workspace .student-filters,.school-workspace .student-family-grid,.school-workspace .student-detail-grid{grid-template-columns:1fr}.school-workspace .student-toolbar,.school-workspace .student-savebar{align-items:stretch;flex-direction:column}.school-workspace .student-profile-heading{gap:12px;flex-wrap:wrap}.school-workspace .student-profile-heading>.badge{margin-left:0}.school-workspace .student-tabs>button{flex:1 1 140px}.school-workspace .student-document{flex-wrap:wrap}.school-workspace .student-pagination{gap:8px}.school-workspace .student-pagination button{padding:10px}}
 @media(prefers-reduced-motion:reduce){.school-workspace .student-family-card{transition:none}.school-workspace .student-family-card:hover{transform:none}}
+
+.school-workspace .student-initial img{width:100%;height:100%;object-fit:cover;border-radius:inherit}

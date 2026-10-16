@@ -44,8 +44,8 @@ class LicenseService
   return ($period??self::period($sid))!==null;
  }
  public static function studentUsage(int $sid):int {
-  $today=now('Asia/Karachi')->toDateString();
-  return DB::table('students as s')->where('s.school_id',$sid)->where('s.status','active')->whereExists(function($q)use($today){$q->selectRaw('1')->from('enrollments as e')->whereColumn('e.school_id','s.school_id')->whereColumn('e.student_id','s.id')->where('e.status','active')->where('e.starts_on','<=',$today)->where(fn($q)=>$q->whereNull('e.ends_on')->orWhere('e.ends_on','>=',$today));})->count();
+  // Active registrations reserve seats even when their enrollment starts in the future.
+  return DB::table('students')->where('school_id',$sid)->where('status','active')->count();
  }
  public static function paid(int $sid,int $invoice):string {
   return (string)DB::table('subscription_payments as p')->where('p.school_id',$sid)->where('p.subscription_invoice_id',$invoice)->whereNotExists(function($q){$q->selectRaw('1')->from('subscription_payment_reversals as r')->whereColumn('r.school_id','p.school_id')->whereColumn('r.payment_id','p.id');})->sum('p.amount');

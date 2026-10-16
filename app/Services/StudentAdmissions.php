@@ -67,7 +67,7 @@ class StudentAdmissions
  public function limit(int $sid):void {
   $period=LicenseService::period($sid);
   // Count active registrations, including future starts, so advance admissions cannot bypass limits.
-  if($period&&DB::table('students')->where('school_id',$sid)->where('status','active')->count()>=(int)$period->student_limit)$this->fail('School student limit reached. Contact the provider to upgrade.');
+  if($period&&LicenseService::studentUsage($sid)>=(int)$period->student_limit)$this->fail('School student limit reached. Contact the provider to upgrade.');
  }
  public function prepare(array $input,int $sid,array $campuses):array {
   $d=$this->profile($input,$sid);
