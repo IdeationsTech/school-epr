@@ -125,3 +125,24 @@
 .platform-workspace .license-timeline small{display:block;color:var(--admin-muted);margin:8px 0}
 .platform-workspace details summary{cursor:pointer;color:var(--admin-accent);padding:8px 0}
 @media(max-width:767px){.platform-workspace .admin-school-filter{grid-template-columns:1fr;gap:0}.platform-workspace .admin-filter-grid{flex-direction:column;align-items:stretch}.platform-workspace .admin-filter-grid .field{flex:initial}.platform-workspace .onboarding-checks li{align-items:flex-start}}
+
+/* Match uploaded reference: borderless charcoal surfaces and black-only depth. */
+.platform-workspace :is(.sidebar,.topbar,.panel,.stat-card,.setup-cards button,.school-badge,.icon-tile,.avatar,.campus-card,.member-card,.campus-pills>span,.role-tabs button,.permission-choice,.table-scroll,fieldset,.control-grid>div,.period-options,.thread-message,.badge,.form-section,.form-footer),.platform-login :is(.login-card,.icon-tile){border:0}
+.platform-workspace :is(button,input:not([type=checkbox]),select,textarea,.phone-input),.platform-login :is(button,input:not([type=checkbox])){border:0}
+.platform-workspace .phone-input>span,.platform-workspace td{border:0}
+.platform-workspace .sidebar nav button{border:0;box-shadow:none}
+.platform-workspace .sidebar nav button.active{background:var(--admin-recessed);color:var(--admin-teal);box-shadow:var(--admin-shadow-inset)}
+.platform-workspace .sidebar nav button.active:hover{background:var(--admin-recessed);color:var(--admin-teal);box-shadow:var(--admin-shadow-small)}
+.platform-workspace .primary,.platform-login .primary{background:var(--admin-surface);color:var(--admin-accent);box-shadow:var(--admin-shadow-small)}
+.platform-workspace .primary:hover:not(:disabled),.platform-login .primary:hover:not(:disabled){background:var(--admin-recessed);color:var(--admin-accent);box-shadow:var(--admin-shadow-hover)}
+.platform-workspace .secondary:hover:not(:disabled),.platform-login .secondary:hover:not(:disabled){background:var(--admin-recessed);color:var(--admin-accent)}
+.platform-workspace :is(.icon-tile,.avatar,.campus-card,.member-card,.campus-pills>span,.control-grid>div,.period-options,.thread-message){background:var(--admin-surface);box-shadow:var(--admin-shadow-small)}
+.platform-workspace .campus-card.selected,.platform-workspace .member-card.selected{background:var(--admin-recessed);box-shadow:var(--admin-shadow-inset)}
+.platform-workspace :is(.badge.success,.badge.neutral,.sidebar-bottom>.badge){border:0;background:var(--admin-recessed);box-shadow:none}
+.platform-workspace .badge.success{color:var(--admin-teal)}
+.platform-workspace .badge.neutral{color:var(--admin-accent)}
+.platform-workspace .setup-cards button:nth-child(3n+2) span{color:var(--admin-text)}
+.platform-workspace .setup-cards button:nth-child(3n+2) span svg{color:var(--admin-purple)}
+.platform-workspace .document-overlay .billing-document{box-shadow:var(--admin-shadow)}
+
+.platform-workspace :is(.success-box,.error-box),.platform-login .error-box{border:0}
