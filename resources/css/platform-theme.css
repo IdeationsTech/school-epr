@@ -194,19 +194,19 @@
 .platform-login button:not([role=slider]){
  background:var(--admin-teal);
  color:var(--admin-bg);
- border:1px solid var(--admin-border);
- box-shadow:var(--admin-shadow-small);
+ border:1px solid var(--admin-button-border);
+ box-shadow:var(--admin-button-shadow);
 }
 .platform-workspace button:not(.nav-overlay):not([role=slider]):not(.setup-cards button):not(.sidebar nav button):not(.campus-card):not(.member-card):not(.role-tabs button):hover:not(:disabled),
 .platform-login button:not([role=slider]):hover:not(:disabled){
  background:var(--admin-teal);
  color:var(--admin-bg);
- border-color:var(--admin-border);
+ border-color:var(--admin-button-border);
  filter:brightness(1.12);
- box-shadow:var(--admin-shadow-hover);
+ box-shadow:var(--admin-button-shadow-hover);
 }
 .platform-workspace button:not(.nav-overlay):not([role=slider]):not(.setup-cards button):not(.sidebar nav button):not(.campus-card):not(.member-card):not(.role-tabs button):active:not(:disabled),
-.platform-login button:not([role=slider]):active:not(:disabled){filter:brightness(.94);box-shadow:var(--admin-shadow-inset)}
+.platform-login button:not([role=slider]):active:not(:disabled){filter:brightness(.94);box-shadow:var(--admin-button-shadow-pressed)}
 
 /* Sidebar link hover uses the reference blue; active teal remains persistent at rest. */
 @media(hover:hover) and (pointer:fine){

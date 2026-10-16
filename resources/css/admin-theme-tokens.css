@@ -29,6 +29,10 @@
  --admin-shadow:2px 4px 5px #000000b3,8px 12px 22px #00000073;
  --admin-shadow-hover:3px 6px 7px #000000bf,10px 16px 26px #00000080;
  --admin-shadow-small:1px 3px 4px #000000b3,4px 7px 12px #00000066;
+ --admin-button-border:color-mix(in srgb,var(--admin-teal) 72%,transparent);
+ --admin-button-shadow:0 3px 8px color-mix(in srgb,var(--admin-teal) 22%,transparent);
+ --admin-button-shadow-hover:0 6px 16px color-mix(in srgb,var(--admin-teal) 36%,transparent);
+ --admin-button-shadow-pressed:inset 0 2px 4px color-mix(in srgb,var(--admin-teal) 55%,transparent);
  --admin-shadow-inset:inset 3px 3px 7px #00000080;
  --admin-radius:26px;
  --admin-radius-small:14px;
