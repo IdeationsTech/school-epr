@@ -48,6 +48,11 @@ class ScopeIntegrityTest extends TestCase
   $this->expectException(\Illuminate\Database\QueryException::class);
   DB::table('payment_reversals')->insert(['school_id'=>$a['sid'],'payment_id'=>$payment,'amount'=>'100','reason'=>'Actual returned cash','status'=>'posted','kind'=>'refund','refund_method'=>null,'idempotency_key'=>'REV-2']);
  }
+ public function test_invoice_line_total_must_equal_rounded_gross_less_discount():void {
+  $a=$this->graph();$invoice=DB::table('invoices')->insertGetId(['school_id'=>$a['sid'],'enrollment_id'=>$a['enrollment'],'number'=>'INV-1','period'=>'2026-01-01','kind'=>'monthly','installment_no'=>1,'issued_on'=>'2026-01-01','due_on'=>'2026-01-10','status'=>'unpaid','total'=>'190']);
+  $v=['school_id'=>$a['sid'],'invoice_id'=>$invoice,'description'=>'Fee','quantity'=>'2','unit_amount'=>'100','discount_amount'=>'10'];
+  DB::table('invoice_items')->insert($v+['line_total'=>'190']);$this->expectException(\Illuminate\Database\QueryException::class);DB::table('invoice_items')->insert($v+['line_total'=>'191']);
+ }
  public function test_cashier_variance_must_match_the_recorded_amounts():void {
   $a=$this->graph();$this->expectException(\Illuminate\Database\QueryException::class);
   DB::table('cashier_closings')->insert(['school_id'=>$a['sid'],'campus_id'=>$a['campus'],'cashier_membership_id'=>$a['mid'],'closing_date'=>'2026-01-01','expected_cash'=>'1000','counted_cash'=>'900','variance'=>'0','status'=>'draft']);

@@ -32,7 +32,7 @@ class SchemaContractInspector
    if($t['tenant'])$relationships[]=['columns'=>['school_id'],'table'=>'schools','references'=>['id']];
    foreach($t['refs'] as $column=>$parent){$composite=$t['tenant']&&($byName[$parent]['tenant']??false);$relationships[]=['columns'=>$composite?['school_id',$column]:[$column],'table'=>$parent,'references'=>$composite?['school_id','id']:['id']];}
    foreach($relationships as $r){$expectedFk++;$found=false;foreach($fks as $actual)if($actual['table']===$name&&$actual['columns']===$r['columns']&&$actual['parent']===$r['table']&&$actual['references']===$r['references']&&in_array($actual['delete'],['RESTRICT','NO ACTION'])){$found=true;break;}if(!$found)$issues[]='Missing/mismatched restricted FK: '.$name.'('.implode(',',$r['columns']).') → '.$r['table'].'('.implode(',',$r['references']).')';}
-   foreach($t['checks'] as $expression){$expectedChecks++;if(!in_array($this->sql($expression),$actualChecks[$name]??[],true))$issues[]='Missing/changed enforced CHECK: '.$name.' / '.$expression;}
+   foreach($t['checks'] as $expression){$expectedChecks++;if(!in_array($this->sql($expression),$actualChecks[$name]??[],true))$issues[]='Missing/changed enforced CHECK: '.$name.' / expected '.$this->sql($expression).' / observed '.implode(' | ',$actualChecks[$name]??[]);}
   }
   $tables=DB::select('SELECT COUNT(*) AS n FROM information_schema.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_TYPE = ?',[$db,'BASE TABLE'])[0]->n;
   return ['database'=>$db,'tables'=>(int)$tables,'foreign_keys'=>count($fks),'expected_foreign_keys'=>$expectedFk,'checks'=>array_sum(array_map('count',$actualChecks)),'expected_checks'=>$expectedChecks,'issues'=>$issues];
