@@ -207,3 +207,14 @@
 }
 .platform-workspace button:not(.nav-overlay):not([role=slider]):not(.setup-cards button):not(.sidebar nav button):not(.campus-card):not(.member-card):not(.role-tabs button):active:not(:disabled),
 .platform-login button:not([role=slider]):active:not(:disabled){filter:brightness(.94);box-shadow:var(--admin-shadow-inset)}
+
+/* Sidebar link hover uses the reference blue; active teal remains persistent at rest. */
+@media(hover:hover) and (pointer:fine){
+ .platform-workspace .sidebar nav button:hover:not(.active),
+ .platform-workspace .sidebar nav button.active:hover{
+  color:var(--admin-blue);
+  background:var(--admin-recessed);
+  border-color:var(--admin-border);
+ }
+}
+.platform-workspace .sidebar nav button:focus-visible{color:var(--admin-blue)}
