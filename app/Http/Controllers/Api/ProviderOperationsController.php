@@ -8,20 +8,10 @@ use Illuminate\Validation\Rule;
 use Illuminate\Validation\ValidationException;
 class ProviderOperationsController extends Controller
 {
- private function audit(Request $r,string $action,string $type,int $id,array $changes):void{DB::table('platform_audit_logs')->insert(['actor_user_id'=>$r->user()->id,'action'=>$action,'target_type'=>$type,'target_id'=>$id,'changes'=>json_encode($changes),'created_at'=>now(),'updated_at'=>now()]);}
+ private function audit(Request $r,string $action,string $type,int $id,array $changes):void{\App\Services\PlatformAudit::record($r->user()->id,$action,$type,$id,$changes);}
  public function licenses(Request $r){
   $d=$r->validate(['search'=>'nullable|string|max:100','state'=>['nullable',Rule::in(['active','suspended','closed','valid','grace','expired','upcoming','expiring','unassigned'])]]);
-  $today=now('Asia/Karachi')->toDateString();$state=$d['state']??'';
-  $base=function($q){$q->selectRaw('1')->from('subscriptions as sub')->whereColumn('sub.school_id','school_licenses.school_id')->where('sub.status','active');};
-  $current=function($q)use($base,$today){$base($q);$q->where('sub.starts_on','<=',$today)->whereRaw('DATE_ADD(sub.ends_on, INTERVAL sub.grace_days DAY) >= ?',[$today]);};
-  $q=DB::table('school_licenses')->join('schools','schools.id','=','school_licenses.school_id')
-   ->when($d['search']??'',fn($q,$v)=>$q->where(fn($q)=>$q->where('schools.name','like','%'.$v.'%')->orWhere('school_licenses.number','like','%'.$v.'%')));
-  if(in_array($state,['active','suspended','closed']))$q->where('school_licenses.status',$state);
-  elseif(in_array($state,['valid','grace','expiring']))$q->whereExists(function($sub)use($current,$today,$state){$current($sub);if($state==='grace')$sub->where('sub.ends_on','<',$today);else $sub->where('sub.ends_on','>=',$today);if($state==='expiring')$sub->where('sub.ends_on','<=',now('Asia/Karachi')->addDays(30)->toDateString());});
-  if($state==='grace')$q->whereNotExists(function($sub)use($base,$today){$base($sub);$sub->where('sub.starts_on','<=',$today)->where('sub.ends_on','>=',$today);});
-  if($state==='upcoming')$q->whereNotExists($current)->whereExists(function($sub)use($base,$today){$base($sub);$sub->where('sub.starts_on','>',$today);});
-  elseif($state==='expired')$q->whereNotExists($current)->whereNotExists(function($sub)use($base,$today){$base($sub);$sub->where('sub.starts_on','>',$today);})->whereExists($base);
-  elseif($state==='unassigned')$q->whereNotExists($base);
+  $q=LicenseService::listing($d['state']??'')->when($d['search']??'',fn($q,$v)=>$q->where(fn($q)=>$q->where('schools.name','like','%'.$v.'%')->orWhere('school_licenses.number','like','%'.$v.'%')));
   $page=$q->orderByDesc('school_licenses.id')->paginate(20,['school_licenses.*','schools.name as school_name']);
   $page->setCollection($page->getCollection()->map(fn($l)=>['school_id'=>$l->school_id,'school_name'=>$l->school_name]+LicenseService::summary($l->school_id)));
   return response()->json($page);
@@ -64,7 +54,11 @@ class ProviderOperationsController extends Controller
   $i->paid=LicenseService::paid($school,$invoice);return response()->json(['invoice'=>$i,'receipt'=>$receipt,'payments'=>$payments,'school'=>DB::table('schools')->where('id',$school)->first(['name','code']),'provider'=>json_decode(DB::table('provider_settings')->where('key','profile')->value('value')??'{}',true)]);
  }
  public function auditLog(Request $r){
-  $d=$r->validate(['search'=>'nullable|string|max:100','actor'=>'nullable|integer']);return response()->json(DB::table('platform_audit_logs as a')->join('users as u','u.id','=','a.actor_user_id')->when($d['search']??'',fn($q,$v)=>$q->where(fn($q)=>$q->where('a.action','like','%'.$v.'%')->orWhere('a.target_type','like','%'.$v.'%')))->when($d['actor']??null,fn($q,$v)=>$q->where('a.actor_user_id',$v))->orderByDesc('a.id')->paginate(25,['a.*','u.name as actor_name']));
+  $d=$r->validate(['search'=>'nullable|string|max:100','actor'=>'nullable|integer|exists:users,id','school_id'=>'nullable|integer|exists:schools,id','from'=>'nullable|date_format:Y-m-d','to'=>'nullable|date_format:Y-m-d'.($r->filled('from')?'|after_or_equal:from':'')]);
+  $q=DB::table('platform_audit_logs as a')->join('users as u','u.id','=','a.actor_user_id')->leftJoin('schools as s','s.id','=','a.school_id')->when($d['search']??'',fn($q,$v)=>$q->where(fn($q)=>$q->where('a.action','like','%'.$v.'%')->orWhere('a.target_type','like','%'.$v.'%')->orWhere('s.name','like','%'.$v.'%')->orWhere('s.code','like','%'.$v.'%')))->when($d['actor']??null,fn($q,$v)=>$q->where('a.actor_user_id',$v))->when($d['school_id']??null,fn($q,$v)=>$q->where('a.school_id',$v));
+  if(!empty($d['from']))$q->where('a.created_at','>=',\Carbon\CarbonImmutable::parse($d['from'],'Asia/Karachi')->startOfDay()->utc());
+  if(!empty($d['to']))$q->where('a.created_at','<=',\Carbon\CarbonImmutable::parse($d['to'],'Asia/Karachi')->endOfDay()->utc());
+  return response()->json($q->orderByDesc('a.id')->paginate(25,['a.*','u.name as actor_name','s.name as school_name','s.code as school_code'])->toArray()+['actors'=>DB::table('users as u')->whereExists(fn($q)=>$q->selectRaw('1')->from('platform_audit_logs as a')->whereColumn('a.actor_user_id','u.id'))->orderBy('u.name')->get(['u.id','u.name'])]);
  }
  public function settings(){return response()->json(json_decode(DB::table('provider_settings')->where('key','profile')->value('value')??'{}',true));}
  public function saveSettings(Request $r){$d=$r->validate(['name'=>'required|string|min:2|max:160','phone'=>['required',new \App\Rules\PakistanPhone()],'email'=>'required|email|max:160','address'=>'required|string|min:8|max:2000','receipt_footer'=>'nullable|string|max:500']);$d['phone']=\App\Rules\PakistanPhone::canonical($d['phone']);DB::transaction(function()use($r,$d){DB::table('provider_settings')->updateOrInsert(['key'=>'profile'],['value'=>json_encode($d),'created_at'=>now(),'updated_at'=>now()]);$this->audit($r,'provider.profile_updated','provider_settings',1,['fields'=>array_keys($d)]);});return response()->json(['message'=>'Provider profile saved.']);}

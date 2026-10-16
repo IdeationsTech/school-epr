@@ -1631,6 +1631,7 @@ Table platform_admins {
 
 Table platform_audit_logs {
   id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [null]
   actor_user_id "bigint unsigned" [not null]
   action varchar(160) [not null]
   target_type varchar(160) [not null]
@@ -1966,6 +1967,7 @@ Ref t93_fk1: school_role_permissions.role_id > roles.id [delete: restrict, updat
 Ref t93_fk2: school_role_permissions.permission_id > permissions.id [delete: restrict, update: no action]
 Ref t94_fk0: platform_admins.user_id > users.id [delete: restrict, update: no action]
 Ref t95_fk0: platform_audit_logs.actor_user_id > users.id [delete: restrict, update: no action]
+Ref t95_fk1: platform_audit_logs.school_id > schools.id [delete: restrict, update: no action]
 Ref t96_fk0: school_licenses.school_id > schools.id [delete: restrict, update: no action]
 Ref t97_fk0: subscription_payment_reversals.school_id > schools.id [delete: restrict, update: no action]
 Ref t97_fk1: subscription_payment_reversals.(school_id, payment_id) > subscription_payments.(school_id, id) [delete: restrict, update: no action]

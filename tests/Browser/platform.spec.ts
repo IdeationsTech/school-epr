@@ -7,7 +7,7 @@ test('provider onboards a school, receives a partial payment and suspends access
     await page.getByLabel('Password',{exact:true}).fill('BrowserTestPassword123!');
     await page.getByRole('button',{name:'Sign in',exact:true}).click();
     await expect(page.getByRole('heading',{name:'Platform overview',exact:true})).toBeVisible();
-    await expect(page.locator('.platform-stats .stat-card')).toHaveCount(6);
+    await expect(page.locator('.platform-stats .stat-card')).toHaveCount(9);
     await page.screenshot({path:'test-results/platform-overview-desktop.png',fullPage:true,animations:'disabled'});
     await page.setViewportSize({width:390,height:844});
     expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
@@ -42,6 +42,24 @@ test('provider onboards a school, receives a partial payment and suspends access
     await expect(page.getByRole('heading',{name:'Pilot Academy',exact:true})).toBeVisible();
     await page.reload();
     await expect(page.getByRole('heading',{name:'Pilot Academy',exact:true})).toBeVisible();
+    await page.getByLabel('Owner handover confirmed').check();
+    await page.getByLabel('Onboarding notes').fill('Owner sign-in verified during onboarding.');
+    await page.getByRole('button',{name:'Save onboarding',exact:true}).click();
+    await expect(page.getByRole('status')).toHaveText('Onboarding checklist saved.');
+    await expect(page.getByText('6 of 6 checks complete.',{exact:false})).toBeVisible();
+    await page.getByRole('button',{name:'School audit',exact:true}).click();
+    await expect(page.getByRole('heading',{name:'Platform audit trail',exact:true})).toBeVisible();
+    await expect(page.getByText('school.onboarding_updated',{exact:true})).toBeVisible();
+    await page.reload();
+    await expect(page.getByText('school.onboarding_updated',{exact:true})).toBeVisible();
+    await page.getByRole('navigation').getByRole('button',{name:'Subscriptions',exact:true}).click();
+    await page.getByLabel('Search subscriptions').fill('Pilot Academy');
+    await page.getByRole('button',{name:'Search',exact:true}).click();
+    await expect(page.getByRole('row').filter({hasText:'Pilot Academy'})).toBeVisible();
+    await page.screenshot({path:'test-results/platform-subscriptions-desktop.png',fullPage:true,animations:'disabled'});
+    await page.getByRole('button',{name:'Manage subscription',exact:true}).click();
+    await expect(page.getByRole('heading',{name:'Pilot Academy',exact:true})).toBeVisible();
+
     await page.getByLabel('Invoice',{exact:true}).selectOption({index:1});
     await page.getByLabel('Amount (PKR)',{exact:true}).fill('2000');
     await page.getByLabel('Transaction / receipt reference',{exact:true}).fill('BANK-PILOT-001');

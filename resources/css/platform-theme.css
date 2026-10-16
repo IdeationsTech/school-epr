@@ -113,3 +113,15 @@
 .platform-workspace .document-overlay::backdrop{background:var(--admin-overlay)}
 
 @media print{.platform-workspace .document-overlay{background:transparent}}
+
+/* Provider completion screens use the central theme tokens. */
+.platform-workspace .admin-school-filter{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px}
+.platform-workspace .admin-filter-grid{display:flex;align-items:flex-end;flex-wrap:wrap;gap:14px;margin-bottom:18px}
+.platform-workspace .admin-filter-grid .field{flex:1 1 150px;margin-bottom:0}
+.platform-workspace .onboarding-checks{list-style:none;padding:0;display:grid;gap:12px;margin:20px 0}
+.platform-workspace .onboarding-checks li{display:flex;align-items:center;gap:12px;line-height:1.6}
+.platform-workspace .license-timeline{list-style:none;padding:0;margin:20px 0}
+.platform-workspace .license-timeline li{border-left:2px solid var(--admin-teal);padding:0 0 24px 17px;margin-left:4px;overflow-wrap:anywhere}
+.platform-workspace .license-timeline small{display:block;color:var(--admin-muted);margin:8px 0}
+.platform-workspace details summary{cursor:pointer;color:var(--admin-accent);padding:8px 0}
+@media(max-width:767px){.platform-workspace .admin-school-filter{grid-template-columns:1fr;gap:0}.platform-workspace .admin-filter-grid{flex-direction:column;align-items:stretch}.platform-workspace .admin-filter-grid .field{flex:initial}.platform-workspace .onboarding-checks li{align-items:flex-start}}

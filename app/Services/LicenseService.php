@@ -5,6 +5,19 @@ use Carbon\CarbonImmutable;
 class LicenseService
 {
  public const MODULES=['student_admissions','fees','attendance','daily_diary','tests_results','staff_payroll','manual_whatsapp_sharing'];
+ public static function listing(string $state=''):\Illuminate\Database\Query\Builder {
+  $today=now('Asia/Karachi')->toDateString();
+  $base=function($q){$q->selectRaw('1')->from('subscriptions as sub')->whereColumn('sub.school_id','school_licenses.school_id')->where('sub.status','active');};
+  $current=function($q)use($base,$today){$base($q);$q->where('sub.starts_on','<=',$today)->whereRaw('DATE_ADD(sub.ends_on, INTERVAL sub.grace_days DAY) >= ?',[$today]);};
+  $q=DB::table('school_licenses')->join('schools','schools.id','=','school_licenses.school_id');
+  if(in_array($state,['active','suspended','closed']))$q->where('school_licenses.status',$state);
+  elseif(in_array($state,['valid','grace','expiring']))$q->where('school_licenses.status','active')->where('schools.status','active')->whereExists(function($sub)use($current,$today,$state){$current($sub);if($state==='grace')$sub->where('sub.ends_on','<',$today);else $sub->where('sub.ends_on','>=',$today);if($state==='expiring')$sub->where('sub.ends_on','<=',now('Asia/Karachi')->addDays(30)->toDateString());});
+  if($state==='grace')$q->whereNotExists(function($sub)use($base,$today){$base($sub);$sub->where('sub.starts_on','<=',$today)->where('sub.ends_on','>=',$today);});
+  if($state==='upcoming')$q->whereNotExists($current)->whereExists(function($sub)use($base,$today){$base($sub);$sub->where('sub.starts_on','>',$today);});
+  elseif($state==='expired')$q->whereNotExists($current)->whereNotExists(function($sub)use($base,$today){$base($sub);$sub->where('sub.starts_on','>',$today);})->whereExists($base);
+  elseif($state==='unassigned')$q->whereNotExists($base);
+  return $q;
+ }
  public static function ensure(int $sid,bool $legacy=false):object {
   $found=DB::table('school_licenses')->where('school_id',$sid)->first();if($found)return $found;
   DB::table('school_licenses')->insertOrIgnore(['school_id'=>$sid,'number'=>'LIC-'.str_pad((string)$sid,8,'0',STR_PAD_LEFT),'status'=>'active','legacy_access'=>$legacy,'issued_on'=>now('Asia/Karachi')->toDateString(),'created_at'=>now(),'updated_at'=>now()]);

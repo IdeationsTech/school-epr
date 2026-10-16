@@ -3914,6 +3914,11 @@
     "name": "platform_audit_logs",
     "columns": [
       {
+        "name": "school_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
         "name": "actor_user_id",
         "type": "id",
         "nullable": false
@@ -3940,7 +3945,8 @@
       }
     ],
     "refs": {
-      "actor_user_id": "users"
+      "actor_user_id": "users",
+      "school_id": "schools"
     },
     "unique": [],
     "checks": [],

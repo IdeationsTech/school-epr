@@ -2,7 +2,7 @@
 
 ## Conclusion and evidence boundary
 
-The **latest agreed product scope** was compared with every committed domain table, reference, unique key and CHECK constraint, plus the existing provider/access services. After the additive scope-audit migration the contract has **100 tables (91 domain + 9 Laravel infrastructure), 257 foreign keys and 72 CHECK constraints**.
+The **latest agreed product scope** was compared with every committed domain table, reference, unique key and CHECK constraint, plus the existing provider/access services. After the additive scope-audit migration the contract has **100 tables (91 domain + 9 Laravel infrastructure), 258 foreign keys and 72 CHECK constraints**.
 
 This is a schema and implemented-service audit, not a claim that all school modules already work. Provider/access flows are implemented. Admissions, school fees, attendance, diary, exams, payroll and the remaining operational screens still need their application services and UI. A complete database cannot by itself enforce every cross-row or permission rule, and cannot guarantee a future implementation has no bugs.
 

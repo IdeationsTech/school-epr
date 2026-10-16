@@ -18,6 +18,10 @@ Route::prefix('app-api')->group(function (): void {
     Route::get('/account/tickets/{ticket}',[\App\Http\Controllers\Api\SchoolAccountController::class,'ticket'])->whereNumber('ticket');
     Route::post('/account/tickets/{ticket}/replies',[\App\Http\Controllers\Api\SchoolAccountController::class,'reply'])->whereNumber('ticket')->middleware('throttle:30,1');
     Route::prefix('platform')->middleware(\App\Http\Middleware\RequirePlatformAdmin::class)->group(function(): void {
+        Route::get('/subscriptions',[\App\Http\Controllers\Api\AdminCompletionController::class,'subscriptions']);
+        Route::get('/schools/{school}/onboarding',[\App\Http\Controllers\Api\AdminCompletionController::class,'onboarding'])->whereNumber('school');
+        Route::put('/schools/{school}/onboarding',[\App\Http\Controllers\Api\AdminCompletionController::class,'saveOnboarding'])->whereNumber('school');
+        Route::get('/schools/{school}/license-history',[\App\Http\Controllers\Api\AdminCompletionController::class,'licenseHistory'])->whereNumber('school');
         Route::post('/schools/{school}/subscriptions/{subscription}/change',[\App\Http\Controllers\Api\PlatformController::class,'changePackage'])->whereNumber(['school','subscription']);
         Route::get('/licenses',[\App\Http\Controllers\Api\ProviderOperationsController::class,'licenses']);
         Route::put('/schools/{school}/license',[\App\Http\Controllers\Api\ProviderOperationsController::class,'licenseStatus'])->whereNumber('school');

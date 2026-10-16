@@ -12,7 +12,7 @@ class PlatformController extends Controller
 {
     private function audit(Request $r,string $action,string $type,int $id,array $changes=[]): void
     {
-        DB::table('platform_audit_logs')->insert(['actor_user_id'=>$r->user()->id,'action'=>$action,'target_type'=>$type,'target_id'=>$id,'changes'=>json_encode($changes),'created_at'=>now(),'updated_at'=>now()]);
+        \App\Services\PlatformAudit::record($r->user()->id,$action,$type,$id,$changes);
     }
     private function cents(string|int|float $amount): int
     {
@@ -22,7 +22,8 @@ class PlatformController extends Controller
     {
         $today=now('Asia/Karachi')->toDateString();
         return response()->json(['schools'=>DB::table('schools')->count(),'active_schools'=>DB::table('schools')->where('status','active')->count(),
-            'expiring'=>DB::table('subscriptions')->where('status','active')->whereBetween('ends_on',[$today,now('Asia/Karachi')->addDays(30)->toDateString()])->distinct()->count('school_id'),
+            'valid'=>LicenseService::listing('valid')->count(),'expired'=>LicenseService::listing('expired')->count(),'grace'=>LicenseService::listing('grace')->count(),
+            'expiring'=>LicenseService::listing('expiring')->count(),
             'received'=>DB::table('subscription_payments as p')->whereNotExists(fn($q)=>$q->selectRaw('1')->from('subscription_payment_reversals as r')->whereColumn('r.payment_id','p.id'))->sum('p.amount'),
             'outstanding'=>DB::table('subscription_invoices')->get()->sum(fn($i)=>max(0,$this->cents($i->amount)-$this->cents(LicenseService::paid($i->school_id,$i->id))))/100,
             'suspended'=>DB::table('school_licenses')->where('status','suspended')->count(),
@@ -58,7 +59,7 @@ class PlatformController extends Controller
         $q=DB::table('schools')->orderByDesc('id');
         if($search!=='')$q->where(function($q)use($search){$q->where('name','like','%'.$search.'%')->orWhere('code','like','%'.$search.'%');});
         $page=$q->paginate(20);
-        foreach($page->items() as $s){$s->license=LicenseService::summary((int)$s->id);$s->subscription=DB::table('subscriptions')->join('plans','plans.id','=','subscriptions.plan_id')->where('subscriptions.school_id',$s->id)->orderByDesc('ends_on')->first(['subscriptions.*','plans.name as plan_name']);}
+        foreach($page->items() as $s){$s->onboarding=\App\Services\SchoolOnboarding::summary((int)$s->id);$s->license=LicenseService::summary((int)$s->id);$s->subscription=DB::table('subscriptions')->join('plans','plans.id','=','subscriptions.plan_id')->where('subscriptions.school_id',$s->id)->orderByDesc('ends_on')->first(['subscriptions.*','plans.name as plan_name']);}
         return response()->json($page);
     }
     public function school(int $school)
@@ -105,7 +106,8 @@ class PlatformController extends Controller
     private function subscription(Request $r,int $sid,array $d): void
     {
         $plan=DB::table('plans')->where('id',$d['plan_id'])->first();
-        $license=LicenseService::ensure($sid);
+        $hadLicense=DB::table('school_licenses')->where('school_id',$sid)->exists();$license=LicenseService::ensure($sid);
+        if(!$hadLicense)$this->audit($r,'license.issued','school_license',$license->id,['school_id'=>$sid,'number'=>$license->number,'issued_on'=>$license->issued_on]);
         $studentLimit=$d['student_limit']??$plan->student_limit;$campusLimit=$d['campus_limit']??$plan->campus_limit;
         $this->checkLimits($sid,['student_limit'=>$studentLimit,'campus_limit'=>$campusLimit]);
         DB::table('school_licenses')->where('id',$license->id)->update(['legacy_access'=>false,'updated_at'=>now()]);
