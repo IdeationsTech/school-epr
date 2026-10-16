@@ -1,6 +1,6 @@
 # Implemented database inventory
 
-86 domain tables; framework tables are additional. Schema is initial scaffolding, not implemented business workflows.
+90 domain tables; framework tables are additional. Schema is initial scaffolding, not implemented business workflows.
 
 | Table | Group | References |
 |---|---|---|

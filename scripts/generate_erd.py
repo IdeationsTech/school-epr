@@ -1,4 +1,4 @@
-"""Generate the 95-table DBML diagram from the committed schema contract.
+"""Generate the 99-table DBML diagram from the committed schema contract.
 
 Run from any directory: python scripts/generate_erd.py
 Only diagram files are written; this script never connects to MySQL.
@@ -15,14 +15,14 @@ def q(value):
 
 out = [
     '// School ERP — implemented database ERD',
-    '// 86 domain + 8 Laravel infrastructure + 1 migration tracking = 95 tables.',
+    '// 90 domain + 8 Laravel infrastructure + 1 migration tracking = 99 tables.',
     '// Paste this entire file into the DBML editor at https://dbdiagram.io/.',
     '// Diagram only: Laravel migrations remain the source for database creation.',
     '// Composite references preserve school isolation. No invented logical FKs.',
     '',
     "Project school_erp {",
     "  database_type: 'MySQL'",
-    "  Note: 'MySQL 8.4 school ERP. 95 implemented tables. Future-only tables are grouped separately. Status values are strings unless a check explicitly restricts them. Cross-row business rules require application services.'",
+    "  Note: 'MySQL 8.4 school ERP. 99 implemented tables. Future-only tables are grouped separately. Status values are strings unless a check explicitly restricts them. Cross-row business rules require application services.'",
     '}',
     '',
 ]
@@ -88,9 +88,12 @@ for idx, t in enumerate(domain, 10):
         out.append('  school_id "bigint unsigned" [not null]')
     for c in t['columns']:
         settings = ['null' if c['nullable'] else 'not null']
-        if c['type'] == 'bool':
+        if 'default' in c:
+            value=c['default']
+            settings.append('default: '+(str(value).lower() if isinstance(value,(bool,int,float)) else q(value)))
+        elif c['type'] == 'bool':
             settings.append('default: false')
-        out.append('  ' + c['name'] + ' ' + types[c['type']] + ' [' + ', '.join(settings) + ']')
+        out.append('  ' + c['name'] + ' ' + ('varchar('+str(c['length'])+')' if c.get('length') else types[c['type']]) + ' [' + ', '.join(settings) + ']')
     out += ['  created_at timestamp [null]', '  updated_at timestamp [null]']
     if t['tenant'] or t['unique']:
         out.append('  indexes {')
@@ -126,5 +129,5 @@ for group, tables in groups.items():
 
 destination = ROOT / 'docs/database/school-erp-full.dbml'
 destination.write_text('\n'.join(out))
-assert len(framework) + len(domain) == 95
-print(json.dumps({'tables': 95, 'foreign_keys': len(refs), 'file': str(destination)}))
+assert len(framework) + len(domain) == 99
+print(json.dumps({'tables': 99, 'foreign_keys': len(refs), 'file': str(destination)}))

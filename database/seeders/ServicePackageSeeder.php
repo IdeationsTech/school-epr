@@ -17,6 +17,7 @@ class ServicePackageSeeder extends Seeder
                 $annual=$package['annual_price'];unset($package['annual_price']);
                 // Re-running deployment seeders must never reset operator-edited prices or limits.
                 DB::table('plans')->insertOrIgnore($package+[
+                    'annual_price'=>$annual,'available'=>true,'modules'=>json_encode($modules),
                     'features'=>json_encode(['active'=>true,'annual_price'=>$annual,'modules'=>$modules]),
                     'created_at'=>now(),'updated_at'=>now(),
                 ]);
@@ -28,7 +29,7 @@ class ServicePackageSeeder extends Seeder
                 $features=json_decode($legacy->features??'[]',true);
                 if($features===['fees','diary','tests','payroll']){
                     DB::table('plans')->where('id',$legacy->id)->update([
-                        'features'=>json_encode(['active'=>false,'annual_price'=>'0.00','modules'=>$features]),'updated_at'=>now(),
+                        'available'=>false,'features'=>json_encode(['active'=>false,'annual_price'=>'0.00','modules'=>$features]),'updated_at'=>now(),
                     ]);
                 }
             }

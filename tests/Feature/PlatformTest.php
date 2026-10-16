@@ -86,11 +86,13 @@ class PlatformTest extends TestCase
         $this->actingAs($admin)->putJson("/app-api/platform/schools/$sid/status",['status'=>'active','reason'=>'Service restored'])->assertOk();
         DB::table('subscriptions')->where('school_id',$sid)->update(['starts_on'=>'2020-01-01','ends_on'=>'2020-01-31']);
         $this->actingAs($owner)->withSession(['school_id'=>$sid])->getJson('/app-api/bootstrap')->assertForbidden();
-        $this->postJson('/app-api/logout');$this->postJson('/app-api/login',['email'=>$d['owner_email'],'password'=>$d['password']])->assertForbidden();
+        $this->postJson('/app-api/logout');$this->postJson('/app-api/login',['email'=>$d['owner_email'],'password'=>$d['password']])->assertOk();
+        $this->getJson('/app-api/bootstrap')->assertForbidden();
+        $this->getJson('/app-api/account')->assertOk();
     }
     public function test_campus_limit_is_enforced_by_school_api():void
     {
-        [$sid,$plan,$d]=$this->onboard();DB::table('plans')->where('id',$plan)->update(['campus_limit'=>1]);
+        [$sid,$plan,$d]=$this->onboard();DB::table('subscriptions')->where('school_id',$sid)->update(['campus_limit'=>1]);
         $owner=User::where('email',$d['owner_email'])->first();$this->actingAs($owner)->withSession(['school_id'=>$sid]);
         $this->postJson('/app-api/campuses',['name'=>'Branch','code'=>'BRANCH','phone'=>'+923001234567','address'=>'12 Branch Road Lahore','status'=>'active'])->assertUnprocessable();
     }

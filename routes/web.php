@@ -3,7 +3,7 @@ use App\Http\Controllers\Api\SessionController;
 use App\Http\Controllers\Api\SchoolController;
 use App\Http\Middleware\SetSchoolContext;
 use Illuminate\Support\Facades\Route;
-foreach (['/','/school','/campus','/users','/roles'] as $path) {
+foreach (['/','/school','/campus','/users','/roles','/license'] as $path) {
     Route::view($path, 'app');
 }
 Route::view('/admin/{path?}', 'app')->where('path','.*');
@@ -12,7 +12,26 @@ Route::prefix('app-api')->group(function (): void {
     Route::post('/login', [SessionController::class, 'login'])->middleware('throttle:20,1');
     Route::post('/logout', [SessionController::class, 'logout']);
     Route::post('/switch-school', [SessionController::class, 'switchSchool']);
+    Route::get('/account',[\App\Http\Controllers\Api\SchoolAccountController::class,'show']);
+    Route::post('/account/tickets',[\App\Http\Controllers\Api\SchoolAccountController::class,'createTicket'])->middleware('throttle:20,1');
+    Route::get('/account/tickets/{ticket}',[\App\Http\Controllers\Api\SchoolAccountController::class,'ticket'])->whereNumber('ticket');
+    Route::post('/account/tickets/{ticket}/replies',[\App\Http\Controllers\Api\SchoolAccountController::class,'reply'])->whereNumber('ticket')->middleware('throttle:30,1');
     Route::prefix('platform')->middleware(\App\Http\Middleware\RequirePlatformAdmin::class)->group(function(): void {
+        Route::post('/schools/{school}/subscriptions/{subscription}/change',[\App\Http\Controllers\Api\PlatformController::class,'changePackage'])->whereNumber(['school','subscription']);
+        Route::get('/licenses',[\App\Http\Controllers\Api\ProviderOperationsController::class,'licenses']);
+        Route::put('/schools/{school}/license',[\App\Http\Controllers\Api\ProviderOperationsController::class,'licenseStatus'])->whereNumber('school');
+        Route::post('/schools/{school}/subscriptions/{subscription}/cancel',[\App\Http\Controllers\Api\ProviderOperationsController::class,'cancelPeriod'])->whereNumber(['school','subscription']);
+        Route::get('/schools/{school}/invoices/{invoice}/document',[\App\Http\Controllers\Api\ProviderOperationsController::class,'document'])->whereNumber(['school','invoice']);
+        Route::get('/billing',[\App\Http\Controllers\Api\ProviderOperationsController::class,'billing']);
+        Route::post('/schools/{school}/payments/{payment}/reverse',[\App\Http\Controllers\Api\ProviderOperationsController::class,'reverse'])->whereNumber(['school','payment']);
+        Route::post('/schools/{school}/invoices/{invoice}/adjust',[\App\Http\Controllers\Api\ProviderOperationsController::class,'adjust'])->whereNumber(['school','invoice']);
+        Route::get('/audit',[\App\Http\Controllers\Api\ProviderOperationsController::class,'auditLog']);
+        Route::get('/settings',[\App\Http\Controllers\Api\ProviderOperationsController::class,'settings']);
+        Route::put('/settings',[\App\Http\Controllers\Api\ProviderOperationsController::class,'saveSettings']);
+        Route::get('/support',[\App\Http\Controllers\Api\ProviderOperationsController::class,'tickets']);
+        Route::post('/support',[\App\Http\Controllers\Api\ProviderOperationsController::class,'saveTicket']);
+        Route::get('/support/{ticket}',[\App\Http\Controllers\Api\ProviderOperationsController::class,'ticket'])->whereNumber('ticket');
+        Route::put('/support/{ticket}',[\App\Http\Controllers\Api\ProviderOperationsController::class,'saveTicket'])->whereNumber('ticket');
         Route::get('/dashboard',[\App\Http\Controllers\Api\PlatformController::class,'dashboard']);
         Route::get('/plans',[\App\Http\Controllers\Api\PlatformController::class,'plans']);
         Route::post('/plans',[\App\Http\Controllers\Api\PlatformController::class,'savePlan']);

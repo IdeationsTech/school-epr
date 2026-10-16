@@ -84,5 +84,9 @@
   "student_observations": "future",
   "school_role_permissions": "access",
   "platform_admins": "platform",
-  "platform_audit_logs": "platform"
+  "platform_audit_logs": "platform",
+  "school_licenses": "platform",
+  "subscription_payment_reversals": "platform",
+  "subscription_invoice_adjustments": "platform",
+  "provider_settings": "platform"
 }

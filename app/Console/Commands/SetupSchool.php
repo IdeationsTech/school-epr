@@ -27,6 +27,7 @@ class SetupSchool extends Command
         $this->call('db:seed',['--class'=>AccessSetupSeeder::class,'--force'=>true]);
         DB::transaction(function() use($data): void {
             $sid=DB::table('schools')->insertGetId(['name'=>$data['school'],'code'=>$data['code'],'timezone'=>'Asia/Karachi','currency'=>'PKR','status'=>'active','created_at'=>now(),'updated_at'=>now()]);
+            \App\Services\LicenseService::ensure($sid,true);
             $cid=DB::table('campuses')->insertGetId(['school_id'=>$sid,'name'=>'Main Campus','code'=>'MAIN','status'=>'active','created_at'=>now(),'updated_at'=>now()]);
             $uid=DB::table('users')->insertGetId(['name'=>$data['name'],'email'=>$data['email'],'password'=>Hash::make($data['password']),'created_at'=>now(),'updated_at'=>now()]);
             $mid=DB::table('school_memberships')->insertGetId(['school_id'=>$sid,'user_id'=>$uid,'status'=>'active','created_at'=>now(),'updated_at'=>now()]);

@@ -40,7 +40,7 @@ class ReferenceDataSeeder extends Seeder
             }
             DB::table('plans')->insertOrIgnore(['code'=>'school-standard',
                 'name'=>'School Standard','student_limit'=>1000,'campus_limit'=>2,
-                'monthly_price'=>'0.00', // Placeholder, not commercial pricing.
+                'annual_price'=>'0.00','available'=>false,'modules'=>json_encode([]),'monthly_price'=>'0.00', // Placeholder, not commercial pricing.
                 'features'=>json_encode(['active'=>false,'annual_price'=>'0.00','modules'=>['fees','diary','tests','payroll']]), 'created_at'=>now(), 'updated_at'=>now(),
             ]);
         });

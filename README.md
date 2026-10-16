@@ -2,10 +2,10 @@
 
 Laravel 13 + React/TypeScript + Tailwind + MySQL 8.4 foundation for Pakistani schools (500–1,000 students, 1–2 campuses).
 
-**Current delivery:** session login/logout, responsive owner workspace, school/campus settings, users/roles/campus access, school-specific permission overrides, first-owner CLI setup and 86 domain tables.
+**Current delivery:** session login/logout, responsive owner workspace, school/campus settings, users/roles/campus access, school-specific permission overrides, first-owner CLI setup and 90 domain tables.
 **Next modules:** admissions/students, fees, diary, attendance and exams. Those domain tables exist, but the application workflows are not implemented yet.
 
-Existing installation? Follow [Update 2](docs/setup/access-update.md) to pull, migrate and create your first owner account. Full schema now has 95 tables.
+Existing installation? Follow [Update 2](docs/setup/access-update.md) to pull, migrate and create your first owner account. Full schema now has 99 tables.
 
 Start here: [Windows setup](docs/setup/windows.md).
 Database: [table inventory](docs/database/schema.md) · [schema contract](docs/database/integrity.md).
@@ -48,3 +48,7 @@ Setup/access endpoints use session authentication, CSRF protection and tenant au
 ## Provider / Super Admin workspace
 
 School onboarding, packages, subscription invoices, partial payments, renewal and suspension are available. Follow [Update 3](docs/setup/platform-update.md) for migration and one-time platform access. Platform privileges are separate from school roles.
+
+## Complete provider workflow
+
+See [license/billing/support update](docs/setup/platform-complete-update.md) and [database audit](docs/database/platform-audit.md). Run `php artisan database:verify` after migration. Identity storage for guardian CNIC and student CNIC/B-Form is included; admissions entry screens follow separately.

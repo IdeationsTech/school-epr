@@ -70,6 +70,23 @@
         "name": "features",
         "type": "json",
         "nullable": true
+      },
+      {
+        "name": "annual_price",
+        "type": "money",
+        "nullable": false,
+        "default": 0
+      },
+      {
+        "name": "available",
+        "type": "bool",
+        "nullable": false,
+        "default": true
+      },
+      {
+        "name": "modules",
+        "type": "json",
+        "nullable": true
       }
     ],
     "refs": {},
@@ -78,7 +95,9 @@
         "code"
       ]
     ],
-    "checks": [],
+    "checks": [
+      "monthly_price >= 0 AND annual_price >= 0 AND student_limit > 0 AND campus_limit > 0"
+    ],
     "tenant": false,
     "group": "platform"
   },
@@ -225,15 +244,54 @@
         "name": "price",
         "type": "money",
         "nullable": false
+      },
+      {
+        "name": "license_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "kind",
+        "type": "string",
+        "nullable": false,
+        "default": "paid"
+      },
+      {
+        "name": "grace_days",
+        "type": "uint",
+        "nullable": false,
+        "default": 0
+      },
+      {
+        "name": "student_limit",
+        "type": "uint",
+        "nullable": true
+      },
+      {
+        "name": "campus_limit",
+        "type": "uint",
+        "nullable": true
+      },
+      {
+        "name": "modules",
+        "type": "json",
+        "nullable": true
+      },
+      {
+        "name": "package_name",
+        "type": "string",
+        "nullable": true
       }
     ],
     "refs": {
-      "plan_id": "plans"
+      "plan_id": "plans",
+      "license_id": "school_licenses"
     },
     "unique": [],
     "checks": [
       "ends_on >= starts_on",
-      "price >= 0"
+      "price >= 0",
+      "kind IN ('paid','trial') AND grace_days <= 30 AND (student_limit IS NULL OR student_limit > 0) AND (campus_limit IS NULL OR campus_limit > 0)"
     ],
     "tenant": true,
     "group": "platform"
@@ -992,6 +1050,17 @@
         "name": "photo_file_id",
         "type": "id",
         "nullable": true
+      },
+      {
+        "name": "identity_number",
+        "type": "string",
+        "nullable": true,
+        "length": 13
+      },
+      {
+        "name": "identity_type",
+        "type": "string",
+        "nullable": true
       }
     ],
     "refs": {
@@ -1002,9 +1071,15 @@
       [
         "school_id",
         "admission_no"
+      ],
+      [
+        "school_id",
+        "identity_number"
       ]
     ],
-    "checks": [],
+    "checks": [
+      "(identity_number IS NULL AND identity_type IS NULL) OR (identity_number IS NOT NULL AND identity_number REGEXP '^[1-7][0-9]{12}$' AND identity_type IS NOT NULL AND identity_type IN ('cnic','b_form'))"
+    ],
     "tenant": true,
     "group": "students"
   },
@@ -1035,11 +1110,24 @@
         "name": "address",
         "type": "text",
         "nullable": true
+      },
+      {
+        "name": "cnic",
+        "type": "string",
+        "nullable": true,
+        "length": 13
       }
     ],
     "refs": {},
-    "unique": [],
-    "checks": [],
+    "unique": [
+      [
+        "school_id",
+        "cnic"
+      ]
+    ],
+    "checks": [
+      "cnic IS NULL OR cnic REGEXP '^[1-7][0-9]{12}$'"
+    ],
     "tenant": true,
     "group": "students"
   },
@@ -3358,10 +3446,27 @@
         "name": "description",
         "type": "text",
         "nullable": false
+      },
+      {
+        "name": "priority",
+        "type": "string",
+        "nullable": false,
+        "default": "normal"
+      },
+      {
+        "name": "assigned_user_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "resolved_at",
+        "type": "datetime",
+        "nullable": true
       }
     ],
     "refs": {
-      "opened_by": "school_memberships"
+      "opened_by": "school_memberships",
+      "assigned_user_id": "users"
     },
     "unique": [],
     "checks": [],
@@ -3740,6 +3845,145 @@
       "actor_user_id": "users"
     },
     "unique": [],
+    "checks": [],
+    "tenant": false,
+    "group": "platform"
+  },
+  {
+    "name": "school_licenses",
+    "columns": [
+      {
+        "name": "number",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false,
+        "default": "active"
+      },
+      {
+        "name": "legacy_access",
+        "type": "bool",
+        "nullable": false,
+        "default": false
+      },
+      {
+        "name": "issued_on",
+        "type": "date",
+        "nullable": false
+      }
+    ],
+    "refs": {},
+    "unique": [
+      [
+        "school_id"
+      ],
+      [
+        "number"
+      ]
+    ],
+    "checks": [
+      "status IN ('active','suspended','closed')"
+    ],
+    "tenant": true,
+    "group": "platform"
+  },
+  {
+    "name": "subscription_payment_reversals",
+    "columns": [
+      {
+        "name": "payment_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "actor_user_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "nullable": false,
+        "length": 500
+      }
+    ],
+    "refs": {
+      "payment_id": "subscription_payments",
+      "actor_user_id": "users"
+    },
+    "unique": [
+      [
+        "payment_id"
+      ]
+    ],
+    "checks": [],
+    "tenant": true,
+    "group": "platform"
+  },
+  {
+    "name": "subscription_invoice_adjustments",
+    "columns": [
+      {
+        "name": "invoice_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "actor_user_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "previous_amount",
+        "type": "money",
+        "nullable": false
+      },
+      {
+        "name": "new_amount",
+        "type": "money",
+        "nullable": false
+      },
+      {
+        "name": "reason",
+        "type": "string",
+        "nullable": false,
+        "length": 500
+      }
+    ],
+    "refs": {
+      "invoice_id": "subscription_invoices",
+      "actor_user_id": "users"
+    },
+    "unique": [],
+    "checks": [
+      "previous_amount >= 0 AND new_amount >= 0"
+    ],
+    "tenant": true,
+    "group": "platform"
+  },
+  {
+    "name": "provider_settings",
+    "columns": [
+      {
+        "name": "key",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "value",
+        "type": "json",
+        "nullable": false
+      }
+    ],
+    "refs": {},
+    "unique": [
+      [
+        "key"
+      ]
+    ],
     "checks": [],
     "tenant": false,
     "group": "platform"

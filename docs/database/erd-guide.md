@@ -5,12 +5,12 @@ At https://dbdiagram.io/ create a diagram, replace the sample DBML with this fil
 If the editor provides Import DBML, the same file can be imported directly.
 
 ## Coverage
-- 95 tables: 86 domain, 8 Laravel infrastructure, 1 migration repository.
+- 99 tables: 90 domain, 8 Laravel infrastructure, 1 migration repository.
 - 236 physical foreign keys, including school-scoped composite relationships.
 - Primary keys, nullability, money precision, declared unique keys and database checks.
 - Module groups; future-only front office/complaint/observation storage is identified separately.
 
-Validated with @dbml/core's current DBML v2 parser: 95 tables and 238 references.
+Validated with @dbml/core's current DBML v2 parser: 99 tables and 247 references.
 No database data, credentials or student records are embedded.
 
 Laravel's sessions.user_id is indexed but has no physical FK in the existing migration, so no invented line is drawn for it. Other framework cache/job tables can likewise appear disconnected. That matches the installed structure.

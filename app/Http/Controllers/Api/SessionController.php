@@ -39,6 +39,11 @@ class SessionController extends Controller
             ->where('school_memberships.user_id',Auth::id())->where('school_memberships.status','active')
             ->where('schools.status','active')->orderBy('schools.id')->pluck('schools.id');
         $sid=$candidateIds->first(fn($id)=>\App\Services\SchoolAvailability::allowed((int)$id));
+        if(!$sid){
+            // Owners may authenticate to billing/support while operational access is blocked.
+            $sid=DB::table('school_memberships as m')->join('membership_roles as mr',function($j){$j->on('mr.membership_id','=','m.id')->on('mr.school_id','=','m.school_id');})->join('roles as r','r.id','=','mr.role_id')
+                ->where('m.user_id',Auth::id())->where('m.status','active')->where('r.name','owner')->orderBy('m.school_id')->value('m.school_id');
+        }
         $admin=DB::table('platform_admins')->where('user_id',Auth::id())->where('active',true)->exists();
         if (!$sid && !$admin) {
             Auth::logout();

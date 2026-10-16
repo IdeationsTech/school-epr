@@ -65,11 +65,12 @@ class AccessSetupTest extends TestCase
         $this->assertGuest();
     }
 
-    public function test_inactive_school_cannot_login(): void
+    public function test_inactive_school_owner_can_login_but_not_open_operational_workspace(): void
     {
         $f=$this->fixture();DB::table('schools')->where('id',$f['sid'])->update(['status'=>'inactive']);
-        $this->postJson('/app-api/login',['email'=>'a@example.test','password'=>'LongPassword123!'])->assertForbidden();
-        $this->assertGuest();
+        $this->postJson('/app-api/login',['email'=>'a@example.test','password'=>'LongPassword123!'])->assertOk();
+        $this->getJson('/app-api/bootstrap')->assertForbidden();
+        $this->getJson('/app-api/account')->assertOk();
     }
 
     public function test_teacher_cannot_manage_school_users_or_roles(): void

@@ -1,12 +1,12 @@
 // School ERP — implemented database ERD
-// 86 domain + 8 Laravel infrastructure + 1 migration tracking = 95 tables.
+// 90 domain + 8 Laravel infrastructure + 1 migration tracking = 99 tables.
 // Paste this entire file into the DBML editor at https://dbdiagram.io/.
 // Diagram only: Laravel migrations remain the source for database creation.
 // Composite references preserve school isolation. No invented logical FKs.
 
 Project school_erp {
   database_type: 'MySQL'
-  Note: 'MySQL 8.4 school ERP. 95 implemented tables. Future-only tables are grouped separately. Status values are strings unless a check explicitly restricts them. Cross-row business rules require application services.'
+  Note: 'MySQL 8.4 school ERP. 99 implemented tables. Future-only tables are grouped separately. Status values are strings unless a check explicitly restricts them. Cross-row business rules require application services.'
 }
 
 Table users {
@@ -124,10 +124,16 @@ Table plans {
   campus_limit "int unsigned" [not null]
   monthly_price decimal(12,2) [not null]
   features json [null]
+  annual_price decimal(12,2) [not null, default: 0]
+  available boolean [not null, default: true]
+  modules json [null]
   created_at timestamp [null]
   updated_at timestamp [null]
   indexes {
     code [unique, name: 't11_u0']
+  }
+  checks {
+    `monthly_price >= 0 AND annual_price >= 0 AND student_limit > 0 AND campus_limit > 0` [name: 't11_check0']
   }
 }
 
@@ -188,6 +194,13 @@ Table subscriptions {
   ends_on date [not null]
   status varchar(160) [not null]
   price decimal(12,2) [not null]
+  license_id "bigint unsigned" [null]
+  kind varchar(160) [not null, default: 'paid']
+  grace_days "int unsigned" [not null, default: 0]
+  student_limit "int unsigned" [null]
+  campus_limit "int unsigned" [null]
+  modules json [null]
+  package_name varchar(160) [null]
   created_at timestamp [null]
   updated_at timestamp [null]
   indexes {
@@ -196,6 +209,7 @@ Table subscriptions {
   checks {
     `ends_on >= starts_on` [name: 't16_check0']
     `price >= 0` [name: 't16_check1']
+    `kind IN ('paid','trial') AND grace_days <= 30 AND (student_limit IS NULL OR student_limit > 0) AND (campus_limit IS NULL OR campus_limit > 0)` [name: 't16_check2']
   }
 }
 
@@ -500,11 +514,17 @@ Table students {
   status varchar(160) [not null]
   application_id "bigint unsigned" [null]
   photo_file_id "bigint unsigned" [null]
+  identity_number varchar(13) [null]
+  identity_type varchar(160) [null]
   created_at timestamp [null]
   updated_at timestamp [null]
   indexes {
     (school_id, id) [unique, name: 't35_school_id']
     (school_id, admission_no) [unique, name: 't35_u0']
+    (school_id, identity_number) [unique, name: 't35_u1']
+  }
+  checks {
+    `(identity_number IS NULL AND identity_type IS NULL) OR (identity_number IS NOT NULL AND identity_number REGEXP '^[1-7][0-9]{12}$' AND identity_type IS NOT NULL AND identity_type IN ('cnic','b_form'))` [name: 't35_check0']
   }
 }
 
@@ -516,10 +536,15 @@ Table guardians {
   alternate_phone varchar(160) [null]
   email varchar(160) [null]
   address text [null]
+  cnic varchar(13) [null]
   created_at timestamp [null]
   updated_at timestamp [null]
   indexes {
     (school_id, id) [unique, name: 't36_school_id']
+    (school_id, cnic) [unique, name: 't36_u0']
+  }
+  checks {
+    `cnic IS NULL OR cnic REGEXP '^[1-7][0-9]{12}$'` [name: 't36_check0']
   }
 }
 
@@ -1442,6 +1467,9 @@ Table support_tickets {
   subject varchar(160) [not null]
   status varchar(160) [not null]
   description text [not null]
+  priority varchar(160) [not null, default: 'normal']
+  assigned_user_id "bigint unsigned" [null]
+  resolved_at datetime [null]
   created_at timestamp [null]
   updated_at timestamp [null]
   indexes {
@@ -1600,12 +1628,75 @@ Table platform_audit_logs {
   updated_at timestamp [null]
 }
 
+Table school_licenses {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  number varchar(160) [not null]
+  status varchar(160) [not null, default: 'active']
+  legacy_access boolean [not null, default: false]
+  issued_on date [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't96_school_id']
+    school_id [unique, name: 't96_u0']
+    number [unique, name: 't96_u1']
+  }
+  checks {
+    `status IN ('active','suspended','closed')` [name: 't96_check0']
+  }
+}
+
+Table subscription_payment_reversals {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  payment_id "bigint unsigned" [not null]
+  actor_user_id "bigint unsigned" [not null]
+  reason varchar(500) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't97_school_id']
+    payment_id [unique, name: 't97_u0']
+  }
+}
+
+Table subscription_invoice_adjustments {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  invoice_id "bigint unsigned" [not null]
+  actor_user_id "bigint unsigned" [not null]
+  previous_amount decimal(12,2) [not null]
+  new_amount decimal(12,2) [not null]
+  reason varchar(500) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't98_school_id']
+  }
+  checks {
+    `previous_amount >= 0 AND new_amount >= 0` [name: 't98_check0']
+  }
+}
+
+Table provider_settings {
+  id "bigint unsigned" [pk, increment, not null]
+  key varchar(160) [not null]
+  value json [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    key [unique, name: 't99_u0']
+  }
+}
+
 // Physical foreign keys from the integrity migration.
 Ref t14_fk0: role_permissions.role_id > roles.id [delete: restrict, update: no action]
 Ref t14_fk1: role_permissions.permission_id > permissions.id [delete: restrict, update: no action]
 Ref t15_fk0: campuses.school_id > schools.id [delete: restrict, update: no action]
 Ref t16_fk0: subscriptions.school_id > schools.id [delete: restrict, update: no action]
 Ref t16_fk1: subscriptions.plan_id > plans.id [delete: restrict, update: no action]
+Ref t16_fk2: subscriptions.(school_id, license_id) > school_licenses.(school_id, id) [delete: restrict, update: no action]
 Ref t17_fk0: subscription_invoices.school_id > schools.id [delete: restrict, update: no action]
 Ref t17_fk1: subscription_invoices.(school_id, subscription_id) > subscriptions.(school_id, id) [delete: restrict, update: no action]
 Ref t18_fk0: subscription_payments.school_id > schools.id [delete: restrict, update: no action]
@@ -1812,6 +1903,7 @@ Ref t84_fk1: notices.(school_id, campus_id) > campuses.(school_id, id) [delete: 
 Ref t84_fk2: notices.(school_id, published_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
 Ref t85_fk0: support_tickets.school_id > schools.id [delete: restrict, update: no action]
 Ref t85_fk1: support_tickets.(school_id, opened_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t85_fk2: support_tickets.assigned_user_id > users.id [delete: restrict, update: no action]
 Ref t86_fk0: support_replies.school_id > schools.id [delete: restrict, update: no action]
 Ref t86_fk1: support_replies.(school_id, support_ticket_id) > support_tickets.(school_id, id) [delete: restrict, update: no action]
 Ref t86_fk2: support_replies.author_user_id > users.id [delete: restrict, update: no action]
@@ -1839,6 +1931,13 @@ Ref t93_fk1: school_role_permissions.role_id > roles.id [delete: restrict, updat
 Ref t93_fk2: school_role_permissions.permission_id > permissions.id [delete: restrict, update: no action]
 Ref t94_fk0: platform_admins.user_id > users.id [delete: restrict, update: no action]
 Ref t95_fk0: platform_audit_logs.actor_user_id > users.id [delete: restrict, update: no action]
+Ref t96_fk0: school_licenses.school_id > schools.id [delete: restrict, update: no action]
+Ref t97_fk0: subscription_payment_reversals.school_id > schools.id [delete: restrict, update: no action]
+Ref t97_fk1: subscription_payment_reversals.(school_id, payment_id) > subscription_payments.(school_id, id) [delete: restrict, update: no action]
+Ref t97_fk2: subscription_payment_reversals.actor_user_id > users.id [delete: restrict, update: no action]
+Ref t98_fk0: subscription_invoice_adjustments.school_id > schools.id [delete: restrict, update: no action]
+Ref t98_fk1: subscription_invoice_adjustments.(school_id, invoice_id) > subscription_invoices.(school_id, id) [delete: restrict, update: no action]
+Ref t98_fk2: subscription_invoice_adjustments.actor_user_id > users.id [delete: restrict, update: no action]
 
 TableGroup laravel_infrastructure {
   users
@@ -1864,6 +1963,10 @@ TableGroup platform {
   support_replies
   platform_admins
   platform_audit_logs
+  school_licenses
+  subscription_payment_reversals
+  subscription_invoice_adjustments
+  provider_settings
 }
 
 TableGroup access {
