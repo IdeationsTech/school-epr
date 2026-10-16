@@ -516,6 +516,8 @@ Table students {
   photo_file_id "bigint unsigned" [null]
   identity_number varchar(13) [null]
   identity_type varchar(160) [null]
+  address text [null]
+  previous_school varchar(160) [null]
   created_at timestamp [null]
   updated_at timestamp [null]
   indexes {
@@ -538,6 +540,7 @@ Table guardians {
   email varchar(160) [null]
   address text [null]
   cnic varchar(13) [null]
+  whatsapp_phone varchar(160) [null]
   created_at timestamp [null]
   updated_at timestamp [null]
   indexes {

@@ -3,7 +3,7 @@ use App\Http\Controllers\Api\SessionController;
 use App\Http\Controllers\Api\SchoolController;
 use App\Http\Middleware\SetSchoolContext;
 use Illuminate\Support\Facades\Route;
-foreach (['/','/school','/campus','/users','/roles','/license','/academics/sessions','/academics/terms','/academics/classes','/academics/sections','/academics/subjects','/academics/offerings','/academics/teachers','/academics/assignments'] as $path) {
+foreach (['/','/school','/campus','/users','/roles','/license','/academics/sessions','/academics/terms','/academics/classes','/academics/sections','/academics/subjects','/academics/offerings','/academics/teachers','/academics/assignments','/students','/students/admit','/students/import','/guardians'] as $path) {
     Route::view($path, 'app');
 }
 Route::view('/admin/{path?}', 'app')->where('path','.*');
@@ -50,6 +50,22 @@ Route::prefix('app-api')->group(function (): void {
         Route::post('/schools/{school}/invoices/{invoice}/payments',[\App\Http\Controllers\Api\PlatformController::class,'payment'])->whereNumber(['school','invoice']);
     });
     Route::middleware(SetSchoolContext::class)->group(function (): void {
+        Route::get('/students/setup',[\App\Http\Controllers\Api\StudentsController::class,'setup']);
+        Route::get('/students/import/template',[\App\Http\Controllers\Api\StudentImportController::class,'template']);
+        Route::post('/students/import/preview',[\App\Http\Controllers\Api\StudentImportController::class,'preview'])->middleware('throttle:10,1');
+        Route::post('/students/import/commit',[\App\Http\Controllers\Api\StudentImportController::class,'commit'])->middleware('throttle:10,1');
+        Route::get('/students',[\App\Http\Controllers\Api\StudentsController::class,'index']);
+        Route::post('/students',[\App\Http\Controllers\Api\StudentsController::class,'store']);
+        Route::get('/students/{student}',[\App\Http\Controllers\Api\StudentsController::class,'show'])->whereNumber('student');
+        Route::put('/students/{student}',[\App\Http\Controllers\Api\StudentsController::class,'update'])->whereNumber('student');
+        Route::post('/students/{student}/guardians',[\App\Http\Controllers\Api\StudentsController::class,'link'])->whereNumber('student');
+        Route::delete('/students/{student}/guardians/{guardian}',[\App\Http\Controllers\Api\StudentsController::class,'unlink'])->whereNumber(['student','guardian']);
+        Route::post('/students/{student}/enrollments',[\App\Http\Controllers\Api\StudentsController::class,'enrollment'])->whereNumber('student');
+        Route::post('/students/{student}/documents',[\App\Http\Controllers\Api\StudentsController::class,'upload'])->whereNumber('student');
+        Route::get('/students/{student}/files/{file}',[\App\Http\Controllers\Api\StudentsController::class,'download'])->whereNumber(['student','file']);
+        Route::get('/guardians',[\App\Http\Controllers\Api\StudentsController::class,'guardians']);
+        Route::put('/guardians/{guardian}',[\App\Http\Controllers\Api\StudentsController::class,'saveGuardian'])->whereNumber('guardian');
+
         Route::get('/academics',[\App\Http\Controllers\Api\AcademicsController::class,'index']);
         Route::put('/academics/current',[\App\Http\Controllers\Api\AcademicsController::class,'current']);
         Route::post('/academics/{resource}',[\App\Http\Controllers\Api\AcademicsController::class,'save'])->where('resource','sessions|terms|classes|sections|subjects|offerings|teachers|assignments');

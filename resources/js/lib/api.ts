@@ -5,8 +5,8 @@ export class ApiError extends Error {
 export async function api<T>(path: string, method = 'GET', body?: unknown): Promise<T> {
     const response = await fetch(`/app-api${path}`, {
         method, credentials: 'same-origin',
-        headers: {'Accept':'application/json','Content-Type':'application/json','X-CSRF-TOKEN':csrf},
-        ...(body === undefined ? {} : {body:JSON.stringify(body)}),
+        headers: {'Accept':'application/json',...(body instanceof FormData?{}:{'Content-Type':'application/json'}),'X-CSRF-TOKEN':csrf},
+        ...(body === undefined ? {} : {body:body instanceof FormData?body:JSON.stringify(body)}),
     });
     const data = await response.json().catch(() => ({}));
     if(data.csrf_token) csrf=data.csrf_token;

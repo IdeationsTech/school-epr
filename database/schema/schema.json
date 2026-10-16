@@ -1076,6 +1076,16 @@
         "name": "identity_type",
         "type": "string",
         "nullable": true
+      },
+      {
+        "name": "address",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "previous_school",
+        "type": "string",
+        "nullable": true
       }
     ],
     "refs": {
@@ -1132,6 +1142,11 @@
         "type": "string",
         "nullable": true,
         "length": 13
+      },
+      {
+        "name": "whatsapp_phone",
+        "type": "string",
+        "nullable": true
       }
     ],
     "refs": {},
