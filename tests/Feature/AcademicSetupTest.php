@@ -74,6 +74,13 @@ class AcademicSetupTest extends TestCase
   $unused=$this->create('subjects',['name'=>'Unused','code'=>'UNUSED']);$this->deleteJson('/app-api/academics/subjects/'.$unused)->assertOk();
   $this->assertDatabaseHas('audit_logs',['school_id'=>$f['sid'],'action'=>'academics.subjects.deleted','target_id'=>$unused]);$this->artisan('database:verify')->assertSuccessful();
  }
+ public function test_closed_session_keeps_teacher_names_after_account_deactivation():void {
+  $f=$this->fixture();$this->login($f);$g=$this->graph($f);$t=$this->teacher($f,'OLD001');$this->create('assignments',['staff_profile_id'=>$t,'section_id'=>$g['section'],'subject_id'=>null,'is_class_teacher'=>true]);
+  $mid=DB::table('staff_profiles')->where('id',$t)->value('membership_id');$name=DB::table('users as u')->join('school_memberships as m','m.user_id','=','u.id')->where('m.id',$mid)->value('u.name');
+  $this->putJson('/app-api/academics/sessions/'.$g['session'],['name'=>'2026-27','starts_on'=>'2026-04-01','ends_on'=>'2027-03-31','status'=>'closed'])->assertOk();
+  $this->putJson('/app-api/members/'.$mid,['status'=>'inactive','role_ids'=>[DB::table('roles')->where('name','teacher')->value('id')],'campus_ids'=>[$f['cid']]])->assertOk();
+  $this->getJson('/app-api/academics')->assertOk()->assertJsonCount(0,'teacher_members')->assertJsonPath('teachers.0.teacher_name',$name)->assertJsonPath('teachers.0.membership_status','inactive')->assertJsonCount(1,'assignments');
+ }
  public function test_guest_and_provider_without_school_membership_cannot_access_academics():void {
   $this->getJson('/app-api/academics')->assertUnauthorized();$this->seed(DatabaseSeeder::class);$admin=User::factory()->create();DB::table('platform_admins')->insert(['user_id'=>$admin->id,'active'=>true]);$this->actingAs($admin);$this->getJson('/app-api/academics')->assertForbidden();
  }
