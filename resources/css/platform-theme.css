@@ -126,7 +126,7 @@
 .platform-workspace details summary{cursor:pointer;color:var(--admin-accent);padding:8px 0}
 @media(max-width:767px){.platform-workspace .admin-school-filter{grid-template-columns:1fr;gap:0}.platform-workspace .admin-filter-grid{flex-direction:column;align-items:stretch}.platform-workspace .admin-filter-grid .field{flex:initial}.platform-workspace .onboarding-checks li{align-items:flex-start}}
 
-/* Match uploaded reference: borderless charcoal surfaces and black-only depth. */
+/* Reference surfaces: pure-black contact edge, tight contact shadow, soft outer falloff. */
 .platform-workspace :is(.sidebar,.topbar,.panel,.stat-card,.setup-cards button,.school-badge,.icon-tile,.avatar,.campus-card,.member-card,.campus-pills>span,.role-tabs button,.permission-choice,.table-scroll,fieldset,.control-grid>div,.period-options,.thread-message,.badge,.form-section,.form-footer),.platform-login :is(.login-card,.icon-tile){border:0}
 .platform-workspace :is(button,input:not([type=checkbox]),select,textarea,.phone-input),.platform-login :is(button,input:not([type=checkbox])){border:0}
 .platform-workspace .phone-input>span,.platform-workspace td{border:0}
@@ -146,3 +146,27 @@
 .platform-workspace .document-overlay .billing-document{box-shadow:var(--admin-shadow)}
 
 .platform-workspace :is(.success-box,.error-box),.platform-login .error-box{border:0}
+
+/* Keep this surface contract after all variants so hover never introduces colored rims. */
+.platform-workspace :is(.sidebar,.topbar,.panel,.stat-card,.setup-cards button,.campus-card,.member-card,.control-grid>div,.period-options,.thread-message),
+.platform-login .login-card{
+ border:1px solid var(--admin-border);
+ background:var(--admin-surface);
+ box-shadow:var(--admin-shadow);
+}
+.platform-workspace :is(.panel,.stat-card,.setup-cards button,.campus-card,.member-card):hover{
+ border-color:var(--admin-border-hover);
+ box-shadow:var(--admin-shadow-hover);
+}
+.platform-workspace :is(.primary,.secondary,.danger-outline),.platform-login :is(.primary,.secondary){border:1px solid var(--admin-border)}
+.platform-workspace .secondary,.platform-login .secondary{color:var(--admin-teal)}
+.platform-workspace .secondary:hover:not(:disabled),.platform-login .secondary:hover:not(:disabled){color:var(--admin-purple);border-color:var(--admin-border-hover)}
+.platform-workspace .primary:hover:not(:disabled),.platform-login .primary:hover:not(:disabled){background:var(--admin-accent);color:var(--admin-accent-ink);border-color:var(--admin-border-hover)}
+.platform-workspace .danger-outline{color:var(--admin-danger)}
+.platform-workspace .setup-cards button:nth-child(3n) span svg{color:var(--admin-accent)}
+.platform-workspace input[type=checkbox]{accent-color:var(--admin-teal)}
+.platform-workspace input[type=radio]{accent-color:var(--admin-purple)}
+.platform-workspace :is(input:not([type=checkbox]):not([type=radio]),select,textarea,.phone-input),
+.platform-login input:not([type=checkbox]){border:1px solid var(--admin-border);background:var(--admin-recessed)}
+.platform-workspace .phone-input input{border:0;background:transparent}
+.platform-workspace :is(input[type=search],.search-box input){border-color:var(--admin-accent)}

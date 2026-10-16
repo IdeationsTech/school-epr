@@ -37,8 +37,8 @@ Run `npm run build` after changing tokens for a built installation. With `npm ru
 
 ## Interaction and responsive behavior
 
-Main panels deepen their shadow on hover. Metric and action cards lift 5px; buttons lift 3px and change color. Active navigation has a teal border, inset indicator and persistent fill. Keyboard focus is visible independently of hover, touch has pressed feedback, and reduced-motion preferences disable movement. Small screens preserve the existing drawer and single-column forms, with smaller card padding.
+Main panels deepen their shadow on hover. Metric and action cards lift 5px; buttons lift 3px and change color. Active navigation has teal text with persistent recessed depth. Keyboard focus is visible independently of hover, touch has pressed feedback, and reduced-motion preferences disable movement. Small screens preserve the existing drawer and single-column forms, with smaller card padding.
 
-## Exact uploaded reference correction
+## Uploaded reference surface contract
 
-Background/card/accent values above are the dominant flat pixel colors sampled from the user’s 2000 × 2000 JPEG. Container and control borders, colored card-top lines, active-menu strokes and pale shadow highlights are removed. Containers use black-only outer shadows (main: 10px 14px 26px black at 65%, plus 0 3px 8px at 70%). Inputs use black inset depth; primary actions follow the reference dark button with orange lettering. Keyboard focus outlines remain for accessibility. The sampled flat colors match the supplied JPEG; raster shadow blur is reproduced with CSS rather than claimed as a pixel-identical browser rendering.
+Background/card/accent values above are dominant flat pixel colors sampled from the supplied JPEG. Raised containers have a 1px pure-black contact edge, a tight black contact shadow (2px 4px 5px at 70%) and a softer outer shadow (8px 12px 22px at 45%). Hover retains the black edge while deepening the shadow. Colored top borders and pale highlight strokes are absent. Inputs are recessed; search fields use coral edges. Dark primary buttons have coral text and fill coral on hover; secondary actions use teal/purple, checkboxes teal and radios purple. Focus outlines remain visible. Browser CSS reproduces the reference depth without claiming pixel-identical JPEG blur.
