@@ -24,19 +24,19 @@
 .platform-workspace .panel,.platform-workspace .stat-card,.platform-workspace .setup-cards button{background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:var(--admin-radius);box-shadow:var(--admin-shadow)}
 .platform-workspace .panel{padding:28px}
 .platform-workspace .icon-tile,.platform-workspace .avatar{background:var(--admin-teal-soft);color:var(--admin-teal);border:1px solid var(--admin-teal);border-radius:var(--admin-radius-small);box-shadow:var(--admin-shadow-small)}
-.platform-workspace .stat-card{position:relative;overflow:hidden;border-top:1px solid var(--admin-teal)}
-.platform-workspace .stat-card:nth-child(4n+2){border-top-color:var(--admin-purple)}
-.platform-workspace .stat-card:nth-child(4n+3){border-top-color:var(--admin-accent)}
-.platform-workspace .stat-card:nth-child(4n){border-top-color:var(--admin-blue)}
+.platform-workspace .stat-card{position:relative;overflow:hidden;border-top:1px solid var(--admin-border)}
+.platform-workspace .stat-card:nth-child(4n+2){border-top-color:var(--admin-border)}
+.platform-workspace .stat-card:nth-child(4n+3){border-top-color:var(--admin-border)}
+.platform-workspace .stat-card:nth-child(4n){border-top-color:var(--admin-border)}
 .platform-workspace .stat-card strong{color:var(--admin-text);letter-spacing:-.5px}
 .platform-workspace .stat-card span{color:var(--admin-muted)}
 .platform-workspace .stat-card svg{color:var(--admin-teal)}
 .platform-workspace .stat-card:nth-child(4n+2) svg{color:var(--admin-purple)}
 .platform-workspace .stat-card:nth-child(4n+3) svg{color:var(--admin-accent)}
 .platform-workspace .stat-card:nth-child(4n) svg{color:var(--admin-blue)}
-.platform-workspace .setup-cards button{color:var(--admin-text);border-top-color:var(--admin-teal)}
-.platform-workspace .setup-cards button:nth-child(3n+2){border-top-color:var(--admin-purple)}
-.platform-workspace .setup-cards button:nth-child(3n){border-top-color:var(--admin-accent)}
+.platform-workspace .setup-cards button{color:var(--admin-text);border-top-color:var(--admin-border)}
+.platform-workspace .setup-cards button:nth-child(3n+2){border-top-color:var(--admin-border)}
+.platform-workspace .setup-cards button:nth-child(3n){border-top-color:var(--admin-border)}
 .platform-workspace .setup-cards p{color:var(--admin-muted)}
 .platform-workspace .setup-cards button span{color:var(--admin-teal)}
 .platform-workspace .setup-cards button:nth-child(3n+2) span{color:var(--admin-purple-text)}
@@ -89,17 +89,17 @@
 .platform-workspace :is(.panel,.stat-card,.setup-cards button,.campus-card,.member-card,.campus-pills>span,button),.platform-login button{transition:background-color var(--admin-motion) var(--admin-ease),border-color var(--admin-motion) var(--admin-ease),color var(--admin-motion) var(--admin-ease),box-shadow var(--admin-motion) var(--admin-ease),transform var(--admin-motion) var(--admin-ease)}
 @media(hover:hover) and (pointer:fine){
  .platform-workspace .panel:hover{border-color:var(--admin-border-hover);box-shadow:var(--admin-shadow-hover)}
- .platform-workspace .stat-card:hover{border-color:var(--admin-teal);box-shadow:var(--admin-shadow-hover);transform:translateY(-5px)}
- .platform-workspace .stat-card:nth-child(4n+2):hover{border-color:var(--admin-purple)}
- .platform-workspace .stat-card:nth-child(4n+3):hover{border-color:var(--admin-accent)}
- .platform-workspace .stat-card:nth-child(4n):hover{border-color:var(--admin-blue)}
+ .platform-workspace .stat-card:hover{border-color:var(--admin-border);box-shadow:var(--admin-shadow-hover);transform:translateY(-5px)}
+ .platform-workspace .stat-card:nth-child(4n+2):hover{border-color:var(--admin-border)}
+ .platform-workspace .stat-card:nth-child(4n+3):hover{border-color:var(--admin-border)}
+ .platform-workspace .stat-card:nth-child(4n):hover{border-color:var(--admin-border)}
  .platform-workspace .primary:hover:not(:disabled),.platform-login .primary:hover:not(:disabled){background:var(--admin-accent-hover);border-color:var(--admin-accent-hover);color:var(--admin-accent-ink);box-shadow:var(--admin-shadow-hover);transform:translateY(-3px)}
  .platform-workspace .secondary:hover:not(:disabled),.platform-login .secondary:hover:not(:disabled){background:var(--admin-accent-soft);border-color:var(--admin-accent);color:var(--admin-accent-hover);box-shadow:var(--admin-shadow);transform:translateY(-3px)}
  .platform-workspace .sidebar nav button:hover:not(.active){background:var(--admin-raised);color:var(--admin-text);border-color:var(--admin-border-hover);transform:translateX(3px)}
  .platform-workspace .sidebar nav button.active:hover{background:var(--admin-teal-soft);color:var(--admin-text);box-shadow:var(--admin-shadow)}
- .platform-workspace .setup-cards button:hover{background:var(--admin-raised);border-color:var(--admin-teal);box-shadow:var(--admin-shadow-hover);transform:translateY(-5px)}
- .platform-workspace .setup-cards button:nth-child(3n+2):hover{border-color:var(--admin-purple)}
- .platform-workspace .setup-cards button:nth-child(3n):hover{border-color:var(--admin-accent)}
+ .platform-workspace .setup-cards button:hover{background:var(--admin-raised);border-color:var(--admin-border);box-shadow:var(--admin-shadow-hover);transform:translateY(-5px)}
+ .platform-workspace .setup-cards button:nth-child(3n+2):hover{border-color:var(--admin-border)}
+ .platform-workspace .setup-cards button:nth-child(3n):hover{border-color:var(--admin-border)}
  .platform-workspace .campus-card:hover,.platform-workspace .member-card:hover,.platform-workspace .campus-pills>span:hover{background:var(--admin-raised);border-color:var(--admin-teal);box-shadow:var(--admin-shadow);transform:translateY(-3px)}
  .platform-workspace tbody tr:hover{background:var(--admin-raised)}
  .platform-workspace .danger-outline:hover:not(:disabled){background:var(--admin-danger-fill);border-color:var(--admin-danger);color:var(--admin-on-danger)}
