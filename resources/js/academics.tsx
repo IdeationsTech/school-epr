@@ -18,6 +18,7 @@ const fields:Record<AcademicResource,Field[]>={
 export const academicLabels:Record<AcademicResource,string>={sessions:'Academic sessions',terms:'Academic terms',classes:'Classes',sections:'Sections',subjects:'Subjects',offerings:'Section subjects',teachers:'Teaching profiles',assignments:'Teacher assignments'};
 function defaults(resource:AcademicResource,current:number|null){return Object.fromEntries(fields[resource].map(f=>[f.key,f.type==='checkbox'?f.key==='required_for_diary':f.key==='status'?'active':f.key==='position'?'1':f.key==='academic_session_id'?String(current??''):'']));}
 function label(data:AcademicData,key:keyof AcademicData,id:string|number|boolean|null):string{
+ if(id===null||id==='')return 'Not assigned';
  const rows=data[key];if(!Array.isArray(rows))return String(id??'');const row=rows.find(r=>String(r.id)===String(id)) as Row|undefined;if(!row){if(key==='teacher_members'){const profile=data.teachers.find(t=>String(t.membership_id)===String(id));if(profile?.teacher_name)return String(profile.teacher_name)+(profile.membership_status!=='active'?' · account inactive':'');}return `#${id}`;}
  if(key==='sections')return `${label(data,'classes',row.class_id)} · ${row.name} · ${label(data,'campuses',row.campus_id)} · ${label(data,'sessions',row.academic_session_id)}`;
  if(key==='teachers')return `${row.teacher_name??label(data,'teacher_members',row.membership_id)} · ${row.employee_no}`;
