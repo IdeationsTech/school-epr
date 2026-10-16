@@ -31,7 +31,7 @@ Or change several colors together:
 npm run theme:admin -- --accent "#ff7951" --teal "#00c5b5" --purple "#bf4bea" --blue "#2f9bea" --background "#242020" --surface "#2d2d2d"
 ```
 
-The command adjusts accent hover/focus/soft shades and chooses black or white primary-button text for contrast. Invalid options are rejected before writing. Use `--help` for all supported options. For radius, shadows, font and motion, edit their named CSS tokens directly. Check text contrast when customizing background or text colors.
+Purple links use a lighter text token for readability while icons retain the reference purple. The command adjusts accent hover/focus/soft shades and chooses black or white primary-button text for contrast. Invalid options are rejected before writing. Use `--help` for all supported options. For radius, shadows, font and motion, edit their named CSS tokens directly. Check text contrast when customizing background or text colors.
 
 Run `npm run build` after changing tokens for a built installation. With `npm run dev`, Vite updates the browser automatically. Commit/push token changes to share them across installations; this is build-time styling, not a per-school database preference.
 

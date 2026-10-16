@@ -20,6 +20,7 @@ const mix=(a,b,ratio)=>'#'+[1,3,5].map(i=>Math.round(parseInt(a.slice(i,i+2),16)
 let css=await readFile(file,'utf8');
 const get=k=>updates[k]??css.match(new RegExp('--admin-'+k+':([^;]+);'))?.[1];
 for(const k of ['accent','teal','purple','blue'])if(updates[k])updates[k+'-soft']=mix(updates[k],get('bg'),.84);
+if(updates.purple)updates['purple-text']=mix(updates.purple,'#ffffff',.35);
 if(updates.accent){
  updates['accent-hover']=mix(updates.accent,'#ffffff',.25);updates.focus=mix(updates.accent,'#ffffff',.4);
  const luminance=hex=>[1,3,5].map(i=>parseInt(hex.slice(i,i+2),16)/255).map(v=>v<=.04045?v/12.92:((v+.055)/1.055)**2.4).reduce((n,v,i)=>n+v*[.2126,.7152,.0722][i],0);

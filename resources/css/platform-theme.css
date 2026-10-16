@@ -39,7 +39,7 @@
 .platform-workspace .setup-cards button:nth-child(3n){border-top-color:var(--admin-accent)}
 .platform-workspace .setup-cards p{color:var(--admin-muted)}
 .platform-workspace .setup-cards button span{color:var(--admin-teal)}
-.platform-workspace .setup-cards button:nth-child(3n+2) span{color:var(--admin-purple)}
+.platform-workspace .setup-cards button:nth-child(3n+2) span{color:var(--admin-purple-text)}
 .platform-workspace .setup-cards button:nth-child(3n) span{color:var(--admin-accent)}
 .platform-workspace .primary,.platform-login .primary{background:var(--admin-accent);border:1px solid var(--admin-accent);color:var(--admin-accent-ink);box-shadow:var(--admin-shadow-small);font-weight:750;border-radius:var(--admin-radius-small)}
 .platform-workspace .secondary,.platform-login .secondary{background:var(--admin-surface);border:1px solid var(--admin-border);color:var(--admin-text);box-shadow:var(--admin-shadow-small);border-radius:var(--admin-radius-small)}
