@@ -15,4 +15,8 @@ class SchemaCheckNormalizationTest extends TestCase
  public function test_mysql_regexp_function_matches_operator_representation():void {
   $this->assertSame($this->normalized("cnic IS NULL OR cnic REGEXP '^[0-9]{13}$'"),$this->normalized("((`cnic` is null) or regexp_like(`cnic`,_utf8mb4\\'^[0-9]{13}$\\'))"));
  }
+ public function test_boolean_grouping_changes_are_detected():void {
+  $this->assertSame($this->normalized('(a > 0 AND b > 0) OR c > 0'),$this->normalized('(((`a` > 0) and (`b` > 0)) or (`c` > 0))'));
+  $this->assertNotSame($this->normalized('(a > 0 OR b > 0) AND c > 0'),$this->normalized('a > 0 OR (b > 0 AND c > 0)'));
+ }
 }

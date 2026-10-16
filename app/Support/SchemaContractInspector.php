@@ -13,7 +13,25 @@ class SchemaContractInspector
   $value=preg_replace_callback("/'(?:''|[^'])*'/",function($m)use(&$literals){$key='literal'.count($literals).'token';$literals[$key]=$m[0];return $key;},$value);
   $value=strtolower(str_replace('`','',$value));
   $value=preg_replace('/([a-z_][a-z_0-9]*)\\s+regexp\\s+(literal[0-9]+token)/i','regexp_like($1,$2)',$value);
-  return strtr(preg_replace('/[\\s()]+/','',$value),$literals);
+  return strtr($this->booleanSql($value),$literals);
+ }
+ // Preserve boolean grouping so a weakened AND/OR constraint cannot compare equal.
+ private function booleanSql(string $value):string {
+  $value=trim($value);
+  while(str_starts_with($value,'(')){
+   $depth=0;$end=null;
+   for($i=0;$i<strlen($value);$i++){if($value[$i]==='(')$depth++;elseif($value[$i]===')')$depth--;if($depth===0){$end=$i;break;}}
+   if($end!==strlen($value)-1)break;$value=trim(substr($value,1,-1));
+  }
+  foreach(['or','and'] as $operator){
+   $depth=0;$start=0;$parts=[];$length=strlen($value);
+   for($i=0;$i<$length;$i++){
+    if($value[$i]==='('){$depth++;continue;}if($value[$i]===')'){$depth--;continue;}
+    if($depth===0&&preg_match('/\\G'. $operator .'\\b/A',$value,$match,0,$i)&&($i===0||!preg_match('/[a-z0-9_]/',$value[$i-1]))){$parts[]=substr($value,$start,$i-$start);$i+=strlen($operator)-1;$start=$i+1;}
+   }
+   if($parts){$parts[]=substr($value,$start);return $operator.'['.implode(';',array_map(fn($part)=>$this->booleanSql($part),$parts)).']';}
+  }
+  return preg_replace('/[\\s()]+/','',$value);
  }
  public function inspect():array {
   $spec=json_decode(file_get_contents(database_path('schema/schema.json')),true,512,JSON_THROW_ON_ERROR);$byName=array_column($spec,null,'name');$db=DB::connection()->getDatabaseName();$issues=[];
