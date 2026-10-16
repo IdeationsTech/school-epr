@@ -15,7 +15,7 @@ class StudentAdmissions
   abort_unless($this->access->can($r,'students.manage')||(!$write&&$this->access->can($r,'students.view')),403);
   $m=$this->access->membership($r);$period=LicenseService::period((int)$m->school_id);
   if($period)abort_unless(in_array('student_admissions',json_decode($period->modules,true)??[],true),403,'Student admissions is not included in this school license.');
-  return [(int)$m->school_id,array_map(fn($c)=>(int)$c->id,$this->access->campuses($m))];
+  return [(int)$m->school_id,in_array('owner',$this->access->roles($m),true)?DB::table('campuses')->where('school_id',$m->school_id)->pluck('id')->map(fn($id)=>(int)$id)->all():array_map(fn($c)=>(int)$c->id,$this->access->campuses($m))];
  }
  public function visible(int $sid,array $campuses){return DB::table('students as s')->where('s.school_id',$sid)->whereExists(fn($q)=>$q->selectRaw('1')->from('enrollments as e')->join('sections as sec','sec.id','=','e.section_id')->whereColumn('e.school_id','s.school_id')->whereColumn('e.student_id','s.id')->whereIn('sec.campus_id',$campuses));}
  public function student(int $sid,array $campuses,int $id,bool $write=false):object {
