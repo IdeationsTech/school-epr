@@ -13,6 +13,7 @@ Route::prefix('app-api')->group(function (): void {
     Route::post('/logout', [SessionController::class, 'logout']);
     Route::post('/switch-school', [SessionController::class, 'switchSchool']);
     Route::get('/account',[\App\Http\Controllers\Api\SchoolAccountController::class,'show']);
+    Route::get('/account/invoices/{invoice}/document',[\App\Http\Controllers\Api\SchoolAccountController::class,'document'])->whereNumber('invoice');
     Route::post('/account/tickets',[\App\Http\Controllers\Api\SchoolAccountController::class,'createTicket'])->middleware('throttle:20,1');
     Route::get('/account/tickets/{ticket}',[\App\Http\Controllers\Api\SchoolAccountController::class,'ticket'])->whereNumber('ticket');
     Route::post('/account/tickets/{ticket}/replies',[\App\Http\Controllers\Api\SchoolAccountController::class,'reply'])->whereNumber('ticket')->middleware('throttle:30,1');

@@ -29,7 +29,7 @@ class PlatformController extends Controller
             'open_tickets'=>DB::table('support_tickets')->whereIn('status',['open','in_progress'])->count(),
             'audit'=>DB::table('platform_audit_logs')->join('users','users.id','=','platform_audit_logs.actor_user_id')->orderByDesc('platform_audit_logs.id')->limit(12)->get(['platform_audit_logs.*','users.name as actor_name'])]);
     }
-    public function plans(){return response()->json(DB::table('plans')->orderBy('monthly_price')->get());}
+    public function plans(){return response()->json(DB::table('plans')->orderBy('monthly_price')->get()->map(function($p){$old=json_decode($p->features??'{}',true);$p->features=json_encode(array_merge($old??[],['active'=>(bool)$p->available,'annual_price'=>$p->annual_price,'modules'=>json_decode($p->modules??'[]',true)]));return $p;}));}
     public function savePlan(Request $r,?int $plan=null)
     {
         if($plan)abort_unless(DB::table('plans')->where('id',$plan)->exists(),404);
@@ -100,7 +100,7 @@ class PlatformController extends Controller
     }
     private function activePlan(object $plan): void
     {
-        $f=json_decode($plan->features??'{}',true);if(($f['active']??true)!==true)throw ValidationException::withMessages(['plan_id'=>'Choose an active package.']);
+        if(!(bool)$plan->available)throw ValidationException::withMessages(['plan_id'=>'Choose an active package.']);
     }
     private function subscription(Request $r,int $sid,array $d): void
     {

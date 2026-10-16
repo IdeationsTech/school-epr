@@ -34,6 +34,8 @@ class LicenseLifecycleTest extends TestCase
   $this->actingAs($admin)->putJson("/app-api/platform/schools/$sid/license",['status'=>'suspended','reason'=>'Service temporarily paused'])->assertOk();
   $this->actingAs($owner)->withSession(['school_id'=>$sid])->getJson('/app-api/bootstrap')->assertForbidden();
   $this->getJson('/app-api/account')->assertOk()->assertJsonPath('entitlement.license.status','suspended');
+  $invoice=DB::table('subscription_invoices')->where('school_id',$sid)->value('id');
+  $this->getJson('/app-api/account/invoices/'.$invoice.'/document')->assertOk();
   $this->postJson('/app-api/account/tickets',['subject'=>'Please renew','description'=>'Please help renew our service.'])->assertCreated();
  }
  public function test_reversal_and_invoice_adjustment_preserve_history_and_net_balances():void {

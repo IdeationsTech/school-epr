@@ -14,7 +14,7 @@ A full initial-batch rollback drops constraints before domain tables. Future dep
 users are global identities; school_memberships link users to schools.
 roles and permissions are global templates; membership_roles and membership_campuses are school-scoped assignments.
 SchoolModel queries return no rows without SchoolContext. Model instance writes verify tenant context.
-This is defense in depth, NOT complete authorization. Query-builder writes and bulk updates bypass model instance hooks. No domain endpoints are published yet.
+This is defense in depth, NOT complete authorization. Query-builder writes and bulk updates bypass model instance hooks. Setup, access and provider endpoints are implemented; operational school modules follow separately.
 Authenticated middleware must establish context from an ACTIVE authorized membership and clear it between jobs/requests; role, campus, class/subject and export policies must be implemented before exposing records.
 Never call withoutGlobalScopes in user-facing flows.
 Protected models block mass assignment until dedicated request/service logic is implemented.
