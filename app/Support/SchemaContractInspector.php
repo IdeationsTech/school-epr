@@ -4,9 +4,16 @@ use Illuminate\Support\Facades\DB;
 class SchemaContractInspector
 {
  private function sql(string $value):string {
-  $value=strtolower(str_replace('`','',$value));$value=preg_replace("/_[a-z0-9]+(?=')/",'',$value);
-  $value=preg_replace("/([a-z_][a-z_0-9]*)\\s+regexp\\s+('[^']*')/i",'regexp_like($1,$2)',$value);
-  return preg_replace('/[\\s()]+/','',$value);
+  // MySQL 8.4 CHECK_CLAUSE escapes quote delimiters and adds charset introducers.
+  $value=str_replace("\\'", "'", $value);
+  $value=preg_replace("/\\b_[a-z0-9]+(?=')/i",'', $value);
+  // Protect literal contents before folding SQL syntax; b_form and bank_transfer
+  // must not lose suffixes, case, whitespace or punctuation.
+  $literals=[];
+  $value=preg_replace_callback("/'(?:''|[^'])*'/",function($m)use(&$literals){$key='literal'.count($literals).'token';$literals[$key]=$m[0];return $key;},$value);
+  $value=strtolower(str_replace('`','',$value));
+  $value=preg_replace('/([a-z_][a-z_0-9]*)\\s+regexp\\s+(literal[0-9]+token)/i','regexp_like($1,$2)',$value);
+  return strtr(preg_replace('/[\\s()]+/','',$value),$literals);
  }
  public function inspect():array {
   $spec=json_decode(file_get_contents(database_path('schema/schema.json')),true,512,JSON_THROW_ON_ERROR);$byName=array_column($spec,null,'name');$db=DB::connection()->getDatabaseName();$issues=[];
