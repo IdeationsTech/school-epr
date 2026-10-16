@@ -72,7 +72,7 @@ function App(){
  function setView(next:string){
   const path=screenPaths[next]??'/';
   if(window.location.pathname!==path)window.history.pushState({},'',path);
-  setCurrentView(next);setMenu(false);
+  setCurrentView(next);setMenu(false);window.scrollTo({top:0});
  }
  useEffect(()=>{const back=()=>{setCurrentView(screenFromPath());setMenu(false);};window.addEventListener('popstate',back);return()=>window.removeEventListener('popstate',back);},[]);
  async function refresh(){setData(await api<Bootstrap>('/bootstrap'));}
