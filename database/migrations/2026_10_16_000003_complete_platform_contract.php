@@ -7,8 +7,8 @@ return new class extends Migration {
  public function up():void {
   Schema::table('guardians',function(Blueprint $t):void{$t->string('cnic',13)->nullable();$t->unique(['school_id','cnic'],'guardian_cnic_school');});
   Schema::table('students',function(Blueprint $t):void{$t->string('identity_number',13)->nullable();$t->string('identity_type',160)->nullable();$t->unique(['school_id','identity_number'],'student_identity_school');});
-  DB::statement("ALTER TABLE guardians ADD CONSTRAINT guardian_cnic_format CHECK (cnic IS NULL OR cnic REGEXP '^[1-7][0-9]{12}$')");
-  DB::statement("ALTER TABLE students ADD CONSTRAINT student_identity_format CHECK ((identity_number IS NULL AND identity_type IS NULL) OR (identity_number IS NOT NULL AND identity_number REGEXP '^[1-7][0-9]{12}$' AND identity_type IS NOT NULL AND identity_type IN ('cnic','b_form')))");
+  DB::statement("ALTER TABLE guardians ADD CONSTRAINT guardian_cnic_format CHECK (cnic IS NULL OR cnic REGEXP '^[0-9]{13}$')");
+  DB::statement("ALTER TABLE students ADD CONSTRAINT student_identity_format CHECK ((identity_number IS NULL AND identity_type IS NULL) OR (identity_number IS NOT NULL AND identity_number REGEXP '^[0-9]{13}$' AND identity_type IS NOT NULL AND identity_type IN ('cnic','b_form')))");
   Schema::table('plans',function(Blueprint $t):void{$t->decimal('annual_price',12,2)->default(0);$t->boolean('available')->default(true);$t->json('modules')->nullable();});
   DB::table('plans')->orderBy('id')->each(function($p):void{$f=json_decode($p->features??'{}',true);DB::table('plans')->where('id',$p->id)->update(['annual_price'=>$f['annual_price']??((float)$p->monthly_price*12),'available'=>$f['active']??true,'modules'=>json_encode($f['modules']??(array_is_list($f)?$f:[]))]);});
   DB::statement('ALTER TABLE plans ADD CONSTRAINT plan_prices_limits CHECK (monthly_price >= 0 AND annual_price >= 0 AND student_limit > 0 AND campus_limit > 0)');

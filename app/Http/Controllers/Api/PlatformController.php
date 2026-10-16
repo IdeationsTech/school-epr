@@ -26,6 +26,7 @@ class PlatformController extends Controller
             'received'=>DB::table('subscription_payments as p')->whereNotExists(fn($q)=>$q->selectRaw('1')->from('subscription_payment_reversals as r')->whereColumn('r.payment_id','p.id'))->sum('p.amount'),
             'outstanding'=>DB::table('subscription_invoices')->get()->sum(fn($i)=>max(0,$this->cents($i->amount)-$this->cents(LicenseService::paid($i->school_id,$i->id))))/100,
             'suspended'=>DB::table('school_licenses')->where('status','suspended')->count(),
+            'open_tickets'=>DB::table('support_tickets')->whereIn('status',['open','in_progress'])->count(),
             'audit'=>DB::table('platform_audit_logs')->join('users','users.id','=','platform_audit_logs.actor_user_id')->orderByDesc('platform_audit_logs.id')->limit(12)->get(['platform_audit_logs.*','users.name as actor_name'])]);
     }
     public function plans(){return response()->json(DB::table('plans')->orderBy('monthly_price')->get());}

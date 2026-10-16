@@ -11,10 +11,25 @@ class ProviderOperationsController extends Controller
  private function audit(Request $r,string $action,string $type,int $id,array $changes):void{DB::table('platform_audit_logs')->insert(['actor_user_id'=>$r->user()->id,'action'=>$action,'target_type'=>$type,'target_id'=>$id,'changes'=>json_encode($changes),'created_at'=>now(),'updated_at'=>now()]);}
  public function licenses(Request $r){
   $d=$r->validate(['search'=>'nullable|string|max:100','state'=>['nullable',Rule::in(['active','suspended','closed','valid','grace','expired','upcoming','expiring','unassigned'])]]);
-  $rows=DB::table('school_licenses')->join('schools','schools.id','=','school_licenses.school_id')->when($d['search']??'',fn($q,$v)=>$q->where(fn($q)=>$q->where('schools.name','like','%'.$v.'%')->orWhere('school_licenses.number','like','%'.$v.'%')))->orderByDesc('school_licenses.id')->get(['school_licenses.*','schools.name as school_name']);
-  // Summaries calculate dates in Pakistan time and keep upcoming renewals separate.
-  $out=$rows->map(function($l){$s=LicenseService::summary($l->school_id);return ['school_id'=>$l->school_id,'school_name'=>$l->school_name]+$s;})->filter(function($s)use($d){$f=$d['state']??'';if(!$f)return true;if(in_array($f,['active','suspended','closed']))return $s['license']->status===$f;if($f==='expiring')return $s['period']&&$s['period']->ends_on>=now('Asia/Karachi')->toDateString()&&$s['period']->ends_on<=now('Asia/Karachi')->addDays(30)->toDateString();return $s['state']===$f;})->values();
-  $page=max(1,(int)$r->input('page',1));return response()->json(['data'=>$out->slice(($page-1)*20,20)->values(),'current_page'=>$page,'last_page'=>max(1,(int)ceil($out->count()/20)),'total'=>$out->count()]);
+  $today=now('Asia/Karachi')->toDateString();$state=$d['state']??'';
+  $base=function($q){$q->selectRaw('1')->from('subscriptions as sub')->whereColumn('sub.school_id','school_licenses.school_id')->where('sub.status','active');};
+  $current=function($q)use($base,$today){$base($q);$q->where('sub.starts_on','<=',$today)->whereRaw('DATE_ADD(sub.ends_on, INTERVAL sub.grace_days DAY) >= ?',[$today]);};
+  $q=DB::table('school_licenses')->join('schools','schools.id','=','school_licenses.school_id')
+   ->when($d['search']??'',fn($q,$v)=>$q->where(fn($q)=>$q->where('schools.name','like','%'.$v.'%')->orWhere('school_licenses.number','like','%'.$v.'%')));
+  if(in_array($state,['active','suspended','closed']))$q->where('school_licenses.status',$state);
+  elseif(in_array($state,['valid','grace','expiring']))$q->whereExists(function($sub)use($current,$today,$state){$current($sub);if($state==='grace')$sub->where('sub.ends_on','<',$today);else $sub->where('sub.ends_on','>=',$today);if($state==='expiring')$sub->where('sub.ends_on','<=',now('Asia/Karachi')->addDays(30)->toDateString());});
+  if($state==='grace')$q->whereNotExists(function($sub)use($base,$today){$base($sub);$sub->where('sub.starts_on','<=',$today)->where('sub.ends_on','>=',$today);});
+  if($state==='upcoming')$q->whereNotExists($current)->whereExists(function($sub)use($base,$today){$base($sub);$sub->where('sub.starts_on','>',$today);});
+  elseif($state==='expired')$q->whereNotExists($current)->whereNotExists(function($sub)use($base,$today){$base($sub);$sub->where('sub.starts_on','>',$today);})->whereExists($base);
+  elseif($state==='unassigned')$q->whereNotExists($base);
+  $page=$q->orderByDesc('school_licenses.id')->paginate(20,['school_licenses.*','schools.name as school_name']);
+  $page->setCollection($page->getCollection()->map(fn($l)=>['school_id'=>$l->school_id,'school_name'=>$l->school_name]+LicenseService::summary($l->school_id)));
+  return response()->json($page);
+
+ }
+ public function schoolInfo(Request $r,int $school){
+  $d=$r->validate(['name'=>'required|string|min:2|max:160','phone'=>['required',new \App\Rules\PakistanPhone()],'email'=>'nullable|email|max:160','address'=>'required|string|min:8|max:2000']);
+  DB::transaction(function()use($r,$school,$d){$before=DB::table('schools')->where('id',$school)->lockForUpdate()->first();abort_unless($before,404);DB::table('schools')->where('id',$school)->update(['name'=>$d['name'],'updated_at'=>now()]);DB::table('school_settings')->updateOrInsert(['school_id'=>$school,'key'=>'contact'],['value'=>json_encode(['phone'=>\App\Rules\PakistanPhone::canonical($d['phone']),'email'=>$d['email']??'','address'=>$d['address']]),'created_at'=>now(),'updated_at'=>now()]);$this->audit($r,'school.profile_updated','school',$school,['previous_name'=>$before->name,'name'=>$d['name'],'fields'=>array_keys($d)]);});return response()->json(['message'=>'School contact details updated.']);
  }
  public function licenseStatus(Request $r,int $school){
   $d=$r->validate(['status'=>['required',Rule::in(['active','suspended','closed'])],'reason'=>'required|string|min:5|max:500']);

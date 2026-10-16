@@ -46,7 +46,7 @@ test('provider onboards a school, receives a partial payment and suspends access
     await page.getByRole('navigation').getByRole('button',{name:'School licenses',exact:true}).click();
     await expect(page.getByRole('heading',{name:'School licenses',level:1})).toBeVisible();
     await page.getByRole('navigation').getByRole('button',{name:'Service billing',exact:true}).click();
-    await expect(page.getByText('Pilot Academy',{exact:true})).toBeVisible();
+    await expect(page.getByRole('row').filter({hasText:'Pilot Academy'})).toBeVisible();
     await page.getByRole('navigation').getByRole('button',{name:'Provider profile',exact:true}).click();
     await page.getByLabel('Provider name',{exact:true}).fill('ERP Service Company');
     await page.getByLabel('Provider email',{exact:true}).fill('service@example.test');

@@ -524,7 +524,7 @@ Table students {
     (school_id, identity_number) [unique, name: 't35_u1']
   }
   checks {
-    `(identity_number IS NULL AND identity_type IS NULL) OR (identity_number IS NOT NULL AND identity_number REGEXP '^[1-7][0-9]{12}$' AND identity_type IS NOT NULL AND identity_type IN ('cnic','b_form'))` [name: 't35_check0']
+    `(identity_number IS NULL AND identity_type IS NULL) OR (identity_number IS NOT NULL AND identity_number REGEXP '^[0-9]{13}$' AND identity_type IS NOT NULL AND identity_type IN ('cnic','b_form'))` [name: 't35_check0']
   }
 }
 
@@ -544,7 +544,7 @@ Table guardians {
     (school_id, cnic) [unique, name: 't36_u0']
   }
   checks {
-    `cnic IS NULL OR cnic REGEXP '^[1-7][0-9]{12}$'` [name: 't36_check0']
+    `cnic IS NULL OR cnic REGEXP '^[0-9]{13}$'` [name: 't36_check0']
   }
 }
 

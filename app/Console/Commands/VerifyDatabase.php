@@ -14,9 +14,10 @@ class VerifyDatabase extends Command
   $fk=DB::select('SELECT COUNT(*) AS n FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = ? AND CONSTRAINT_TYPE = ?',[$db,'FOREIGN KEY'])[0]->n;
   $checks=DB::select('SELECT COUNT(*) AS n FROM information_schema.TABLE_CONSTRAINTS WHERE CONSTRAINT_SCHEMA = ? AND CONSTRAINT_TYPE = ?',[$db,'CHECK'])[0]->n;
   $expectedFk=array_sum(array_map(fn($t)=>count($t['refs'])+(int)$t['tenant'],$spec));
-  $this->table(['Check','Observed'],[['Database',$db],['Tables',$tables],['Foreign keys',$fk.' (expected '.$expectedFk.')'],['CHECK constraints',$checks],['Declared column issues',count($missing)]]);
+  $expectedChecks=array_sum(array_map(fn($t)=>count($t['checks']),$spec));
+  $this->table(['Check','Observed'],[['Database',$db],['Tables',$tables],['Foreign keys',$fk.' (expected '.$expectedFk.')'],['CHECK constraints',$checks.' (expected '.$expectedChecks.')'],['Declared column issues',count($missing)]]);
   foreach($missing as $issue)$this->error($issue);
-  if($missing || (int)$fk<$expectedFk){$this->error('Schema verification failed. Run pending migrations; this command changed no data.');return self::FAILURE;}
+  if($missing || (int)$fk<$expectedFk || (int)$checks<$expectedChecks){$this->error('Schema verification failed. Run pending migrations; this command changed no data.');return self::FAILURE;}
   $this->info('Declared schema present. Read-only inspection; no student/guardian values were printed.');return self::SUCCESS;
  }
 }

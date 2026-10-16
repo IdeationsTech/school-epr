@@ -28,6 +28,8 @@ class LicenseLifecycleTest extends TestCase
   [$sid,,$admin,$owner]=$this->setupSchool(['grace_days'=>3]);$day=now('Asia/Karachi')->toDateString();
   DB::table('subscriptions')->where('school_id',$sid)->update(['starts_on'=>now('Asia/Karachi')->subMonth()->toDateString(),'ends_on'=>now('Asia/Karachi')->subDay()->toDateString()]);
   $this->assertTrue(LicenseService::allowed($sid));$this->assertSame('grace',LicenseService::summary($sid)['state']);
+  $this->getJson('/app-api/platform/licenses?state=grace')->assertOk()->assertJsonCount(1,'data');
+  $this->getJson('/app-api/platform/licenses?state=valid')->assertOk()->assertJsonCount(0,'data');
   $this->actingAs($owner)->withSession(['school_id'=>$sid])->getJson('/app-api/bootstrap')->assertOk();
   $this->actingAs($admin)->putJson("/app-api/platform/schools/$sid/license",['status'=>'suspended','reason'=>'Service temporarily paused'])->assertOk();
   $this->actingAs($owner)->withSession(['school_id'=>$sid])->getJson('/app-api/bootstrap')->assertForbidden();

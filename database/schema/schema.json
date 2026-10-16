@@ -1078,7 +1078,7 @@
       ]
     ],
     "checks": [
-      "(identity_number IS NULL AND identity_type IS NULL) OR (identity_number IS NOT NULL AND identity_number REGEXP '^[1-7][0-9]{12}$' AND identity_type IS NOT NULL AND identity_type IN ('cnic','b_form'))"
+      "(identity_number IS NULL AND identity_type IS NULL) OR (identity_number IS NOT NULL AND identity_number REGEXP '^[0-9]{13}$' AND identity_type IS NOT NULL AND identity_type IN ('cnic','b_form'))"
     ],
     "tenant": true,
     "group": "students"
@@ -1126,7 +1126,7 @@
       ]
     ],
     "checks": [
-      "cnic IS NULL OR cnic REGEXP '^[1-7][0-9]{12}$'"
+      "cnic IS NULL OR cnic REGEXP '^[0-9]{13}$'"
     ],
     "tenant": true,
     "group": "students"

@@ -38,6 +38,7 @@ Route::prefix('app-api')->group(function (): void {
         Route::put('/plans/{plan}',[\App\Http\Controllers\Api\PlatformController::class,'savePlan'])->whereNumber('plan');
         Route::get('/schools',[\App\Http\Controllers\Api\PlatformController::class,'schools']);
         Route::post('/schools',[\App\Http\Controllers\Api\PlatformController::class,'createSchool']);
+        Route::put('/schools/{school}',[\App\Http\Controllers\Api\ProviderOperationsController::class,'schoolInfo'])->whereNumber('school');
         Route::get('/schools/{school}',[\App\Http\Controllers\Api\PlatformController::class,'school'])->whereNumber('school');
         Route::post('/schools/{school}/subscriptions',[\App\Http\Controllers\Api\PlatformController::class,'renew'])->whereNumber('school');
         Route::put('/schools/{school}/status',[\App\Http\Controllers\Api\PlatformController::class,'status'])->whereNumber('school');
