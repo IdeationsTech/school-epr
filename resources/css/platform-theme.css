@@ -188,3 +188,22 @@
  filter:brightness(.94);
  box-shadow:var(--admin-shadow-inset);
 }
+
+/* Unified teal fill for admin actions; navigation, sliders and data cards retain their roles. */
+.platform-workspace button:not(.nav-overlay):not([role=slider]):not(.setup-cards button):not(.sidebar nav button):not(.campus-card):not(.member-card):not(.role-tabs button),
+.platform-login button:not([role=slider]){
+ background:var(--admin-teal);
+ color:var(--admin-bg);
+ border:1px solid var(--admin-border);
+ box-shadow:var(--admin-shadow-small);
+}
+.platform-workspace button:not(.nav-overlay):not([role=slider]):not(.setup-cards button):not(.sidebar nav button):not(.campus-card):not(.member-card):not(.role-tabs button):hover:not(:disabled),
+.platform-login button:not([role=slider]):hover:not(:disabled){
+ background:var(--admin-teal);
+ color:var(--admin-bg);
+ border-color:var(--admin-border);
+ filter:brightness(1.12);
+ box-shadow:var(--admin-shadow-hover);
+}
+.platform-workspace button:not(.nav-overlay):not([role=slider]):not(.setup-cards button):not(.sidebar nav button):not(.campus-card):not(.member-card):not(.role-tabs button):active:not(:disabled),
+.platform-login button:not([role=slider]):active:not(:disabled){filter:brightness(.94);box-shadow:var(--admin-shadow-inset)}
