@@ -51,7 +51,7 @@ class StudentAdmissionsTest extends TestCase
   Storage::fake('local');$f=$this->fixture();$this->login($f);$id=$this->admit($this->data($f));
   $this->post('/app-api/students/'.$id.'/documents',['document_type'=>'photo','file'=>UploadedFile::fake()->create('photo.pdf',20,'application/pdf')],['Accept'=>'application/json'])->assertUnprocessable();
   $this->post('/app-api/students/'.$id.'/documents',['document_type'=>'b_form','file'=>UploadedFile::fake()->create('birth.pdf',20,'application/pdf')],['Accept'=>'application/json'])->assertOk();$file=DB::table('files')->first();Storage::disk('local')->assertExists($file->path);$this->get('/app-api/students/'.$id.'/files/'.$file->id)->assertOk();
-  $b=$this->fixture('B');$this->login($b);$this->getJson('/app-api/students/'.$id.'/files/'.$file->id)->assertNotFound();$this->get('/storage/'.$file->path)->assertNotFound();
+  $b=$this->fixture('B');$this->login($b);$this->getJson('/app-api/students/'.$id.'/files/'.$file->id)->assertNotFound();$this->get('/storage/'.$file->path)->assertForbidden();
  }
  public function test_csv_import_previews_then_atomically_revalidates_capacity_and_reuses_family():void {
   $f=$this->fixture();$this->login($f);$file=$this->csv($f);$preview=$this->post('/app-api/students/import/preview',['file'=>$file],['Accept'=>'application/json'])->assertOk()->assertJsonPath('valid',true);$this->assertDatabaseCount('students',0);$this->postJson('/app-api/students/import/commit',['token'=>$preview->json('token')])->assertOk();$this->assertDatabaseCount('students',1);$this->postJson('/app-api/students/import/commit',['token'=>$preview->json('token')])->assertUnprocessable();
