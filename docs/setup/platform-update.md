@@ -33,7 +33,7 @@ Open http://127.0.0.1:8001/admin and sign in with the **new platform email/passw
 
 ## First school from the panel
 
-1. Open **Packages**. Create a package with your actual monthly/yearly rates and student/campus limits. The pre-existing zero-price reference plan is a placeholder, not a pricing recommendation.
+1. Run `php artisan db:seed --class=ServicePackageSeeder` once after pulling the package update. Open **Packages**: **Starter** (500 students, 1 campus, Rs 3,000/month or Rs 30,000/year) and **Standard** (1,000 students, 2 campuses, Rs 5,000/month or Rs 50,000/year) are ready. These are editable initial business prices. Re-running the seeder never overwrites edited packages. The original zero-price scaffold is unavailable for new subscriptions.
 2. Open **Schools → Add school**. Enter school contact/address, unique code, owner credentials, package, exact subscription dates and **total agreed period price**.
 3. Submit once. School, main campus, owner, membership, subscription and invoice are created together. Share the credentials yourself; this release sends no email or WhatsApp messages.
 4. Open the school's details to record partial/full payments using a unique bank transaction or cash receipt reference. Overpayments and duplicate references are rejected. Money is stored as DECIMAL; balance checks use integer paisa.

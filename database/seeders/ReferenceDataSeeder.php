@@ -38,10 +38,10 @@ class ReferenceDataSeeder extends Seeder
                     ], ['updated_at'=>now()]);
                 }
             }
-            DB::table('plans')->updateOrInsert(['code'=>'school-standard'], [
+            DB::table('plans')->insertOrIgnore(['code'=>'school-standard',
                 'name'=>'School Standard','student_limit'=>1000,'campus_limit'=>2,
                 'monthly_price'=>'0.00', // Placeholder, not commercial pricing.
-                'features'=>json_encode(['fees','diary','tests','payroll']), 'updated_at'=>now(),
+                'features'=>json_encode(['active'=>false,'annual_price'=>'0.00','modules'=>['fees','diary','tests','payroll']]), 'created_at'=>now(), 'updated_at'=>now(),
             ]);
         });
     }

@@ -135,4 +135,19 @@ class PlatformTest extends TestCase
             ->expectsQuestion('Confirm platform administrator password','different')->assertFailed();
         $this->assertDatabaseCount('users',0);$this->assertDatabaseCount('platform_admins',0);
     }
+    public function test_ready_made_packages_are_repeatable_and_preserve_operator_changes():void
+    {
+        $this->seed(DatabaseSeeder::class);
+        $this->assertDatabaseHas('plans',['code'=>'STARTER-500','student_limit'=>500,'campus_limit'=>1,'monthly_price'=>'3000.00']);
+        $this->assertDatabaseHas('plans',['code'=>'STANDARD-1000','student_limit'=>1000,'campus_limit'=>2,'monthly_price'=>'5000.00']);
+        $this->assertFalse(json_decode(DB::table('plans')->where('code','school-standard')->value('features'),true)['active']);
+        DB::table('plans')->where('code','STARTER-500')->update(['monthly_price'=>'3500.00','features'=>json_encode(['active'=>false,'annual_price'=>'35000.00'])]);
+        $this->seed(DatabaseSeeder::class);
+        $this->assertDatabaseCount('plans',3);
+        $this->assertDatabaseHas('plans',['code'=>'STARTER-500','monthly_price'=>'3500.00']);
+        $this->assertFalse(json_decode(DB::table('plans')->where('code','STARTER-500')->value('features'),true)['active']);
+        $this->assertDatabaseCount('schools',0);
+        $this->assertDatabaseCount('subscriptions',0);
+    }
+
 }
