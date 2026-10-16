@@ -67,7 +67,7 @@ test('provider onboards a school, receives a partial payment and suspends access
     await expect(page.getByRole('status')).toHaveText('Payment recorded.');
     await expect(page.getByText('partial',{exact:true})).toBeVisible();
     await page.screenshot({path:'test-results/platform-school-desktop.png',fullPage:true,animations:'disabled'});
-    await expect(page.getByText(/^LIC-/)).toBeVisible();
+    await expect(page.getByRole('heading',{name:/^LIC-/})).toBeVisible();
     await page.getByRole('button',{name:'Print invoice',exact:true}).click();
     await expect(page.getByRole('dialog',{name:'Billing document'})).toBeVisible();
     await page.getByRole('button',{name:'Close document',exact:true}).click();

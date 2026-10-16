@@ -2,7 +2,7 @@ import {useEffect,useState,type FormEvent} from 'react';
 import {api} from './lib/api';
 type Page<T>={data:T[];last_page:number};
 type Event={id:number;action:string;actor_name:string;created_at:string;changes:string|null;school_id:number|null;school_name?:string|null;target_type:string;target_id:number};
-const dateTime=(v:string)=>new Intl.DateTimeFormat('en-PK',{timeZone:'Asia/Karachi',dateStyle:'medium',timeStyle:'short'}).format(new Date(v.includes('T')?v:v.replace(' ','T')+'Z'));
+const dateTime=(v:string|null)=>{if(!v)return 'Time unavailable';const date=new Date(v.includes('T')?v:v.replace(' ','T')+'Z');return Number.isNaN(date.getTime())?'Time unavailable':new Intl.DateTimeFormat('en-PK',{timeZone:'Asia/Karachi',dateStyle:'medium',timeStyle:'short'}).format(date);};
 function Feedback({error,message}:{error:string;message?:string}){return <>{error&&<p role="alert" className="error-box">{error}</p>}{message&&<p role="status" className="success-box">{message}</p>}</>;}
 function Pager({page,last,set}:{page:number;last:number;set:(n:number)=>void}){return <div className="pagination"><button type="button" className="secondary" disabled={page<=1} onClick={()=>set(page-1)}>Previous</button><span>Page {page} of {last}</span><button type="button" className="secondary" disabled={page>=last} onClick={()=>set(page+1)}>Next</button></div>;}
 export function SchoolFilter({value,onChange}:{value:string;onChange:(v:string)=>void}){
