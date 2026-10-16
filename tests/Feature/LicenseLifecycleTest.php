@@ -70,5 +70,14 @@ class LicenseLifecycleTest extends TestCase
   DB::table('guardians')->insert(['school_id'=>$sid,'name'=>'Guardian','phone'=>'+923001234567','cnic'=>'3520212345671']);
   $this->expectException(\Illuminate\Database\QueryException::class);DB::table('guardians')->insert(['school_id'=>$sid,'name'=>'Duplicate','phone'=>'+923001234568','cnic'=>'3520212345671']);
  }
+ public function test_student_identity_requires_a_document_type():void {
+  [$sid]=$this->setupSchool();$this->expectException(\Illuminate\Database\QueryException::class);
+  DB::table('students')->insert(['school_id'=>$sid,'admission_no'=>'S-1','first_name'=>'Student','admitted_on'=>now('Asia/Karachi')->toDateString(),'status'=>'active','identity_number'=>'3520212345671','identity_type'=>null]);
+ }
+ public function test_student_identity_cannot_be_reused_for_two_students_in_one_school():void {
+  [$sid]=$this->setupSchool();$v=['school_id'=>$sid,'first_name'=>'Student','admitted_on'=>now('Asia/Karachi')->toDateString(),'status'=>'active','identity_number'=>'3520212345671','identity_type'=>'b_form'];
+  DB::table('students')->insert($v+['admission_no'=>'S-1']);$this->expectException(\Illuminate\Database\QueryException::class);
+  DB::table('students')->insert($v+['admission_no'=>'S-2']);
+ }
  public function test_database_verify_command_is_read_only_and_passes():void {$this->artisan('database:verify')->assertSuccessful();}
 }

@@ -70,9 +70,10 @@ test('provider onboards a school, receives a partial payment and suspends access
     await expect(page.getByRole('heading',{name:'Audit log',level:1})).toBeVisible();
     await page.getByRole('navigation').getByRole('button',{name:'Schools',exact:true}).click();
     await page.getByRole('row').filter({hasText:'Pilot Academy'}).getByRole('button',{name:/Manage/}).click();
-    await page.getByLabel('Reason for status change',{exact:true}).fill('Pilot service paused by provider');
-    await page.getByRole('button',{name:'Suspend school',exact:true}).click();
-    await expect(page.getByRole('status')).toHaveText('School status updated.');
+    await page.getByLabel('Control action reason',{exact:true}).fill('Pilot service paused by provider');
+    await page.getByLabel('License access status',{exact:true}).selectOption('suspended');
+    await page.getByRole('button',{name:'Apply license status',exact:true}).click();
+    await expect(page.getByRole('status')).toHaveText('License status updated.');
     await page.setViewportSize({width:390,height:844});
     await expect(page.locator('.sidebar')).toHaveCSS('transform','matrix(1, 0, 0, 1, -260, 0)');
     expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
