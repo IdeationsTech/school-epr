@@ -1,11 +1,21 @@
 import {test,expect} from '@playwright/test';
 test('provider onboards a school, receives a partial payment and suspends access',async({page})=>{
     await page.goto('/admin');
+    await page.getByLabel('Email address').waitFor();
+    await page.screenshot({path:'test-results/platform-login-desktop.png',fullPage:true});
     await page.getByLabel('Email address').fill('platform@example.test');
     await page.getByLabel('Password',{exact:true}).fill('BrowserTestPassword123!');
     await page.getByRole('button',{name:'Sign in',exact:true}).click();
     await expect(page.getByRole('heading',{name:'Platform overview',exact:true})).toBeVisible();
+    await expect(page.locator('.platform-stats .stat-card')).toHaveCount(6);
+    await page.screenshot({path:'test-results/platform-overview-desktop.png',fullPage:true});
+    await page.setViewportSize({width:390,height:844});
+    expect(await page.evaluate(()=>document.documentElement.scrollWidth)).toBeLessThanOrEqual(390);
+    await page.screenshot({path:'test-results/platform-overview-mobile.png',fullPage:true});
+    await page.setViewportSize({width:1280,height:900});
     await page.getByRole('navigation').getByRole('button',{name:'Packages',exact:true}).click();
+    await page.getByLabel('name',{exact:true}).waitFor();
+    await page.screenshot({path:'test-results/platform-packages-desktop.png',fullPage:true});
     await page.getByLabel('name',{exact:true}).fill('Pilot Package');
     await page.getByLabel('code',{exact:true}).fill('PILOT');
     await page.getByLabel('monthly_price',{exact:true}).fill('5000');

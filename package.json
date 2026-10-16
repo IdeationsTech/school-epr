@@ -5,7 +5,8 @@
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "tsc --noEmit && vite build",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "theme:admin": "node scripts/admin-theme.mjs"
   },
   "dependencies": {
     "lucide-react": "^0.468.0",
