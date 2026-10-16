@@ -31,3 +31,7 @@
 @media(prefers-reduced-motion:reduce){.school-workspace .student-family-card{transition:none}.school-workspace .student-family-card:hover{transform:none}}
 
 .school-workspace .student-initial img{width:100%;height:100%;object-fit:cover;border-radius:inherit}
+
+.school-workspace .student-register table{min-width:800px}
+.school-workspace .student-table-hint{display:none;font-size:12px;margin:0 0 12px}
+@media(max-width:600px){.school-workspace .student-table-hint{display:block}}
