@@ -3,7 +3,7 @@ use App\Http\Controllers\Api\SessionController;
 use App\Http\Controllers\Api\SchoolController;
 use App\Http\Middleware\SetSchoolContext;
 use Illuminate\Support\Facades\Route;
-foreach (['/','/school','/campus','/users','/roles','/license'] as $path) {
+foreach (['/','/school','/campus','/users','/roles','/license','/academics/sessions','/academics/terms','/academics/classes','/academics/sections','/academics/subjects','/academics/offerings','/academics/teachers','/academics/assignments'] as $path) {
     Route::view($path, 'app');
 }
 Route::view('/admin/{path?}', 'app')->where('path','.*');
@@ -50,6 +50,11 @@ Route::prefix('app-api')->group(function (): void {
         Route::post('/schools/{school}/invoices/{invoice}/payments',[\App\Http\Controllers\Api\PlatformController::class,'payment'])->whereNumber(['school','invoice']);
     });
     Route::middleware(SetSchoolContext::class)->group(function (): void {
+        Route::get('/academics',[\App\Http\Controllers\Api\AcademicsController::class,'index']);
+        Route::put('/academics/current',[\App\Http\Controllers\Api\AcademicsController::class,'current']);
+        Route::post('/academics/{resource}',[\App\Http\Controllers\Api\AcademicsController::class,'save'])->where('resource','sessions|terms|classes|sections|subjects|offerings|teachers|assignments');
+        Route::put('/academics/{resource}/{id}',[\App\Http\Controllers\Api\AcademicsController::class,'save'])->where('resource','sessions|terms|classes|sections|subjects|offerings|teachers|assignments')->whereNumber('id');
+        Route::delete('/academics/{resource}/{id}',[\App\Http\Controllers\Api\AcademicsController::class,'destroy'])->where('resource','sessions|terms|classes|sections|subjects|offerings|teachers|assignments')->whereNumber('id');
         Route::get('/bootstrap', [SchoolController::class, 'bootstrap']);
         Route::put('/school', [SchoolController::class, 'updateSchool']);
         Route::get('/campuses', [SchoolController::class, 'campuses']);

@@ -1,6 +1,7 @@
 @import "tailwindcss";
 @import "./access.css";
 @import "./platform-theme.css";
+@import "./school-theme.css";
 @source "../views";
 @source "../js";
 :root {font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:#172b4d;background:#f0f2f5;font-synthesis:none}

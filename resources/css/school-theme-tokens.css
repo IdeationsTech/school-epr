@@ -1,0 +1,39 @@
+/* Schola preview inspired school palette. All school colors and motion live here. */
+.school-workspace,.school-login{
+ color-scheme:light;
+ --school-bg:#f7f8fa;
+ --school-surface:#ffffff;
+ --school-raised:#ecf6f8;
+ --school-recessed:#f5f7f9;
+ --school-border:#dce5eb;
+ --school-border-hover:#a8c5d5;
+ --school-text:#263c3b;
+ --school-muted:#5b6b71;
+ --school-accent:#ffc8f7;
+ --school-accent-hover:#f5acf0;
+ --school-accent-ink:#194b70;
+ --school-accent-soft:#fff0fe;
+ --school-teal:#194b70;
+ --school-teal-soft:#ccebf1;
+ --school-purple:#a05cc2;
+ --school-purple-text:#8241ac;
+ --school-purple-soft:#f6eafc;
+ --school-blue:#167f96;
+ --school-blue-soft:#e4f5f8;
+ --school-danger:#a82743;
+ --school-danger-soft:#fff0f3;
+ --school-danger-fill:#b32847;
+ --school-on-danger:#ffffff;
+ --school-focus:#16738b;
+ --school-overlay:#17374f77;
+ --school-shadow:8px 10px 22px #194b7014,-3px -3px 12px #ffffff66;
+ --school-shadow-hover:10px 17px 30px #194b7029,-3px -3px 13px #ffffff88;
+ --school-shadow-small:4px 5px 10px #194b701a,-2px -2px 5px #ffffff66;
+ --school-shadow-inset:inset 2px 2px 5px #194b700d,inset -1px -1px 3px #ffffff88;
+ --school-radius:26px;
+ --school-radius-small:14px;
+ --school-radius-input:12px;
+ --school-motion:240ms;
+ --school-ease:cubic-bezier(.2,.8,.2,1);
+ --school-font:Inter,ui-sans-serif,system-ui,sans-serif;
+}

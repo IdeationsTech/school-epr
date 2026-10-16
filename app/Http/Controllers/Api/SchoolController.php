@@ -134,6 +134,12 @@ class SchoolController extends Controller
             DB::table('schools')->where('id',$sid)->lockForUpdate()->first();
             $ownerId=DB::table('roles')->where('name','owner')->value('id');
             $roles=array_values(array_unique(array_map('intval',$d['role_ids'])));
+            if($target){
+                $teaching=DB::table('teacher_assignments as a')->join('staff_profiles as p','p.id','=','a.staff_profile_id')->join('sections as s','s.id','=','a.section_id')->join('academic_sessions as y','y.id','=','s.academic_session_id')->where('a.school_id',$sid)->where('p.membership_id',$member)->where('y.status','active');
+                $teacherRole=(int)DB::table('roles')->where('name','teacher')->value('id');
+                if((clone $teaching)->exists()&&($d['status']!=='active'||!in_array($teacherRole,$roles,true)||(clone $teaching)->whereNotIn('s.campus_id',array_map('intval',$d['campus_ids']))->exists()))throw ValidationException::withMessages(['role_ids'=>'Reassign active-session teaching duties before removing this teacher role, campus access or account access.']);
+            }
+
             if ($target) {
                 if ((int)$target->id===(int)$actor->id && $d['status']!=='active') {
                     throw ValidationException::withMessages(['status'=>'You cannot deactivate your own membership.']);
