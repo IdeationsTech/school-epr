@@ -6,12 +6,13 @@ use Illuminate\Validation\ValidationException;
 use Carbon\CarbonImmutable;
 class SchoolFees
 {
+ private array $paidCache=[];
  public function __construct(public SchoolAccess $access){}
  public function fail(string $message):never{throw ValidationException::withMessages(['fees'=>$message]);}
  public static function cents(string|int $value):int{$parts=explode('.',(string)$value);return (int)$parts[0]*100+(int)str_pad($parts[1]??'',2,'0');}
  public static function money(int $cents):string{$sign=$cents<0?'-':'';$cents=abs($cents);return $sign.intdiv($cents,100).'.'.str_pad((string)($cents%100),2,'0',STR_PAD_LEFT);}
  public function context(Request $r,string $permission='fees.view'):array {
-  $allowed=$permission==='fees.view'?array_filter(['fees.view','fees.manage','fees.collect','fees.approve_reversal','fees.approve_concession'],fn($p)=>$this->access->can($r,$p)):$this->access->can($r,$permission);abort_unless($allowed,403);
+  $allowed=$permission==='fees.view'?array_filter(['fees.view','fees.manage','fees.collect','fees.approve_reversal','fees.approve_concession','fees.request_reversal'],fn($p)=>$this->access->can($r,$p)):$this->access->can($r,$permission);abort_unless($allowed,403);
   $m=$this->access->membership($r);$sid=(int)$m->school_id;$period=LicenseService::period($sid);if($period)abort_unless(in_array('fees',json_decode($period->modules,true)??[],true),403,'Fees is not included in this school license.');
   $campuses=in_array('owner',$this->access->roles($m),true)?DB::table('campuses')->where('school_id',$sid)->pluck('id')->all():array_map(fn($c)=>$c->id,$this->access->campuses($m));return [$sid,array_map('intval',$campuses)];
  }
@@ -23,7 +24,15 @@ class SchoolFees
  public function invoice(int $sid,array $campuses,int $id):object{$i=$this->row('invoices',$sid,$id);$i->enrollment=$this->enrollment($sid,$campuses,$i->enrollment_id);return $i;}
  public function bank(int $sid,array $campuses,?int $id,int $campus):void{if(!$id)return;$b=$this->row('bank_accounts',$sid,$id);if($b->campus_id!==null&&((int)$b->campus_id!==$campus||!in_array((int)$b->campus_id,$campuses,true)))$this->fail('Choose an account belonging to this campus or a school-wide account.');}
  public function netPayment(int $sid,object $p):int{return self::cents($p->amount)-(int)DB::table('payment_reversals')->where('school_id',$sid)->where('payment_id',$p->id)->where('status','approved')->selectRaw('COALESCE(SUM(amount)*100,0) AS cents')->value('cents');}
+ public function primePaid(int $sid,array $ids):void {
+  foreach($ids as $id)$this->paidCache[$sid][$id]=0;if(!$ids)return;
+  $reversed=DB::table('payment_reversals')->where('school_id',$sid)->where('status','approved')->groupBy('payment_id')->selectRaw('payment_id,SUM(amount) as reversed_amount');
+  $counts=DB::table('payment_allocations')->where('school_id',$sid)->groupBy('payment_id')->selectRaw('payment_id,COUNT(*) as allocation_count');
+  $rows=DB::table('payment_allocations as a')->join('payments as p','p.id','=','a.payment_id')->leftJoinSub($reversed,'r',fn($join)=>$join->on('r.payment_id','=','p.id'))->joinSub($counts,'n',fn($join)=>$join->on('n.payment_id','=','p.id'))->where('a.school_id',$sid)->whereIn('a.invoice_id',$ids)->get(['a.invoice_id','a.amount as allocated','p.amount','r.reversed_amount','n.allocation_count']);
+  foreach($rows as $row){$original=self::cents($row->amount);$rev=self::cents($row->reversed_amount??'0.00');if($rev>$original)$this->fail('A legacy payment is over-reversed; reconcile it before reporting.');if($rev>0&&$rev<$original&&$row->allocation_count>1)$this->fail('A legacy multi-invoice payment has a partial reversal requiring reconciliation.');$this->paidCache[$sid][$row->invoice_id]+=$rev===$original?0:self::cents($row->allocated)-$rev;}
+ }
  public function paid(int $sid,int $invoice):int {
+  if(array_key_exists($invoice,$this->paidCache[$sid]??[]))return $this->paidCache[$sid][$invoice];
   $sum=0;foreach(DB::table('payment_allocations as a')->join('payments as p','p.id','=','a.payment_id')->where('a.school_id',$sid)->where('a.invoice_id',$invoice)->get(['p.*','a.amount as allocated']) as $p){$original=self::cents($p->amount);$net=$this->netPayment($sid,$p);$allocated=self::cents($p->allocated);if($net===$original)$sum+=$allocated;elseif($net===0)continue;else{if(DB::table('payment_allocations')->where('school_id',$sid)->where('payment_id',$p->id)->count()!==1)$this->fail('Legacy multi-invoice payment has a partial reversal. Reconcile this record before collection.');$sum+=min($net,$allocated);}}
   return $sum;
  }
