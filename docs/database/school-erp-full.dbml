@@ -893,6 +893,9 @@ Table attendance_sessions {
   attendance_date date [not null]
   status varchar(160) [not null]
   submitted_by "bigint unsigned" [null]
+  revision "int unsigned" [not null]
+  submitted_at datetime [null]
+  day_note text [null]
   created_at timestamp [null]
   updated_at timestamp [null]
   indexes {

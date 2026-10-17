@@ -1,0 +1,51 @@
+<?php
+namespace App\Services;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+class StudentAttendance
+{
+ public function __construct(public SchoolAccess $access){}
+ public function fail(string $message):never{throw ValidationException::withMessages(['attendance'=>$message]);}
+ public function context(Request $r,bool $write=false):array {
+  abort_unless($this->access->can($r,'attendance.manage')||(!$write&&$this->access->can($r,'attendance.view'))||$this->access->can($r,'attendance.correct'),403);
+  $m=$this->access->membership($r);$sid=(int)$m->school_id;$period=LicenseService::period($sid);if($period)abort_unless(in_array('attendance',json_decode($period->modules,true)??[],true),403,'Attendance is not included in this school license.');
+  $campuses=in_array('owner',$this->access->roles($m),true)?DB::table('campuses')->where('school_id',$sid)->pluck('id')->all():array_map(fn($c)=>$c->id,$this->access->campuses($m));return [$sid,array_map('intval',$campuses),$m];
+ }
+ public function sections(Request $r,int $sid,array $campuses,object $m){
+  $q=DB::table('sections as s')->join('classes as c','c.id','=','s.class_id')->join('campuses as p','p.id','=','s.campus_id')->join('academic_sessions as y','y.id','=','s.academic_session_id')->where('s.school_id',$sid)->whereIn('s.campus_id',$campuses);
+  if(!$this->access->can($r,'attendance.oversee'))$q->whereExists(fn($q)=>$q->selectRaw('1')->from('teacher_assignments as a')->join('staff_profiles as t','t.id','=','a.staff_profile_id')->whereColumn('a.school_id','s.school_id')->whereColumn('a.section_id','s.id')->where('t.membership_id',$m->id)->where('t.status','active')->where('a.is_class_teacher',true));
+  return $q->select('s.*','c.name as class_name','p.name as campus_name','p.status as campus_status','y.name as session_name','y.starts_on as session_start','y.ends_on as session_end','y.status as session_status');
+ }
+ public function section(Request $r,int $id):array{[$sid,$campuses,$m]=$this->context($r);$section=$this->sections($r,$sid,$campuses,$m)->where('s.id',$id)->first()??abort(404);return [$sid,$section];}
+ public function date(object $section,string $date):void{if($date>$this->today())$this->fail('Attendance cannot be marked for a future Pakistan date.');if($date<$section->session_start||$date>$section->session_end)$this->fail('Attendance date must be inside the academic session.');}
+ public function today():string{return now('Asia/Karachi')->toDateString();}
+ public function roster(int $sid,int $section,string $date){$rows=DB::table('enrollments as e')->join('students as s','s.id','=','e.student_id')->where('e.school_id',$sid)->where('e.section_id',$section)->where('e.starts_on','<=',$date)->where(fn($q)=>$q->whereNull('e.ends_on')->orWhere('e.ends_on','>=',$date))->orderBy('e.roll_no')->orderBy('s.first_name')->orderBy('s.id')->get(['e.id as enrollment_id','e.student_id','e.roll_no','e.starts_on','e.ends_on','s.admission_no','s.first_name','s.last_name']);if($rows->pluck('student_id')->unique()->count()!==$rows->count())$this->fail('Overlapping enrollments for one student need review before attendance can be saved.');return $rows;}
+ public function records(int $sid,int $session){return DB::table('attendance_records')->where('school_id',$sid)->where('attendance_session_id',$session)->orderBy('enrollment_id')->get(['enrollment_id','status','remarks']);}
+ public function day(Request $r,int $sectionId,string $date):array {
+  [$sid,$section]=$this->section($r,$sectionId);$this->date($section,$date);$roster=$this->roster($sid,$sectionId,$date);$session=DB::table('attendance_sessions')->where('school_id',$sid)->where('section_id',$sectionId)->where('attendance_date',$date)->first();$records=$session?$this->records($sid,$session->id):collect();$map=$records->keyBy('enrollment_id');
+  foreach($roster as $student){$record=$map->get($student->enrollment_id);$student->status=$record?->status;$student->remarks=$record?->remarks;}
+  $active=$section->session_status==='active'&&$section->campus_status==='active';$correct=$this->access->can($r,'attendance.correct');$manage=$this->access->can($r,'attendance.manage');
+  return ['section'=>$section,'date'=>$date,'session'=>$session,'revision'=>(int)($session->revision??0),'roster'=>$roster,'orphan_records'=>$records->whereNotIn('enrollment_id',$roster->pluck('enrollment_id'))->values(),'can_mark'=>$manage&&$active&&(!$session||$session->status==='draft'),'can_correct'=>$correct,'requires_correction'=>(bool)(($session&&$session->status!=='draft')||!$active||!$manage),'can_set_day_off'=>$correct,'active_setup'=>$active];
+ }
+ public function save(Request $r,array $d):array {
+  return DB::transaction(function()use($r,$d){[$sid]=$this->context($r,true);DB::table('schools')->where('id',$sid)->lockForUpdate()->first();[$sid,$section]=$this->section($r,(int)$d['section_id']);$this->date($section,$d['date']);$day=DB::table('attendance_sessions')->where('school_id',$sid)->where('section_id',$section->id)->where('attendance_date',$d['date'])->lockForUpdate()->first();
+   if((int)($day->revision??0)!==(int)$d['revision'])$this->fail('This register has a newer saved revision. Reload the day before saving; existing changes were retained.');
+   if($day&&!in_array($day->status,['draft','submitted','non_instructional'],true))$this->fail('Legacy attendance status needs review before editing.');
+   $active=$section->session_status==='active'&&$section->campus_status==='active';$correcting=($day&&$day->status!=='draft')||!$active||$d['action']==='day_off'||!$this->access->can($r,'attendance.manage');
+   if($correcting){abort_unless($this->access->can($r,'attendance.correct'),403,'Attendance correction permission required.');if(empty($d['reason'])||mb_strlen($d['reason'])<5)$this->fail('Enter a correction/day-off reason of at least five characters.');if($d['action']==='draft')$this->fail('A submitted or archived register cannot return to draft. Submit a reviewed correction instead.');}else abort_unless($this->access->can($r,'attendance.manage'),403);
+   $roster=$this->roster($sid,$section->id,$d['date']);$ids=$roster->pluck('enrollment_id')->map(fn($id)=>(int)$id)->all();$records=collect($d['records']??[])->map(fn($row)=>['enrollment_id'=>(int)$row['enrollment_id'],'status'=>$row['status']??null,'remarks'=>empty($row['remarks'])?null:trim($row['remarks'])])->sortBy('enrollment_id')->values();
+   if(array_diff($records->pluck('enrollment_id')->all(),$ids))$this->fail('One or more attendance rows do not belong to this section/date roster. Reload the day.');foreach($records as $record)if($record['status']===null&&!empty($record['remarks']))$this->fail('Choose a status before adding attendance remarks.');
+   if($d['action']==='day_off'){if($records->isNotEmpty())$this->fail('A non-instructional day cannot include student marks.');$after=collect();$status='non_instructional';}
+   else {if(!$ids)$this->fail('No students were enrolled in this section on this date.');$after=$records->whereNotNull('status')->values();if($d['action']==='submit'&&($after->count()!==count($ids)||array_diff($ids,$after->pluck('enrollment_id')->all())))$this->fail('Mark every eligible student before submitting attendance. Unmarked is not absent.');if($d['action']==='submit'&&DB::table('attendance_records as rec')->join('attendance_sessions as a','a.id','=','rec.attendance_session_id')->join('enrollments as e','e.id','=','rec.enrollment_id')->where('rec.school_id',$sid)->where('a.attendance_date',$d['date'])->where('a.status','submitted')->where('a.section_id','<>',$section->id)->whereIn('e.student_id',$roster->pluck('student_id'))->exists())$this->fail('A student already has submitted attendance in another section on this date. Review overlapping enrollment history first.');$status=$d['action']==='submit'?'submitted':'draft';}
+   $before=$day?$this->records($sid,$day->id):collect();if($day){$outside=$before->whereNotIn('enrollment_id',$ids);if($outside->isNotEmpty())$this->fail('Saved attendance no longer matches enrollment history. Review the enrollment changes before editing; saved records were retained.');}
+   $normalized=fn($rows)=>$rows->map(fn($row)=>is_array($row)?$row:['enrollment_id'=>(int)$row->enrollment_id,'status'=>$row->status,'remarks'=>$row->remarks])->sortBy('enrollment_id')->values()->all();
+   if($day&&$day->status===$status&&$normalized($before)===$normalized($after)&&($status!=='non_instructional'||$day->day_note===$d['reason']))return ['id'=>$day->id,'revision'=>(int)$day->revision,'message'=>'No attendance changes to save.'];
+   $revision=(int)($day->revision??0)+1;$header=['status'=>$status,'revision'=>$revision,'submitted_by'=>$status==='draft'?null:$this->access->membership($r)->id,'submitted_at'=>$status==='draft'?null:now(),'day_note'=>$status==='non_instructional'?$d['reason']:null,'updated_at'=>now()];if($day){$id=$day->id;DB::table('attendance_sessions')->where('school_id',$sid)->where('id',$id)->update($header);}else $id=DB::table('attendance_sessions')->insertGetId($header+['school_id'=>$sid,'section_id'=>$section->id,'attendance_date'=>$d['date'],'created_at'=>now()]);
+   // Replacing one register is atomic, with an immutable before/after audit revision.
+   DB::table('attendance_records')->where('school_id',$sid)->where('attendance_session_id',$id)->whereNotIn('enrollment_id',$after->pluck('enrollment_id'))->delete();foreach($after->chunk(250) as $chunk)DB::table('attendance_records')->upsert($chunk->map(fn($record)=>$record+['school_id'=>$sid,'attendance_session_id'=>$id,'created_at'=>now(),'updated_at'=>now()])->all(),['school_id','attendance_session_id','enrollment_id'],['status','remarks','updated_at']);
+   $this->access->audit($r,$correcting?'attendance.corrected':($status==='submitted'?'attendance.submitted':'attendance.draft_saved'),'attendance_sessions',$id,['date'=>$d['date'],'section_id'=>$section->id,'revision'=>$revision,'reason'=>$d['reason']??null,'before_status'=>$day?->status,'after_status'=>$status,'before'=>$normalized($before),'after'=>$normalized($after)]);
+   return ['id'=>$id,'revision'=>$revision,'message'=>$status==='non_instructional'?'Non-instructional day recorded.':($status==='submitted'?'Attendance submitted.':'Attendance draft saved.')];
+  });
+ }
+}

@@ -2049,6 +2049,21 @@
         "name": "submitted_by",
         "type": "id",
         "nullable": true
+      },
+      {
+        "name": "revision",
+        "type": "uint",
+        "nullable": false
+      },
+      {
+        "name": "submitted_at",
+        "type": "datetime",
+        "nullable": true
+      },
+      {
+        "name": "day_note",
+        "type": "text",
+        "nullable": true
       }
     ],
     "refs": {

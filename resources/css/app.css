@@ -4,6 +4,7 @@
 @import "./school-theme.css";
 @import "./students.css";
 @import "./fees.css";
+@import "./attendance.css";
 @source "../views";
 @source "../js";
 :root {font-family:Inter,ui-sans-serif,system-ui,sans-serif;color:#172b4d;background:#f0f2f5;font-synthesis:none}
