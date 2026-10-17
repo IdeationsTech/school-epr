@@ -51,4 +51,8 @@ class StudentAttendanceTest extends TestCase
  public function test_closed_sessions_require_an_explicit_reason_and_correction_permission():void {
   $f=$this->fixture();$this->login($f);DB::table('academic_sessions')->where('id',$f['session'])->update(['status'=>'closed']);$this->day($f)->assertJsonPath('requires_correction',true);$d=$this->data($f);$this->postJson('/app-api/attendance/day',$d)->assertUnprocessable();$d['reason']='Authorized historical register backfill';$this->postJson('/app-api/attendance/day',$d)->assertOk();
  }
+ public function test_one_student_cannot_be_submitted_in_two_sections_on_the_same_date():void {
+  $f=$this->fixture();$this->login($f);$this->postJson('/app-api/attendance/day',$this->data($f))->assertOk();$section=DB::table('sections')->insertGetId(['school_id'=>$f['sid'],'campus_id'=>$f['cid'],'academic_session_id'=>$f['session'],'class_id'=>$f['class'],'name'=>'B']);$enrollment=DB::table('enrollments')->insertGetId(['school_id'=>$f['sid'],'student_id'=>$f['student'],'section_id'=>$section,'starts_on'=>'2026-10-02','status'=>'active']);$d=['section_id'=>$section,'date'=>'2026-10-17','revision'=>0,'action'=>'submit','records'=>[['enrollment_id'=>$enrollment,'status'=>'present']]];$this->postJson('/app-api/attendance/day',$d)->assertUnprocessable();$this->assertDatabaseCount('attendance_sessions',1);$this->assertDatabaseCount('attendance_records',1);
+ }
+
 }
