@@ -146,4 +146,16 @@ class DailyDiaryTest extends TestCase
         $provider = User::factory()->create(); DB::table('platform_admins')->insert(['user_id' => $provider->id, 'active' => true]);
         $this->actingAs($provider)->withSession(['school_id' => $f['sid']])->getJson('/app-api/diary/setup')->assertForbidden();
     }
+    public function test_subject_patches_preserve_other_entries_and_zero_text_is_not_treated_as_empty(): void
+    {
+        $f = $this->fixture(); $this->login($f);
+        $this->postJson('/app-api/diary/day', $this->payload($f))->assertOk();
+        $this->postJson('/app-api/diary/day', $this->payload($f, 'save', [['subject_id' => $f['math'], 'classwork' => '0', 'homework' => '0', 'no_homework' => false]]))->assertOk();
+        $this->assertDatabaseHas('diary_items', ['subject_id' => $f['math'], 'classwork' => '0', 'homework' => '0', 'status' => 'ready']);
+        $this->assertDatabaseHas('diary_items', ['subject_id' => $f['english'], 'no_homework' => true]);
+        $this->postJson('/app-api/diary/day', $this->payload($f, 'save', [['subject_id' => $f['math'], 'classwork' => '', 'homework' => '', 'no_homework' => false]]))->assertOk();
+        $this->assertDatabaseMissing('diary_items', ['subject_id' => $f['math']]); $this->assertDatabaseCount('diary_items', 1);
+        $this->postJson('/app-api/diary/day', $this->payload($f, 'submit'))->assertUnprocessable();
+    }
+
 }

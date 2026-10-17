@@ -129,7 +129,7 @@ final class DailyDiary
         $lines = [$s['school_name'], 'DAILY DIARY · '.$s['date'].' · Revision '.$s['revision'], $s['section_label'], ''];
         foreach ($s['items'] as $i) {
             $lines[] = $i['subject_name'];
-            if ($i['classwork']) $lines[] = 'Classwork: '.$i['classwork'];
+            if ($i['classwork'] !== null && $i['classwork'] !== '') $lines[] = 'Classwork: '.$i['classwork'];
             $lines[] = 'Homework: '.($i['no_homework'] ? 'No homework' : $i['homework']); $lines[] = '';
         }
         return implode("\n", $lines);
@@ -174,8 +174,8 @@ final class DailyDiary
                 foreach ($d['items'] ?? [] as $i) {
                     $cw = trim($i['classwork'] ?? ''); $hw = trim($i['homework'] ?? '');
                     $key = ['school_id' => $sid, 'diary_id' => $diary->id, 'subject_id' => $i['subject_id']];
-                    if (!$cw && !$hw && !$i['no_homework']) DB::table('diary_items')->where($key)->delete();
-                    else DB::table('diary_items')->updateOrInsert($key, ['author_membership_id' => $m->id, 'classwork' => $cw ?: null, 'homework' => $hw ?: null, 'no_homework' => $i['no_homework'], 'status' => ($hw || $i['no_homework']) ? 'ready' : 'draft', 'updated_at' => now()]);
+                    if ($cw === '' && $hw === '' && !$i['no_homework']) DB::table('diary_items')->where($key)->delete();
+                    else DB::table('diary_items')->updateOrInsert($key, ['author_membership_id' => $m->id, 'classwork' => $cw === '' ? null : $cw, 'homework' => $hw === '' ? null : $hw, 'no_homework' => $i['no_homework'], 'status' => ($hw !== '' || $i['no_homework']) ? 'ready' : 'draft', 'updated_at' => now()]);
                 }
                 $message = 'Diary draft saved.';
             } else {
