@@ -29,10 +29,16 @@ class DiaryController extends Controller
         $d = $r->validate(['date' => 'required|date_format:Y-m-d|before_or_equal:'.$this->diary->today()]);
         return DB::transaction(function () use ($r, $d) {
             $sections = $this->diary->sections($r)->where('y.starts_on', '<=', $d['date'])->where('y.ends_on', '>=', $d['date'])->orderBy('p.name')->orderBy('c.position')->get();
+            [$sid] = $this->diary->context($r);
+            $diaries = DB::table('diaries')->where('school_id', $sid)->whereIn('section_id', $sections->pluck('id'))->where('diary_date', $d['date'])->orderByDesc('revision')->get(['id', 'section_id', 'revision', 'status'])->unique('section_id')->keyBy('section_id');
+            $items = DB::table('diary_items as i')->join('subjects as s', 's.id', '=', 'i.subject_id')->where('i.school_id', $sid)->whereIn('i.diary_id', $diaries->pluck('id'))->get(['i.diary_id', 'i.subject_id', 'i.homework', 'i.no_homework', 's.name as subject_name'])->groupBy('diary_id');
+            $subjects = DB::table('section_subjects as o')->join('subjects as s', 's.id', '=', 'o.subject_id')->where('o.school_id', $sid)->whereIn('o.section_id', $sections->pluck('id'))->get(['o.section_id', 's.id', 's.name', 'o.required_for_diary'])->groupBy('section_id');
+            $shares = DB::table('diary_shares')->where('school_id', $sid)->whereIn('diary_id', $diaries->pluck('id'))->selectRaw('diary_id,COUNT(*) as n')->groupBy('diary_id')->pluck('n', 'diary_id');
             $rows = [];
             foreach ($sections as $section) {
-                $day = $this->diary->day($r, $section->id, $d['date']);
-                $rows[] = ['section' => $section, 'status' => $day['diary']?->status ?? 'not_started', 'revision' => $day['diary']?->revision ?? null, 'missing' => $day['completeness']['missing'], 'ready' => $day['completeness']['ready'], 'shares' => $day['shares']->count()];
+                $diary = $diaries->get($section->id);
+                $complete = $this->diary->completeness($subjects->get($section->id) ?? collect(), $items->get($diary?->id) ?? collect());
+                $rows[] = ['section' => $section, 'status' => $diary?->status ?? 'not_started', 'revision' => $diary?->revision, 'missing' => $complete['missing'], 'ready' => $complete['ready'], 'shares' => (int) ($shares[$diary?->id] ?? 0)];
             }
             return response()->json(['date' => $d['date'], 'rows' => $rows]);
         });

@@ -15,18 +15,28 @@ final class DailyDiary
         throw ValidationException::withMessages(['diary' => $message]);
     }
 
+    private function can(Request $r, string $permission): bool
+    {
+        $key = 'diary.permission.'.$permission;
+        if (!$r->attributes->has($key)) $r->attributes->set($key, $this->access->can($r, $permission));
+        return $r->attributes->get($key);
+    }
+
     public function today(): string { return now('Asia/Karachi')->toDateString(); }
 
     public function context(Request $r): array
     {
-        abort_unless($this->access->can($r, 'diary.write') || $this->access->can($r, 'diary.publish') || $this->access->can($r, 'diary.view'), 403);
+        if ($r->attributes->has('diary.context')) return $r->attributes->get('diary.context');
+        abort_unless($this->can($r, 'diary.write') || $this->can($r, 'diary.publish') || $this->can($r, 'diary.view'), 403);
         $m = $this->access->membership($r);
         $period = LicenseService::period($m->school_id);
         if ($period) abort_unless(in_array('daily_diary', json_decode($period->modules, true) ?? [], true), 403, 'Daily diary is not included in this school license.');
         $campuses = in_array('owner', $this->access->roles($m), true)
             ? DB::table('campuses')->where('school_id', $m->school_id)->pluck('id')->all()
             : array_map(fn ($c) => $c->id, $this->access->campuses($m));
-        return [(int) $m->school_id, $m, $campuses];
+        $context = [(int) $m->school_id, $m, $campuses];
+        $r->attributes->set('diary.context', $context);
+        return $context;
     }
 
     public function assignments(object $m)
@@ -41,7 +51,7 @@ final class DailyDiary
         $q = DB::table('sections as s')->join('classes as c', 'c.id', '=', 's.class_id')
             ->join('campuses as p', 'p.id', '=', 's.campus_id')->join('academic_sessions as y', 'y.id', '=', 's.academic_session_id')
             ->where('s.school_id', $sid)->whereIn('s.campus_id', $campuses);
-        if (!$this->access->can($r, 'diary.publish')) $q->whereIn('s.id', $this->assignments($m)->select('a.section_id'));
+        if (!$this->can($r, 'diary.publish')) $q->whereIn('s.id', $this->assignments($m)->select('a.section_id'));
         return $q->select('s.id', 's.name', 's.class_id', 's.campus_id', 'c.name as class_name', 'p.name as campus_name', 'p.status as campus_status', 'y.name as session_name', 'y.starts_on as session_start', 'y.ends_on as session_end', 'y.status as session_status');
     }
 
@@ -55,12 +65,12 @@ final class DailyDiary
 
     public function subjects(Request $r, object $section, object $m)
     {
-        $publisher = $this->access->can($r, 'diary.publish');
+        $publisher = $this->can($r, 'diary.publish');
         $assigned = $this->assignments($m)->where('a.section_id', $section->id)->pluck('a.subject_id')->all();
         return DB::table('section_subjects as o')->join('subjects as s', 's.id', '=', 'o.subject_id')
             ->where('o.school_id', $m->school_id)->where('o.section_id', $section->id)->orderBy('s.name')
             ->get(['s.id', 's.name', 's.code', 'o.required_for_diary'])->map(function ($s) use ($publisher, $assigned, $r) {
-                $s->can_write = $this->access->can($r, 'diary.write') && ($publisher || in_array($s->id, $assigned));
+                $s->can_write = $this->can($r, 'diary.write') && ($publisher || in_array($s->id, $assigned));
                 return $s;
             });
     }
@@ -88,7 +98,7 @@ final class DailyDiary
     public function shareAllowed(Request $r): bool
     {
         $m = $this->access->membership($r); $period = LicenseService::period($m->school_id);
-        return $this->access->can($r, 'reports.confirm_share') && (!$period || in_array('manual_whatsapp_sharing', json_decode($period->modules, true) ?? [], true));
+        return $this->can($r, 'reports.confirm_share') && (!$period || in_array('manual_whatsapp_sharing', json_decode($period->modules, true) ?? [], true));
     }
 
     public function day(Request $r, int $sectionId, string $date, ?int $revision = null): array
@@ -104,12 +114,12 @@ final class DailyDiary
         $active = $section->session_status === 'active' && $section->campus_status === 'active';
         $latest = !$diary || $diary->id === $revisions->first()?->id;
         $classTeacher = $this->assignments($m)->where('a.section_id', $sectionId)->where('a.is_class_teacher', true)->exists();
-        $publish = $this->access->can($r, 'diary.publish');
+        $publish = $this->can($r, 'diary.publish');
         $shares = $diary ? DB::table('diary_shares as s')->join('school_memberships as m', 'm.id', '=', 's.confirmed_by')->join('users as u', 'u.id', '=', 'm.user_id')->where('s.school_id', $sid)->where('s.diary_id', $diary->id)->orderByDesc('s.id')->get(['s.id', 's.confirmed_at', 's.note', 'u.name as confirmed_by_name']) : collect();
         return ['section' => $section, 'date' => $date, 'diary' => $diary, 'revisions' => $revisions, 'subjects' => $subjects, 'items' => $items,
             'completeness' => $this->completeness($subjects, $items), 'latest' => $latest, 'active_setup' => $active,
             'can_write' => $active && $latest && (!$diary || $diary->status === 'draft') && $subjects->contains('can_write', true),
-            'can_submit' => $active && $latest && ($publish || ($classTeacher && $this->access->can($r, 'diary.write'))),
+            'can_submit' => $active && $latest && ($publish || ($classTeacher && $this->can($r, 'diary.write'))),
             'can_publish' => $active && $latest && $publish, 'can_share' => $latest && $diary?->status === 'published' && (bool) $diary?->snapshot && $this->shareAllowed($r),
             'shares' => $shares, 'text' => $diary?->snapshot ? $this->text($diary->snapshot) : null];
     }
@@ -134,7 +144,7 @@ final class DailyDiary
             if ($section->session_status !== 'active' || $section->campus_status !== 'active') $this->fail('This campus/session is archived. Its diary history is read-only.');
             $diary = DB::table('diaries')->where('school_id', $sid)->where('section_id', $section->id)->where('diary_date', $d['date'])->orderByDesc('revision')->lockForUpdate()->first();
             if ((int) ($diary->id ?? 0) !== (int) $d['diary_id'] || (int) ($diary->lock_version ?? 0) !== (int) $d['lock_version']) $this->fail('A newer diary change exists. Reload before saving; the newer work was retained.');
-            $action = $d['action']; $publisher = $this->access->can($r, 'diary.publish');
+            $action = $d['action']; $publisher = $this->can($r, 'diary.publish');
             $reason = trim($d['reason'] ?? '');
             if (in_array($action, ['publish', 'return', 'revise'], true)) abort_unless($publisher, 403);
             if (in_array($action, ['return', 'revise'], true) && mb_strlen($reason) < 5) $this->fail('Enter a review/correction reason of at least five characters.');
@@ -150,7 +160,7 @@ final class DailyDiary
             }
             $subjects = $this->subjects($r, $section, $m);
             if ($action === 'save') {
-                abort_unless($this->access->can($r, 'diary.write'), 403);
+                abort_unless($this->can($r, 'diary.write'), 403);
                 if ($diary && $diary->status !== 'draft') $this->fail('This diary is locked for review or already published. Request changes or create a correction revision.');
                 foreach ($d['items'] ?? [] as $i) {
                     $subject = $subjects->firstWhere('id', (int) $i['subject_id']);
@@ -172,7 +182,7 @@ final class DailyDiary
                 if (!$diary) $this->fail('Save a diary draft first.');
                 if ($action === 'submit') {
                     $classTeacher = $this->assignments($m)->where('a.section_id', $section->id)->where('a.is_class_teacher', true)->exists();
-                    abort_unless($publisher || ($classTeacher && $this->access->can($r, 'diary.write')), 403);
+                    abort_unless($publisher || ($classTeacher && $this->can($r, 'diary.write')), 403);
                     if ($diary->status !== 'draft') $this->fail('Only a draft diary can be submitted for review.');
                 } elseif ($diary->status !== 'in_review') $this->fail('Submit this diary for coordinator review first.');
                 if (in_array($action, ['submit', 'publish'], true)) {
