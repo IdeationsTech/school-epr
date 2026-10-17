@@ -35,6 +35,6 @@ The optional new `diary.view` permission grants read-only access within assigned
 - Published preview / browser **Print / Save PDF**: archived content, A4 layout with multi-page support. It uses the browser's PDF destination, not a server PDF package. PDF attachment to WhatsApp is manual.
 - Mobile: stacked fields/cards, readable published diary and the same review/sharing controls. Existing school colors and motion tokens are retained, with reduced-motion support.
 
-Unsaved entries prompt on ordinary sidebar navigation, school switching, logout and browser close. Save drafts before browser back/forward navigation. Archived campus/sessions are read-only. Removed subject offerings that conflict with saved draft entries are flagged; restore/review academic setup before submission rather than silently dropping saved work.
+Unsaved entries prompt on ordinary sidebar navigation, school switching, logout and browser close. Save drafts before browser back/forward navigation. Archived campus/sessions cannot edit, review or publish diary content; authorized staff can still preview and manually share an existing published copy. Removed subject offerings that conflict with saved draft entries are flagged; restore/review academic setup before submission rather than silently dropping saved work.
 
 This phase adds class diary group sharing only. Individual test result sharing, parent app, automatic WhatsApp messaging and delivery receipts are separate work.

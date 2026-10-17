@@ -19,3 +19,7 @@
 }
 
 @media print{body:has(.diary-paper-overlay[open]) .diary-paper{page:diary}}
+@media print{
+ html:has(.diary-paper-overlay[open]),body:has(.diary-paper-overlay[open]),body:has(.diary-paper-overlay[open]) :is(.workspace,.workspace-body,.main-content){background:white!important}
+ body:has(.diary-paper-overlay[open]) .diary-paper{box-sizing:border-box;padding:12mm!important;background:white!important}
+}
