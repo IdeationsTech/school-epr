@@ -2159,6 +2159,17 @@
         "name": "supersedes_id",
         "type": "id",
         "nullable": true
+      },
+      {
+        "name": "lock_version",
+        "type": "uint",
+        "nullable": false,
+        "default": 0
+      },
+      {
+        "name": "snapshot",
+        "type": "json",
+        "nullable": true
       }
     ],
     "refs": {

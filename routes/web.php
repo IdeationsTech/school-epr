@@ -3,7 +3,7 @@ use App\Http\Controllers\Api\SessionController;
 use App\Http\Controllers\Api\SchoolController;
 use App\Http\Middleware\SetSchoolContext;
 use Illuminate\Support\Facades\Route;
-foreach (['/','/school','/campus','/users','/roles','/license','/academics/sessions','/academics/terms','/academics/classes','/academics/sections','/academics/subjects','/academics/offerings','/academics/teachers','/academics/assignments','/students','/students/admit','/students/import','/guardians','/fees/setup','/fees/assignments','/fees/billing','/fees/collections','/fees/reports','/attendance','/attendance/register','/attendance/reports'] as $path) {
+foreach (['/','/school','/campus','/users','/roles','/license','/academics/sessions','/academics/terms','/academics/classes','/academics/sections','/academics/subjects','/academics/offerings','/academics/teachers','/academics/assignments','/students','/students/admit','/students/import','/guardians','/fees/setup','/fees/assignments','/fees/billing','/fees/collections','/fees/reports','/attendance','/attendance/register','/attendance/reports','/diary','/diary/editor'] as $path) {
     Route::view($path, 'app');
 }
 Route::view('/admin/{path?}', 'app')->where('path','.*');
@@ -50,6 +50,13 @@ Route::prefix('app-api')->group(function (): void {
         Route::post('/schools/{school}/invoices/{invoice}/payments',[\App\Http\Controllers\Api\PlatformController::class,'payment'])->whereNumber(['school','invoice']);
     });
     Route::middleware(SetSchoolContext::class)->group(function (): void {
+        Route::get('/diary/setup',[\App\Http\Controllers\Api\DiaryController::class,'setup']);
+        Route::get('/diary/overview',[\App\Http\Controllers\Api\DiaryController::class,'overview']);
+        Route::get('/diary/day',[\App\Http\Controllers\Api\DiaryController::class,'day']);
+        Route::post('/diary/day',[\App\Http\Controllers\Api\DiaryController::class,'save']);
+        Route::post('/diary/share',[\App\Http\Controllers\Api\DiaryController::class,'share']);
+        Route::get('/diary/history',[\App\Http\Controllers\Api\DiaryController::class,'history']);
+
         Route::get('/attendance/setup',[\App\Http\Controllers\Api\AttendanceController::class,'setup']);
         Route::get('/attendance/overview',[\App\Http\Controllers\Api\AttendanceController::class,'overview']);
         Route::get('/attendance/day',[\App\Http\Controllers\Api\AttendanceController::class,'day']);

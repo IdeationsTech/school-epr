@@ -932,6 +932,8 @@ Table diaries {
   published_by "bigint unsigned" [null]
   published_at datetime [null]
   supersedes_id "bigint unsigned" [null]
+  lock_version "int unsigned" [not null, default: 0]
+  snapshot json [null]
   created_at timestamp [null]
   updated_at timestamp [null]
   indexes {
