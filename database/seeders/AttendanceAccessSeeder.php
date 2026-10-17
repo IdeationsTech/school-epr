@@ -10,4 +10,3 @@ class AttendanceAccessSeeder extends Seeder {
   if($manage){$denials=DB::table('school_role_permissions')->where('permission_id',$manage)->where('enabled',false)->get(['school_id','role_id']);$new=DB::table('permissions')->whereIn('name',['attendance.view','attendance.oversee','attendance.correct'])->pluck('id');foreach($denials as $denial)foreach($new as $pid)DB::table('school_role_permissions')->insertOrIgnore(['school_id'=>$denial->school_id,'role_id'=>$denial->role_id,'permission_id'=>$pid,'enabled'=>false,'created_at'=>now(),'updated_at'=>now()]);}
  });}
 }
-
