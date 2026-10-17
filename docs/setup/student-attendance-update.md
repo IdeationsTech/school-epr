@@ -25,7 +25,7 @@ The school sidebar contains Attendance overview, Mark attendance and Attendance 
 
 ## Permissions and scope
 
-Existing attendance.manage permits ordinary marking. Additive AttendanceAccessSeeder supplies attendance.view, attendance.oversee and attendance.correct defaults. Existing school overrides remain effective.
+Existing attendance.manage permits ordinary marking. Additive AttendanceAccessSeeder supplies attendance.view, attendance.oversee and attendance.correct defaults. Existing school overrides remain effective. An existing explicit denial of attendance.manage is carried into new attendance permissions unless that school already chose an explicit override for the new permission; rerunning the seeder does not overwrite those choices.
 
 Owner/principal/coordinator have default oversight/correction within accessible campuses. A teacher requires an active staff profile and **class-teacher** assignment (subject teaching alone does not grant daily class-register access), plus campus access. Explicit oversight can be granted to another role. Oversight selects accessible sections but is not by itself a read/write permission. View-only roles cannot save; a correction-only role must supply a correction reason. Historical backfill into a closed session requires correction permission and reason; ordinary active-session marking cannot bypass this. Owners can review inactive-campus history; other staff remain within their active assigned campuses. Provider admins receive no school operational access. Every endpoint checks the attendance license module and school membership.
 

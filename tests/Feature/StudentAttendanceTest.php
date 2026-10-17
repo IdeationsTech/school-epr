@@ -55,4 +55,9 @@ class StudentAttendanceTest extends TestCase
   $f=$this->fixture();$this->login($f);$this->postJson('/app-api/attendance/day',$this->data($f))->assertOk();$section=DB::table('sections')->insertGetId(['school_id'=>$f['sid'],'campus_id'=>$f['cid'],'academic_session_id'=>$f['session'],'class_id'=>$f['class'],'name'=>'B']);$enrollment=DB::table('enrollments')->insertGetId(['school_id'=>$f['sid'],'student_id'=>$f['student'],'section_id'=>$section,'starts_on'=>'2026-10-02','status'=>'active']);$d=['section_id'=>$section,'date'=>'2026-10-17','revision'=>0,'action'=>'submit','records'=>[['enrollment_id'=>$enrollment,'status'=>'present']]];$this->postJson('/app-api/attendance/day',$d)->assertUnprocessable();$this->assertDatabaseCount('attendance_sessions',1);$this->assertDatabaseCount('attendance_records',1);
  }
 
+ public function test_attendance_upgrade_preserves_denials_and_explicit_new_permission_choices():void {
+  $f=$this->fixture('DENY','principal');$this->login($f);DB::table('school_role_permissions')->insert(['school_id'=>$f['sid'],'role_id'=>$f['rid'],'permission_id'=>DB::table('permissions')->where('name','attendance.manage')->value('id'),'enabled'=>false]);$this->seed(\Database\Seeders\AttendanceAccessSeeder::class);$this->getJson('/app-api/attendance/setup')->assertForbidden();
+  foreach(['attendance.correct','attendance.oversee'] as $name)DB::table('school_role_permissions')->where('school_id',$f['sid'])->where('role_id',$f['rid'])->where('permission_id',DB::table('permissions')->where('name',$name)->value('id'))->update(['enabled'=>true]);$this->seed(\Database\Seeders\AttendanceAccessSeeder::class);$this->day($f)->assertOk()->assertJsonPath('can_mark',false)->assertJsonPath('requires_correction',true);$d=$this->data($f);$d['reason']='Explicitly authorized correction backfill';$this->postJson('/app-api/attendance/day',$d)->assertOk();
+ }
+
 }
