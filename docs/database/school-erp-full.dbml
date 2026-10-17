@@ -711,6 +711,7 @@ Table invoice_items {
   unit_amount decimal(12,2) [not null]
   discount_amount decimal(12,2) [not null]
   line_total decimal(12,2) [not null]
+  billing_frequency varchar(160) [null]
   created_at timestamp [null]
   updated_at timestamp [null]
   indexes {

@@ -1589,6 +1589,11 @@
         "name": "line_total",
         "type": "money",
         "nullable": false
+      },
+      {
+        "name": "billing_frequency",
+        "type": "string",
+        "nullable": true
       }
     ],
     "refs": {

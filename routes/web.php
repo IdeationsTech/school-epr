@@ -3,7 +3,7 @@ use App\Http\Controllers\Api\SessionController;
 use App\Http\Controllers\Api\SchoolController;
 use App\Http\Middleware\SetSchoolContext;
 use Illuminate\Support\Facades\Route;
-foreach (['/','/school','/campus','/users','/roles','/license','/academics/sessions','/academics/terms','/academics/classes','/academics/sections','/academics/subjects','/academics/offerings','/academics/teachers','/academics/assignments','/students','/students/admit','/students/import','/guardians'] as $path) {
+foreach (['/','/school','/campus','/users','/roles','/license','/academics/sessions','/academics/terms','/academics/classes','/academics/sections','/academics/subjects','/academics/offerings','/academics/teachers','/academics/assignments','/students','/students/admit','/students/import','/guardians','/fees/setup','/fees/assignments','/fees/billing','/fees/collections','/fees/reports'] as $path) {
     Route::view($path, 'app');
 }
 Route::view('/admin/{path?}', 'app')->where('path','.*');
@@ -50,6 +50,29 @@ Route::prefix('app-api')->group(function (): void {
         Route::post('/schools/{school}/invoices/{invoice}/payments',[\App\Http\Controllers\Api\PlatformController::class,'payment'])->whereNumber(['school','invoice']);
     });
     Route::middleware(SetSchoolContext::class)->group(function (): void {
+        Route::get('/fees/setup',[\App\Http\Controllers\Api\FeesController::class,'setup']);
+        Route::get('/fees/enrollments',[\App\Http\Controllers\Api\FeesController::class,'enrollments']);
+        Route::post('/fees/heads',[\App\Http\Controllers\Api\FeesController::class,'saveHead']);
+        Route::put('/fees/heads/{id}',[\App\Http\Controllers\Api\FeesController::class,'saveHead'])->whereNumber(['id']);
+        Route::post('/fees/accounts',[\App\Http\Controllers\Api\FeesController::class,'account']);
+        Route::post('/fees/plans',[\App\Http\Controllers\Api\FeesController::class,'plan']);
+        Route::put('/fees/plans/{id}',[\App\Http\Controllers\Api\FeesController::class,'plan'])->whereNumber(['id']);
+        Route::post('/fees/assignments',[\App\Http\Controllers\Api\FeesController::class,'assignment']);
+        Route::get('/fees/enrollments/{enrollment}',[\App\Http\Controllers\Api\FeesController::class,'student'])->whereNumber(['enrollment']);
+        Route::post('/fees/concessions',[\App\Http\Controllers\Api\FeesController::class,'concession']);
+        Route::post('/fees/concessions/{concession}/approve',[\App\Http\Controllers\Api\FeesController::class,'approveConcession'])->whereNumber(['concession']);
+        Route::post('/fees/billing/preview',[\App\Http\Controllers\Api\FeesController::class,'preview']);
+        Route::post('/fees/billing/generate',[\App\Http\Controllers\Api\FeesController::class,'generate']);
+        Route::post('/fees/opening-dues',[\App\Http\Controllers\Api\FeesController::class,'opening']);
+        Route::post('/fees/invoices/{invoice}/void',[\App\Http\Controllers\Api\FeesController::class,'void'])->whereNumber(['invoice']);
+        Route::get('/fees/invoices',[\App\Http\Controllers\Api\FeeCollectionsController::class,'invoices']);
+        Route::get('/fees/invoices/{invoice}',[\App\Http\Controllers\Api\FeeCollectionsController::class,'invoice'])->whereNumber(['invoice']);
+        Route::post('/fees/invoices/{invoice}/payments',[\App\Http\Controllers\Api\FeeCollectionsController::class,'collect'])->whereNumber(['invoice']);
+        Route::get('/fees/payments/{payment}/receipt',[\App\Http\Controllers\Api\FeeCollectionsController::class,'receipt'])->whereNumber(['payment']);
+        Route::post('/fees/payments/{payment}/reversals',[\App\Http\Controllers\Api\FeeCollectionsController::class,'requestReversal'])->whereNumber(['payment']);
+        Route::post('/fees/reversals/{reversal}/review',[\App\Http\Controllers\Api\FeeCollectionsController::class,'reviewReversal'])->whereNumber(['reversal']);
+        Route::get('/fees/reports',[\App\Http\Controllers\Api\FeeCollectionsController::class,'reports']);
+
         Route::get('/students/setup',[\App\Http\Controllers\Api\StudentsController::class,'setup']);
         Route::get('/students/import/template',[\App\Http\Controllers\Api\StudentImportController::class,'template']);
         Route::post('/students/import/preview',[\App\Http\Controllers\Api\StudentImportController::class,'preview'])->middleware('throttle:10,1');

@@ -1,0 +1,26 @@
+.school-workspace .fee-two-col,.school-workspace .fee-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
+.school-workspace .fee-form-grid{gap:0 24px;margin-top:20px}
+.school-workspace .fee-actions{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.school-workspace .fee-head-list,.school-workspace .fee-options{display:flex;gap:10px;flex-wrap:wrap;margin:18px 0;max-height:230px;overflow:auto}
+.school-workspace .fee-head-list button,.school-workspace .fee-options button{display:flex;flex-direction:column;align-items:flex-start;gap:5px;white-space:normal;text-align:left}
+.school-workspace .fee-account{padding:12px 0}.school-workspace :is(.fee-account,.fee-wide-table table,.fee-paper table) small{display:block;margin-top:5px}
+.school-workspace .fee-item-editor{display:grid;grid-template-columns:2fr 1fr 1.5fr auto;gap:16px;align-items:center;margin-top:16px}
+.school-workspace .fee-item-editor>.field{min-width:0}
+.school-workspace .fee-picker{padding:20px 0}.school-workspace .fee-selected{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding:18px;background:var(--school-teal-soft);border-radius:var(--school-radius-small)}
+.school-workspace .fee-selected span{color:var(--school-muted);font-size:12px}
+.school-workspace .fee-pagination{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:20px;font-size:13px}
+.school-workspace .fee-metrics{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:22px;margin-top:24px;margin-bottom:24px}
+.school-workspace .fee-metrics>div{display:flex;flex-direction:column;gap:8px}.school-workspace .fee-metrics small{color:var(--school-muted)}.school-workspace .fee-metrics strong{font-size:23px;color:var(--school-teal)}
+.school-workspace .fee-reversal{display:flex;align-items:center;gap:20px;flex-wrap:wrap;background:var(--school-recessed);padding:22px;border-radius:var(--school-radius-small);margin-top:18px}.school-workspace .fee-reversal>div:first-child{flex:1;min-width:170px}
+.school-workspace .fee-wide-table table{min-width:800px}.school-workspace .fee-paper-overlay{position:fixed;inset:0;background:var(--school-overlay);z-index:100;overflow:auto;padding:28px 20px;backdrop-filter:blur(4px)}
+.school-workspace .fee-paper-controls{max-width:800px;margin:0 auto 16px;display:flex;justify-content:space-between;gap:12px}
+.school-workspace .fee-paper{max-width:800px;margin:auto;padding:40px;background:#fff;color:#172b4d;border-radius:12px;box-shadow:0 12px 40px #172b4d33;font-size:14px}
+.school-workspace .fee-paper header{display:flex;justify-content:space-between;gap:24px;padding-bottom:24px;border-bottom:2px solid #172b4d}.school-workspace .fee-paper h2{font-size:24px}.school-workspace .fee-paper h3{font-size:17px}
+.school-workspace .fee-paper-info{display:flex;justify-content:space-between;gap:24px;margin:24px 0;line-height:1.8}
+.school-workspace .fee-paper table{width:100%;min-width:0;border-collapse:collapse}.school-workspace .fee-paper th,.school-workspace .fee-paper td{padding:12px 8px;text-align:left;border-bottom:1px solid #ddd;background:#fff;color:#172b4d;white-space:normal}
+.school-workspace .fee-paper-total{margin:22px 0;max-width:350px;margin-left:auto}.school-workspace .fee-paper-total p{display:flex;justify-content:space-between;gap:18px;padding:6px 0}.school-workspace .fee-paper footer{margin-top:40px;padding-top:16px;border-top:1px solid #ddd;font-size:11px;color:#566070}
+@media(max-width:1000px){.school-workspace .fee-item-editor{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:650px){.school-workspace .fee-two-col,.school-workspace .fee-form-grid,.school-workspace .fee-item-editor{grid-template-columns:1fr}.school-workspace .fee-item-editor{padding:18px;background:var(--school-recessed);border-radius:var(--school-radius-small)}.school-workspace .fee-paper-overlay{padding:14px 8px}.school-workspace .fee-paper{padding:22px 14px;font-size:12px}.school-workspace .fee-paper header,.school-workspace .fee-paper-info{flex-direction:column;gap:12px}.school-workspace .fee-paper h2{font-size:20px}}
+@media print{body:has(.fee-paper) *{visibility:hidden}body:has(.fee-paper) .fee-paper,body:has(.fee-paper) .fee-paper *{visibility:visible}.school-workspace .fee-paper-overlay{position:absolute;inset:0;background:none;padding:0;overflow:visible;backdrop-filter:none}.school-workspace .fee-paper{position:absolute;left:0;top:0;width:100%;max-width:none;box-sizing:border-box;box-shadow:none;border-radius:0;padding:15mm}.school-workspace .fee-no-print{display:none!important}body:has(.fee-paper){background:white}}
+
+.school-workspace dialog.fee-paper-overlay{width:100%;height:100%;max-width:none;max-height:none;margin:0;border:0;box-sizing:border-box}
