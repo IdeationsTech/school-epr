@@ -24,3 +24,12 @@
 @media print{body:has(.fee-paper) *{visibility:hidden}body:has(.fee-paper) .fee-paper,body:has(.fee-paper) .fee-paper *{visibility:visible}.school-workspace .fee-paper-overlay{position:absolute;inset:0;background:none;padding:0;overflow:visible;backdrop-filter:none}.school-workspace .fee-paper{position:absolute;left:0;top:0;width:100%;max-width:none;box-sizing:border-box;box-shadow:none;border-radius:0;padding:15mm}.school-workspace .fee-no-print{display:none!important}body:has(.fee-paper){background:white}}
 
 .school-workspace dialog.fee-paper-overlay{width:100%;height:100%;max-width:none;max-height:none;margin:0;border:0;box-sizing:border-box}
+
+.school-workspace .fee-line-table small{display:block;margin-top:5px;color:var(--school-muted)}
+@media print{
+ body:has(.fee-paper) .main-content>:not(.fee-paper-overlay){display:none!important}
+ body:has(.fee-paper) .workspace-body>:not(.main-content){display:none!important}
+ body:has(.fee-paper) :is(.workspace-body,.main-content){margin:0!important;padding:0!important;width:100%!important;max-width:none!important}
+ .school-workspace dialog.fee-paper-overlay{position:static;inset:auto;width:100%;height:auto;margin:0;overflow:visible;padding:0}
+ .school-workspace .fee-paper{position:static;margin:0;width:100%;padding:10mm;overflow:visible}
+}
