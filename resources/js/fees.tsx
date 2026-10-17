@@ -5,7 +5,7 @@ type Row={id:number;[key:string]:any};type Values=Record<string,string>;
 type Setup={permissions:string[];heads:Row[];plans:Row[];items:Row[];accounts:Row[];campuses:Row[];sessions:Row[];classes:Row[];sections:Row[]};
 export const feeLabels={feeSetup:'Fee setup',feeAssignments:'Fee assignments',feeBilling:'Generate fee invoices',feeCollections:'Fee collections',feeReports:'Fee reports & ledger'};
 export type FeeScreen=keyof typeof feeLabels;
-const today=()=>new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Karachi'});const money=(v:string|number)=>new Intl.NumberFormat('en-PK',{style:'currency',currency:'PKR'}).format(Number(v));
+const today=()=>new Date().toLocaleDateString('en-CA',{timeZone:'Asia/Karachi'});const money=(v:string|number)=>new Intl.NumberFormat('en-PK',{style:'currency',currency:'PKR',minimumFractionDigits:2,maximumFractionDigits:2}).format(Number(v));
 function clean(v:Values){return Object.fromEntries(Object.entries(v).map(([k,v])=>[k,v===''?null:v]));}
 function Field({label,children,hint}:{label:string;children:ReactNode;hint?:string}){return <label className="field"><span>{label}</span>{children}{hint&&<small className="field-hint">{hint}</small>}</label>;}
 function Input({v,set,k,label,type='text',required=true}:{v:Values;set:(v:Values)=>void;k:string;label:string;type?:string;required?:boolean}){return <Field label={label+(required?' *':'')}><input aria-label={label} required={required} type={type} {...(type==='number'?{min:'0',max:'99999999.99',step:'0.01'}:{maxLength:k==='reason'?1000:160})} value={v[k]??''} onChange={e=>set({...v,[k]:e.target.value})}/></Field>;}
