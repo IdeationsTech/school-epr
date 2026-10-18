@@ -631,6 +631,22 @@
         "name": "approved_by",
         "type": "id",
         "nullable": true
+      },
+      {
+        "name": "lock_version",
+        "type": "uint",
+        "nullable": false,
+        "default": 0
+      },
+      {
+        "name": "review_note",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "reviewed_at",
+        "type": "datetime",
+        "nullable": true
       }
     ],
     "refs": {
@@ -2885,6 +2901,12 @@
         "name": "remarks",
         "type": "text",
         "nullable": true
+      },
+      {
+        "name": "lock_version",
+        "type": "uint",
+        "nullable": false,
+        "default": 0
       }
     ],
     "refs": {
@@ -3013,13 +3035,61 @@
         "name": "approved_by",
         "type": "id",
         "nullable": true
+      },
+      {
+        "name": "campus_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "requested_on",
+        "type": "date",
+        "nullable": true
+      },
+      {
+        "name": "reason",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "method",
+        "type": "string",
+        "nullable": true
+      },
+      {
+        "name": "bank_account_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "reference",
+        "type": "string",
+        "nullable": true
+      },
+      {
+        "name": "disbursement_key",
+        "type": "string",
+        "nullable": true
+      },
+      {
+        "name": "lock_version",
+        "type": "uint",
+        "nullable": false,
+        "default": 0
       }
     ],
     "refs": {
       "staff_profile_id": "staff_profiles",
-      "approved_by": "school_memberships"
+      "approved_by": "school_memberships",
+      "campus_id": "campuses",
+      "bank_account_id": "bank_accounts"
     },
-    "unique": [],
+    "unique": [
+      [
+        "school_id",
+        "disbursement_key"
+      ]
+    ],
     "checks": [
       "amount > 0",
       "monthly_recovery > 0"
@@ -3058,6 +3128,23 @@
       {
         "name": "approved_at",
         "type": "datetime",
+        "nullable": true
+      },
+      {
+        "name": "lock_version",
+        "type": "uint",
+        "nullable": false,
+        "default": 0
+      },
+      {
+        "name": "source_digest",
+        "type": "string",
+        "nullable": true,
+        "length": 64
+      },
+      {
+        "name": "snapshot",
+        "type": "json",
         "nullable": true
       }
     ],
@@ -3116,6 +3203,11 @@
         "name": "net_amount",
         "type": "money",
         "nullable": false
+      },
+      {
+        "name": "snapshot",
+        "type": "json",
+        "nullable": true
       }
     ],
     "refs": {
@@ -3221,6 +3313,17 @@
         "name": "idempotency_key",
         "type": "string",
         "nullable": false
+      },
+      {
+        "name": "request_hash",
+        "type": "string",
+        "nullable": true,
+        "length": 64
+      },
+      {
+        "name": "snapshot",
+        "type": "json",
+        "nullable": true
       }
     ],
     "refs": {
@@ -4229,5 +4332,207 @@
     ],
     "tenant": true,
     "group": "fees"
+  },
+  {
+    "name": "staff_employments",
+    "columns": [
+      {
+        "name": "staff_profile_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "campus_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "starts_on",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "ends_on",
+        "type": "date",
+        "nullable": true
+      },
+      {
+        "name": "lock_version",
+        "type": "uint",
+        "nullable": false,
+        "default": 0
+      }
+    ],
+    "refs": {
+      "staff_profile_id": "staff_profiles",
+      "campus_id": "campuses"
+    },
+    "unique": [
+      [
+        "school_id",
+        "staff_profile_id",
+        "starts_on"
+      ]
+    ],
+    "checks": [
+      "ends_on IS NULL OR ends_on >= starts_on"
+    ],
+    "tenant": true,
+    "group": "payroll"
+  },
+  {
+    "name": "payroll_policies",
+    "columns": [
+      {
+        "name": "campus_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "starts_on",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "version",
+        "type": "uint",
+        "nullable": false
+      },
+      {
+        "name": "rules",
+        "type": "json",
+        "nullable": false
+      },
+      {
+        "name": "created_by",
+        "type": "id",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "campus_id": "campuses",
+      "created_by": "school_memberships"
+    },
+    "unique": [
+      [
+        "school_id",
+        "campus_id",
+        "starts_on"
+      ]
+    ],
+    "checks": [
+      "version > 0"
+    ],
+    "tenant": true,
+    "group": "payroll"
+  },
+  {
+    "name": "payroll_adjustments",
+    "columns": [
+      {
+        "name": "payroll_item_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "advance_recovery_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "kind",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "amount",
+        "type": "money",
+        "nullable": false
+      },
+      {
+        "name": "reason",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "requested_by",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "approved_by",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "reviewed_at",
+        "type": "datetime",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "payroll_item_id": "payroll_items",
+      "advance_recovery_id": "advance_recoveries",
+      "requested_by": "school_memberships",
+      "approved_by": "school_memberships"
+    },
+    "unique": [],
+    "checks": [
+      "kind IN ('credit','debit','recovery_refund')",
+      "amount > 0",
+      "status IN ('requested','approved','rejected')"
+    ],
+    "tenant": true,
+    "group": "payroll"
+  },
+  {
+    "name": "salary_payment_reversals",
+    "columns": [
+      {
+        "name": "salary_payment_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "amount",
+        "type": "money",
+        "nullable": false
+      },
+      {
+        "name": "reason",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "approved_by",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "reversed_at",
+        "type": "datetime",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "salary_payment_id": "salary_payments",
+      "approved_by": "school_memberships"
+    },
+    "unique": [
+      [
+        "school_id",
+        "salary_payment_id"
+      ]
+    ],
+    "checks": [
+      "amount > 0"
+    ],
+    "tenant": true,
+    "group": "payroll"
   }
 ]

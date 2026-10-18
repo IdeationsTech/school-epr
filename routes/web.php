@@ -3,7 +3,7 @@ use App\Http\Controllers\Api\SessionController;
 use App\Http\Controllers\Api\SchoolController;
 use App\Http\Middleware\SetSchoolContext;
 use Illuminate\Support\Facades\Route;
-foreach (['/','/school','/campus','/users','/roles','/license','/academics/sessions','/academics/terms','/academics/classes','/academics/sections','/academics/subjects','/academics/offerings','/academics/teachers','/academics/assignments','/students','/students/admit','/students/import','/guardians','/fees/setup','/fees/assignments','/fees/billing','/fees/collections','/fees/reports','/attendance','/attendance/register','/attendance/reports','/diary','/diary/editor','/exams','/exams/marks','/exams/reports'] as $path) {
+foreach (['/','/school','/campus','/users','/roles','/license','/academics/sessions','/academics/terms','/academics/classes','/academics/sections','/academics/subjects','/academics/offerings','/academics/teachers','/academics/assignments','/students','/students/admit','/students/import','/guardians','/fees/setup','/fees/assignments','/fees/billing','/fees/collections','/fees/reports','/attendance','/attendance/register','/attendance/reports','/diary','/diary/editor','/exams','/exams/marks','/exams/reports','/staff','/staff/attendance','/staff/leave','/staff/me','/payroll/setup','/payroll/advances','/payroll/runs'] as $path) {
     Route::view($path, 'app');
 }
 Route::view('/admin/{path?}', 'app')->where('path','.*');
@@ -50,6 +50,37 @@ Route::prefix('app-api')->group(function (): void {
         Route::post('/schools/{school}/invoices/{invoice}/payments',[\App\Http\Controllers\Api\PlatformController::class,'payment'])->whereNumber(['school','invoice']);
     });
     Route::middleware(SetSchoolContext::class)->group(function (): void {
+        Route::get('/payroll/setup',[\App\Http\Controllers\Api\PayrollController::class,'setup']);
+        Route::post('/payroll/staff',[\App\Http\Controllers\Api\PayrollController::class,'profile']);
+        Route::put('/payroll/staff/{id}',[\App\Http\Controllers\Api\PayrollController::class,'profile'])->whereNumber('id');
+        Route::post('/payroll/employments',[\App\Http\Controllers\Api\PayrollController::class,'employment']);
+        Route::put('/payroll/employments/{id}',[\App\Http\Controllers\Api\PayrollController::class,'employment'])->whereNumber('id');
+        Route::get('/payroll/attendance',[\App\Http\Controllers\Api\PayrollController::class,'attendance']);
+        Route::post('/payroll/attendance',[\App\Http\Controllers\Api\PayrollController::class,'attendanceSave']);
+        Route::get('/payroll/leaves',[\App\Http\Controllers\Api\PayrollController::class,'leaves']);
+        Route::post('/payroll/leaves',[\App\Http\Controllers\Api\PayrollController::class,'leaveRequest']);
+        Route::post('/payroll/leaves/{id}/review',[\App\Http\Controllers\Api\PayrollController::class,'leaveReview'])->whereNumber('id');
+        Route::get('/payroll/salaries',[\App\Http\Controllers\Api\PayrollController::class,'salaries']);
+        Route::post('/payroll/salaries',[\App\Http\Controllers\Api\PayrollController::class,'salary']);
+        Route::get('/payroll/policies',[\App\Http\Controllers\Api\PayrollController::class,'policies']);
+        Route::post('/payroll/policies',[\App\Http\Controllers\Api\PayrollController::class,'policy']);
+        Route::get('/payroll/advances',[\App\Http\Controllers\Api\PayrollController::class,'advances']);
+        Route::post('/payroll/advances',[\App\Http\Controllers\Api\PayrollController::class,'advance']);
+        Route::post('/payroll/advances/{id}/action',[\App\Http\Controllers\Api\PayrollController::class,'advanceAction'])->whereNumber('id');
+        Route::get('/payroll/preview',[\App\Http\Controllers\Api\PayrollController::class,'preview']);
+        Route::post('/payroll/generate',[\App\Http\Controllers\Api\PayrollController::class,'generate']);
+        Route::get('/payroll/runs',[\App\Http\Controllers\Api\PayrollController::class,'runs']);
+        Route::get('/payroll/runs/{id}',[\App\Http\Controllers\Api\PayrollController::class,'run'])->whereNumber('id');
+        Route::post('/payroll/runs/{id}/approve',[\App\Http\Controllers\Api\PayrollController::class,'approve'])->whereNumber('id');
+        Route::get('/payroll/runs/{id}/history',[\App\Http\Controllers\Api\PayrollController::class,'history'])->whereNumber('id');
+        Route::get('/payroll/items/{id}/payslip',[\App\Http\Controllers\Api\PayrollController::class,'payslip'])->whereNumber('id');
+        Route::post('/payroll/adjustments',[\App\Http\Controllers\Api\PayrollController::class,'adjustment']);
+        Route::post('/payroll/adjustments/{id}/review',[\App\Http\Controllers\Api\PayrollController::class,'adjustmentReview'])->whereNumber('id');
+        Route::post('/payroll/payments',[\App\Http\Controllers\Api\PayrollController::class,'payment']);
+        Route::post('/payroll/payments/{id}/reverse',[\App\Http\Controllers\Api\PayrollController::class,'reverse'])->whereNumber('id');
+        Route::get('/payroll/payments/{id}/receipt',[\App\Http\Controllers\Api\PayrollController::class,'receipt'])->whereNumber('id');
+        Route::get('/payroll/self',[\App\Http\Controllers\Api\PayrollController::class,'self']);
+
         Route::get('/exams/setup',[\App\Http\Controllers\Api\ExamsController::class,'setup']);
         Route::post('/exams/schemes',[\App\Http\Controllers\Api\ExamsController::class,'scheme']);
         Route::post('/exams/cycles',[\App\Http\Controllers\Api\ExamsController::class,'cycle']);
