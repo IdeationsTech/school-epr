@@ -62,6 +62,7 @@ Route::prefix('app-api')->group(function (): void {
         Route::post('/payroll/leaves/{id}/review',[\App\Http\Controllers\Api\PayrollController::class,'leaveReview'])->whereNumber('id');
         Route::get('/payroll/salaries',[\App\Http\Controllers\Api\PayrollController::class,'salaries']);
         Route::post('/payroll/salaries',[\App\Http\Controllers\Api\PayrollController::class,'salary']);
+        Route::post('/payroll/banks',[\App\Http\Controllers\Api\PayrollController::class,'bank']);
         Route::get('/payroll/policies',[\App\Http\Controllers\Api\PayrollController::class,'policies']);
         Route::post('/payroll/policies',[\App\Http\Controllers\Api\PayrollController::class,'policy']);
         Route::get('/payroll/advances',[\App\Http\Controllers\Api\PayrollController::class,'advances']);
