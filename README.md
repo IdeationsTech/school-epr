@@ -2,10 +2,9 @@
 
 Laravel 13 + React/TypeScript + Tailwind + MySQL 8.4 foundation for Pakistani schools (500–1,000 students, 1–2 campuses).
 
-**Current delivery:** session login/logout, responsive owner workspace, school/campus settings, users/roles/campus access, school-specific permission overrides, first-owner CLI setup and 91 domain tables.
-**Next modules:** admissions/students, fees, diary, attendance and exams. Those domain tables exist, but the application workflows are not implemented yet.
+**Current delivery:** separate provider administration; school/campus access; academic setup; admissions/guardians/import; fee billing/collections; student attendance; daily diary/manual WhatsApp sharing; tests/exams/report cards; staff attendance, leave and basic payroll.
 
-Existing installation? Follow [Update 2](docs/setup/access-update.md) to pull, migrate and create your first owner account. Full schema now has 100 tables.
+Existing installation? Use the [combined Phase 7 + 8 update](docs/PHASE-08-STAFF-PAYROLL.md). The current schema has **104 tables, 274 foreign keys and 78 enforced CHECK constraints**. Migrations preserve existing data. Future-only modules may have reserved schema without operational screens.
 
 Start here: [Windows setup](docs/setup/windows.md).
 Database: [table inventory](docs/database/schema.md) · [schema contract](docs/database/integrity.md).
@@ -43,7 +42,7 @@ Initial manifests target compatible majors. composer.lock and package-lock.json 
 
 ## Development
 Run Laravel in one terminal and npm run dev in another.
-Setup/access endpoints use session authentication, CSRF protection and tenant authorization. Student/finance/teaching endpoints remain unexposed until their business services and scopes are implemented.
+Setup/access endpoints use session authentication, CSRF protection and tenant authorization. Implemented student, finance, teaching and payroll endpoints enforce school/campus permissions and active license scope.
 
 ## Provider / Super Admin workspace
 
@@ -51,7 +50,7 @@ School onboarding, packages, subscription invoices, partial payments, renewal an
 
 ## Complete provider workflow
 
-See [license/billing/support update](docs/setup/platform-complete-update.md) and [database audit](docs/database/platform-audit.md). Run `php artisan database:verify` after migration. Identity storage for guardian CNIC and student CNIC/B-Form is included; admissions entry screens follow separately.
+See [license/billing/support update](docs/setup/platform-complete-update.md) and [database audit](docs/database/platform-audit.md). Run `php artisan database:verify` after migration. Identity storage and admissions entry support guardian CNIC and student CNIC/B-Form.
 
 ## Full scope/schema audit
 

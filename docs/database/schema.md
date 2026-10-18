@@ -1,6 +1,6 @@
 # Implemented database inventory
 
-91 domain tables; framework tables are additional. Schema is initial scaffolding, not implemented business workflows.
+95 domain tables plus 9 framework tables = 104 tables. The live contract and Laravel migrations define columns, checks and tenant composite foreign keys. Reserved future modules are not a claim of completed operational screens.
 
 | Table | Group | References |
 |---|---|---|
@@ -10,7 +10,7 @@
 | roles | access |  |
 | role_permissions | access | role_id → roles, permission_id → permissions |
 | campuses | platform |  |
-| subscriptions | platform | plan_id → plans |
+| subscriptions | platform | plan_id → plans, license_id → school_licenses |
 | subscription_invoices | platform | subscription_id → subscriptions |
 | subscription_payments | platform | subscription_invoice_id → subscription_invoices |
 | school_settings | platform |  |
@@ -43,7 +43,7 @@
 | bank_accounts | finance | campus_id → campuses |
 | payments | fees | campus_id → campuses, student_id → students, bank_account_id → bank_accounts, received_by → school_memberships |
 | payment_allocations | fees | payment_id → payments, invoice_id → invoices |
-| payment_reversals | fees | payment_id → payments, approved_by → school_memberships |
+| payment_reversals | fees | payment_id → payments, approved_by → school_memberships, refund_bank_account_id → bank_accounts, reversed_by → school_memberships |
 | reversal_allocations | fees | payment_reversal_id → payment_reversals, payment_allocation_id → payment_allocations |
 | cashier_closings | finance | campus_id → campuses, cashier_membership_id → school_memberships, approved_by → school_memberships |
 | expense_categories | finance |  |
@@ -66,7 +66,7 @@
 | staff_attendance_records | payroll | staff_profile_id → staff_profiles, campus_id → campuses, leave_request_id → leave_requests, recorded_by → school_memberships |
 | salary_structures | payroll | staff_profile_id → staff_profiles |
 | salary_structure_items | payroll | salary_structure_id → salary_structures |
-| staff_advances | payroll | staff_profile_id → staff_profiles, approved_by → school_memberships |
+| staff_advances | payroll | staff_profile_id → staff_profiles, approved_by → school_memberships, campus_id → campuses, bank_account_id → bank_accounts |
 | payroll_runs | payroll | campus_id → campuses, approved_by → school_memberships |
 | payroll_items | payroll | payroll_run_id → payroll_runs, staff_profile_id → staff_profiles, salary_structure_id → salary_structures |
 | payroll_item_components | payroll | payroll_item_id → payroll_items |
@@ -79,7 +79,7 @@
 | certificate_templates | operations |  |
 | certificate_issues | operations | student_id → students, template_id → certificate_templates, issued_by → school_memberships |
 | notices | operations | campus_id → campuses, published_by → school_memberships |
-| support_tickets | platform | opened_by → school_memberships |
+| support_tickets | platform | opened_by → school_memberships, assigned_user_id → users |
 | support_replies | platform | support_ticket_id → support_tickets, author_user_id → users |
 | audit_logs | operations | actor_membership_id → school_memberships |
 | visitor_logs | future | campus_id → campuses |
@@ -87,9 +87,15 @@
 | parent_complaints | future | campus_id → campuses, student_id → students, guardian_id → guardians, assigned_to → school_memberships |
 | complaint_updates | future | parent_complaint_id → parent_complaints, author_membership_id → school_memberships |
 | student_observations | future | enrollment_id → enrollments, author_membership_id → school_memberships |
-
-All tenant rows use school_id; foreign keys to tenant parents include school_id. Money uses DECIMAL(12,2). Deletion is restricted.
-Cross-record business invariants (allocation balances, student matching, class membership on the date, marks ≤ test maximum, weight totals and immutable publication) require transactional services; schema checks alone cannot enforce them.
-Future-only tables: visitor_logs, student_gate_passes, parent_complaints, complaint_updates, student_observations. No UI/API for them.
-
 | school_role_permissions | access | role_id → roles, permission_id → permissions |
+| platform_admins | platform | user_id → users |
+| platform_audit_logs | platform | actor_user_id → users, school_id → schools |
+| school_licenses | platform |  |
+| subscription_payment_reversals | platform | payment_id → subscription_payments, actor_user_id → users |
+| subscription_invoice_adjustments | platform | invoice_id → subscription_invoices, actor_user_id → users |
+| provider_settings | platform |  |
+| student_fee_assignments | fees | enrollment_id → enrollments, fee_plan_id → fee_plans, assigned_by → school_memberships |
+| staff_employments | payroll | staff_profile_id → staff_profiles, campus_id → campuses |
+| payroll_policies | payroll | campus_id → campuses, created_by → school_memberships |
+| payroll_adjustments | payroll | payroll_item_id → payroll_items, advance_recovery_id → advance_recoveries, requested_by → school_memberships, approved_by → school_memberships |
+| salary_payment_reversals | payroll | salary_payment_id → salary_payments, approved_by → school_memberships |
