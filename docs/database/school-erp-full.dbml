@@ -1007,6 +1007,8 @@ Table exam_cycles {
   ends_on date [not null]
   status varchar(160) [not null]
   grading_scheme_id "bigint unsigned" [not null]
+  lock_version "int unsigned" [not null, default: 0]
+  result_revision "int unsigned" [not null, default: 0]
   created_at timestamp [null]
   updated_at timestamp [null]
   indexes {
@@ -1029,6 +1031,10 @@ Table tests {
   max_marks decimal(12,2) [not null]
   assessment_type varchar(160) [not null]
   status varchar(160) [not null]
+  lock_version "int unsigned" [not null, default: 0]
+  publication_revision "int unsigned" [not null, default: 0]
+  passing_marks decimal(12,2) [not null, default: 0]
+  correction_reason text [null]
   created_at timestamp [null]
   updated_at timestamp [null]
   indexes {

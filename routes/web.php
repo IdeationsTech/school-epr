@@ -3,7 +3,7 @@ use App\Http\Controllers\Api\SessionController;
 use App\Http\Controllers\Api\SchoolController;
 use App\Http\Middleware\SetSchoolContext;
 use Illuminate\Support\Facades\Route;
-foreach (['/','/school','/campus','/users','/roles','/license','/academics/sessions','/academics/terms','/academics/classes','/academics/sections','/academics/subjects','/academics/offerings','/academics/teachers','/academics/assignments','/students','/students/admit','/students/import','/guardians','/fees/setup','/fees/assignments','/fees/billing','/fees/collections','/fees/reports','/attendance','/attendance/register','/attendance/reports','/diary','/diary/editor'] as $path) {
+foreach (['/','/school','/campus','/users','/roles','/license','/academics/sessions','/academics/terms','/academics/classes','/academics/sections','/academics/subjects','/academics/offerings','/academics/teachers','/academics/assignments','/students','/students/admit','/students/import','/guardians','/fees/setup','/fees/assignments','/fees/billing','/fees/collections','/fees/reports','/attendance','/attendance/register','/attendance/reports','/diary','/diary/editor','/exams','/exams/marks','/exams/reports'] as $path) {
     Route::view($path, 'app');
 }
 Route::view('/admin/{path?}', 'app')->where('path','.*');
@@ -50,6 +50,23 @@ Route::prefix('app-api')->group(function (): void {
         Route::post('/schools/{school}/invoices/{invoice}/payments',[\App\Http\Controllers\Api\PlatformController::class,'payment'])->whereNumber(['school','invoice']);
     });
     Route::middleware(SetSchoolContext::class)->group(function (): void {
+        Route::get('/exams/setup',[\App\Http\Controllers\Api\ExamsController::class,'setup']);
+        Route::post('/exams/schemes',[\App\Http\Controllers\Api\ExamsController::class,'scheme']);
+        Route::post('/exams/cycles',[\App\Http\Controllers\Api\ExamsController::class,'cycle']);
+        Route::post('/exams/weights',[\App\Http\Controllers\Api\ExamsController::class,'weights']);
+        Route::get('/exams/tests',[\App\Http\Controllers\Api\ExamsController::class,'tests']);
+        Route::post('/exams/tests',[\App\Http\Controllers\Api\ExamsController::class,'test']);
+        Route::put('/exams/tests/{id}',[\App\Http\Controllers\Api\ExamsController::class,'test'])->whereNumber('id');
+        Route::get('/exams/tests/{id}/marks',[\App\Http\Controllers\Api\ExamsController::class,'marks'])->whereNumber('id');
+        Route::post('/exams/tests/{id}/marks',[\App\Http\Controllers\Api\ExamsController::class,'change'])->whereNumber('id');
+        Route::post('/exams/tests/{id}/import',[\App\Http\Controllers\Api\ExamsController::class,'import'])->whereNumber('id');
+        Route::get('/exams/tests/{id}/history',[\App\Http\Controllers\Api\ExamsController::class,'history'])->whereNumber('id');
+        Route::get('/exams/cycle',[\App\Http\Controllers\Api\ExamsController::class,'cycleDetail']);
+        Route::post('/exams/candidates',[\App\Http\Controllers\Api\ExamsController::class,'candidates']);
+        Route::post('/exams/consolidate',[\App\Http\Controllers\Api\ExamsController::class,'consolidate']);
+        Route::get('/exams/report',[\App\Http\Controllers\Api\ExamsController::class,'report']);
+        Route::post('/exams/share',[\App\Http\Controllers\Api\ExamsController::class,'share']);
+
         Route::get('/diary/setup',[\App\Http\Controllers\Api\DiaryController::class,'setup']);
         Route::get('/diary/overview',[\App\Http\Controllers\Api\DiaryController::class,'overview']);
         Route::get('/diary/day',[\App\Http\Controllers\Api\DiaryController::class,'day']);

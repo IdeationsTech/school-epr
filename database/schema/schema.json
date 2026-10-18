@@ -2364,6 +2364,18 @@
         "name": "grading_scheme_id",
         "type": "id",
         "nullable": false
+      },
+      {
+        "name": "lock_version",
+        "type": "uint",
+        "nullable": false,
+        "default": 0
+      },
+      {
+        "name": "result_revision",
+        "type": "uint",
+        "nullable": false,
+        "default": 0
       }
     ],
     "refs": {
@@ -2425,6 +2437,29 @@
         "name": "status",
         "type": "string",
         "nullable": false
+      },
+      {
+        "name": "lock_version",
+        "type": "uint",
+        "nullable": false,
+        "default": 0
+      },
+      {
+        "name": "publication_revision",
+        "type": "uint",
+        "nullable": false,
+        "default": 0
+      },
+      {
+        "name": "passing_marks",
+        "type": "decimal",
+        "nullable": false,
+        "default": 0
+      },
+      {
+        "name": "correction_reason",
+        "type": "text",
+        "nullable": true
       }
     ],
     "refs": {
