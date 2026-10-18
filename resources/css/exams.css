@@ -12,6 +12,6 @@
  body:has(.exam-paper-overlay[open]) .main-content>:not(.exam-paper-overlay){display:none!important}body:has(.exam-paper-overlay[open]) .workspace-body>:not(.main-content),body:has(.exam-paper-overlay[open]) :is(.sidebar,.nav-overlay,.exam-print-controls){display:none!important}
  body:has(.exam-paper-overlay[open]) :is(.workspace,.workspace-body,.main-content){display:block!important;margin:0!important;padding:0!important;width:100%!important;max-width:none!important;min-height:0!important}
  body:has(.exam-paper-overlay[open]) .exam-paper-overlay{position:static;inset:auto;display:block;width:100%;height:auto;max-width:none;max-height:none;margin:0;padding:0;border:0;background:white;overflow:visible}
- body:has(.exam-paper-overlay[open]) .exam-paper{box-sizing:border-box;max-width:none;width:100%;margin:0;padding:12mm!important;background:white!important;page:exam}
- body:has(.exam-paper-overlay[open]) .exam-report{box-shadow:none!important;padding:0!important;margin:0!important}.exam-paper-overlay::backdrop{background:white}.exam-paper .exam-result-summary{break-inside:avoid}.exam-paper .table-scroll{overflow:visible}.exam-paper tr{break-inside:avoid}@page exam{size:A4;margin:0}
+ body:has(.exam-paper-overlay[open]) .exam-paper{box-sizing:border-box;max-width:none;width:100%;margin:0;padding:12mm!important;background:white!important}
+ body:has(.exam-paper-overlay[open]) .exam-report{box-shadow:none!important;padding:0!important;margin:0!important}.exam-paper-overlay::backdrop{background:white}.exam-paper .exam-result-summary{break-inside:avoid}.exam-paper .table-scroll{overflow:visible}.exam-paper tr{break-inside:avoid}
 }
