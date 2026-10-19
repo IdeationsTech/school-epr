@@ -50,6 +50,7 @@ Route::prefix('app-api')->group(function (): void {
         Route::post('/schools/{school}/invoices/{invoice}/payments',[\App\Http\Controllers\Api\PlatformController::class,'payment'])->whereNumber(['school','invoice']);
     });
     Route::middleware(SetSchoolContext::class)->group(function (): void {
+        Route::get('/finance/source',[\App\Http\Controllers\Api\FinanceController::class,'source']);
         Route::get('/finance/setup',[\App\Http\Controllers\Api\FinanceController::class,'setup']);
         Route::post('/finance/categories',[\App\Http\Controllers\Api\FinanceController::class,'category']);
         Route::post('/finance/banks',[\App\Http\Controllers\Api\FinanceController::class,'bank']);

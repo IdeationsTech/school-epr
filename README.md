@@ -2,9 +2,9 @@
 
 Laravel 13 + React/TypeScript + Tailwind + MySQL 8.4 foundation for Pakistani schools (500–1,000 students, 1–2 campuses).
 
-**Current delivery:** separate provider administration; school/campus access; academic setup; admissions/guardians/import; fee billing/collections; student attendance; daily diary/manual WhatsApp sharing; tests/exams/report cards; staff attendance, leave and basic payroll.
+**Current delivery:** separate provider administration; school/campus access; academic setup; admissions/guardians/import; fee billing/collections; student attendance; daily diary/manual WhatsApp sharing; tests/exams/report cards; staff attendance, leave and basic payroll; expense approval/payment, combined cash-flow and daily cash/bank reconciliation.
 
-Existing installation? Use the [combined Phase 7 + 8 update](docs/PHASE-08-STAFF-PAYROLL.md). The current schema has **104 tables, 274 foreign keys and 78 enforced CHECK constraints**. Migrations preserve existing data. Future-only modules may have reserved schema without operational screens.
+Existing installation? Use the [Phase 9 finance update](docs/setup/school-finance-update.md), or the [combined Phase 7 + 8 guide](docs/PHASE-08-STAFF-PAYROLL.md) if you have not installed those modules. The current schema has **106 tables, 287 foreign keys and 86 enforced CHECK constraints**. Migrations preserve existing data. Future-only modules may have reserved schema without operational screens.
 
 Start here: [Windows setup](docs/setup/windows.md).
 Database: [table inventory](docs/database/schema.md) · [schema contract](docs/database/integrity.md).

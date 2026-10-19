@@ -1,6 +1,6 @@
 # Implemented database inventory
 
-95 domain tables plus 9 framework tables = 104 tables. The live contract and Laravel migrations define columns, checks and tenant composite foreign keys. Reserved future modules are not a claim of completed operational screens.
+97 domain tables plus 9 framework tables = 106 tables. The live contract and Laravel migrations define columns, checks and tenant composite foreign keys. Reserved future modules are not a claim of completed operational screens.
 
 | Table | Group | References |
 |---|---|---|
@@ -47,7 +47,7 @@
 | reversal_allocations | fees | payment_reversal_id → payment_reversals, payment_allocation_id → payment_allocations |
 | cashier_closings | finance | campus_id → campuses, cashier_membership_id → school_memberships, approved_by → school_memberships |
 | expense_categories | finance |  |
-| expenses | finance | campus_id → campuses, category_id → expense_categories, bank_account_id → bank_accounts, approved_by → school_memberships, file_id → files |
+| expenses | finance | campus_id → campuses, category_id → expense_categories, bank_account_id → bank_accounts, approved_by → school_memberships, file_id → files, requested_by → school_memberships, paid_by → school_memberships |
 | attendance_sessions | attendance | section_id → sections, submitted_by → school_memberships |
 | attendance_records | attendance | attendance_session_id → attendance_sessions, enrollment_id → enrollments |
 | diaries | diary | section_id → sections, published_by → school_memberships, supersedes_id → diaries |
@@ -66,7 +66,7 @@
 | staff_attendance_records | payroll | staff_profile_id → staff_profiles, campus_id → campuses, leave_request_id → leave_requests, recorded_by → school_memberships |
 | salary_structures | payroll | staff_profile_id → staff_profiles |
 | salary_structure_items | payroll | salary_structure_id → salary_structures |
-| staff_advances | payroll | staff_profile_id → staff_profiles, approved_by → school_memberships, campus_id → campuses, bank_account_id → bank_accounts |
+| staff_advances | payroll | staff_profile_id → staff_profiles, approved_by → school_memberships, campus_id → campuses, bank_account_id → bank_accounts, voided_by → school_memberships |
 | payroll_runs | payroll | campus_id → campuses, approved_by → school_memberships |
 | payroll_items | payroll | payroll_run_id → payroll_runs, staff_profile_id → staff_profiles, salary_structure_id → salary_structures |
 | payroll_item_components | payroll | payroll_item_id → payroll_items |
@@ -99,3 +99,5 @@
 | payroll_policies | payroll | campus_id → campuses, created_by → school_memberships |
 | payroll_adjustments | payroll | payroll_item_id → payroll_items, advance_recovery_id → advance_recoveries, requested_by → school_memberships, approved_by → school_memberships |
 | salary_payment_reversals | payroll | salary_payment_id → salary_payments, approved_by → school_memberships |
+| expense_reversals | finance | expense_id → expenses, bank_account_id → bank_accounts, requested_by → school_memberships, approved_by → school_memberships |
+| finance_reconciliations | finance | campus_id → campuses, bank_account_id → bank_accounts, requested_by → school_memberships, approved_by → school_memberships |
