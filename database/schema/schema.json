@@ -2027,6 +2027,62 @@
         "name": "file_id",
         "type": "id",
         "nullable": true
+      },
+      {
+        "name": "requested_by",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "paid_by",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "approved_at",
+        "type": "datetime",
+        "nullable": true
+      },
+      {
+        "name": "paid_on",
+        "type": "date",
+        "nullable": true
+      },
+      {
+        "name": "reference",
+        "type": "string",
+        "nullable": true
+      },
+      {
+        "name": "payee",
+        "type": "string",
+        "nullable": true
+      },
+      {
+        "name": "entry_key",
+        "type": "string",
+        "nullable": true
+      },
+      {
+        "name": "request_hash",
+        "type": "string",
+        "nullable": true
+      },
+      {
+        "name": "payment_key",
+        "type": "string",
+        "nullable": true
+      },
+      {
+        "name": "snapshot",
+        "type": "json",
+        "nullable": true
+      },
+      {
+        "name": "lock_version",
+        "type": "uint",
+        "nullable": false,
+        "default": 0
       }
     ],
     "refs": {
@@ -2034,9 +2090,20 @@
       "category_id": "expense_categories",
       "bank_account_id": "bank_accounts",
       "approved_by": "school_memberships",
-      "file_id": "files"
+      "file_id": "files",
+      "requested_by": "school_memberships",
+      "paid_by": "school_memberships"
     },
-    "unique": [],
+    "unique": [
+      [
+        "school_id",
+        "entry_key"
+      ],
+      [
+        "school_id",
+        "payment_key"
+      ]
+    ],
     "checks": [
       "amount > 0"
     ],
@@ -3076,13 +3143,24 @@
         "type": "uint",
         "nullable": false,
         "default": 0
+      },
+      {
+        "name": "voided_at",
+        "type": "datetime",
+        "nullable": true
+      },
+      {
+        "name": "voided_by",
+        "type": "id",
+        "nullable": true
       }
     ],
     "refs": {
       "staff_profile_id": "staff_profiles",
       "approved_by": "school_memberships",
       "campus_id": "campuses",
-      "bank_account_id": "bank_accounts"
+      "bank_account_id": "bank_accounts",
+      "voided_by": "school_memberships"
     },
     "unique": [
       [
@@ -4534,5 +4612,218 @@
     ],
     "tenant": true,
     "group": "payroll"
+  },
+  {
+    "name": "expense_reversals",
+    "columns": [
+      {
+        "name": "expense_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "kind",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "amount",
+        "type": "money",
+        "nullable": false
+      },
+      {
+        "name": "method",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "bank_account_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "effective_on",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "reason",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "reference",
+        "type": "string",
+        "nullable": true
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "requested_by",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "approved_by",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "reviewed_at",
+        "type": "datetime",
+        "nullable": true
+      },
+      {
+        "name": "review_note",
+        "type": "text",
+        "nullable": true
+      },
+      {
+        "name": "entry_key",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "request_hash",
+        "type": "string",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "expense_id": "expenses",
+      "bank_account_id": "bank_accounts",
+      "requested_by": "school_memberships",
+      "approved_by": "school_memberships"
+    },
+    "unique": [
+      [
+        "school_id",
+        "entry_key"
+      ]
+    ],
+    "checks": [
+      "kind IN ('correction','refund')",
+      "amount > 0",
+      "status IN ('pending','approved','rejected')",
+      "method IN ('cash','bank_transfer','jazzcash','easypaisa')"
+    ],
+    "tenant": true,
+    "group": "finance"
+  },
+  {
+    "name": "finance_reconciliations",
+    "columns": [
+      {
+        "name": "campus_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "bank_account_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "account_key",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "closing_date",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "revision",
+        "type": "uint",
+        "nullable": false
+      },
+      {
+        "name": "opening_balance",
+        "type": "money",
+        "nullable": false
+      },
+      {
+        "name": "expected_balance",
+        "type": "money",
+        "nullable": false
+      },
+      {
+        "name": "counted_balance",
+        "type": "money",
+        "nullable": false
+      },
+      {
+        "name": "variance",
+        "type": "money",
+        "nullable": false
+      },
+      {
+        "name": "reason",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "source_digest",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "snapshot",
+        "type": "json",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "requested_by",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "approved_by",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "reviewed_at",
+        "type": "datetime",
+        "nullable": true
+      },
+      {
+        "name": "review_note",
+        "type": "text",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "campus_id": "campuses",
+      "bank_account_id": "bank_accounts",
+      "requested_by": "school_memberships",
+      "approved_by": "school_memberships"
+    },
+    "unique": [
+      [
+        "school_id",
+        "campus_id",
+        "account_key",
+        "closing_date",
+        "revision"
+      ]
+    ],
+    "checks": [
+      "revision > 0",
+      "variance = counted_balance - expected_balance",
+      "status IN ('pending','approved','rejected')",
+      "account_key <> 'cash' OR counted_balance >= 0"
+    ],
+    "tenant": true,
+    "group": "finance"
   }
 ]

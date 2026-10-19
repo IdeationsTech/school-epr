@@ -1,0 +1,29 @@
+<?php
+namespace App\Http\Controllers\Api;
+use App\Http\Controllers\Controller;
+use App\Services\{FinanceAccess,SchoolExpenses,SchoolCashFlow,FinanceReconciliation};
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
+class FinanceController extends Controller {
+ private const METHODS=['cash','bank_transfer','jazzcash','easypaisa'];
+ private const AMOUNT='required|numeric|gt:0|max:99999999.99|decimal:0,2';
+ public function __construct(private FinanceAccess $fin,private SchoolExpenses $expenses,private SchoolCashFlow $flow,private FinanceReconciliation $closing){}
+ public function setup(Request $r){return response()->json($this->expenses->setup($r));}
+ public function category(Request $r){$this->fin->context($r,'finance.manage');return response()->json($this->expenses->category($r,$r->validate(['name'=>'required|string|max:160','code'=>'required|string|max:40|regex:/^[A-Za-z0-9_-]+$/D'])));}
+ public function bank(Request $r){$this->fin->context($r,'finance.approve');return response()->json($this->expenses->bank($r,$r->validate(['campus_id'=>'required|integer','name'=>'required|string|max:160','account_reference'=>'nullable|string|max:160'])));}
+ public function expenses(Request $r){$this->fin->context($r);return response()->json($this->expenses->listing($r,$r->validate(['campus_id'=>'required|integer','status'=>['nullable',Rule::in(['pending','approved','paid','rejected'])],'search'=>'nullable|string|max:100','page'=>'nullable|integer|min:1'])));}
+ public function create(Request $r){$this->fin->context($r,'finance.manage');return response()->json($this->expenses->create($r,$r->validate(['campus_id'=>'required|integer','category_id'=>'required|integer','amount'=>self::AMOUNT,'incurred_on'=>'required|date_format:Y-m-d','payee'=>'required|string|max:160','description'=>'required|string|min:5|max:2000','method'=>['required',Rule::in(self::METHODS)],'bank_account_id'=>'nullable|integer','reference'=>'nullable|string|max:160','entry_key'=>'required|uuid'])));}
+ public function expense(Request $r,int $id){return response()->json($this->expenses->detail($r,$id));}
+ public function action(Request $r,int $id){$this->fin->context($r);return response()->json($this->expenses->action($r,$id,$r->validate(['action'=>['required',Rule::in(['approve','reject','pay'])],'lock_version'=>'required|integer|min:0','reason'=>'required_unless:action,pay|nullable|string|min:5|max:1000','paid_on'=>'required_if:action,pay|nullable|date_format:Y-m-d','payment_key'=>'required_if:action,pay|nullable|uuid'])));}
+ public function reversal(Request $r,int $id){$this->fin->context($r,'finance.manage');return response()->json($this->expenses->requestReversal($r,$id,$r->validate(['kind'=>['required',Rule::in(['correction','refund'])],'amount'=>self::AMOUNT,'method'=>['required',Rule::in(self::METHODS)],'bank_account_id'=>'nullable|integer','effective_on'=>'required|date_format:Y-m-d','reason'=>'required|string|min:5|max:2000','reference'=>'nullable|string|max:160','entry_key'=>'required|uuid'])));}
+ public function reversalReview(Request $r,int $id){$this->fin->context($r,'finance.approve');return response()->json($this->expenses->reviewReversal($r,$id,$r->validate(['action'=>['required',Rule::in(['approve','reject'])],'reason'=>'required|string|min:5|max:1000'])));}
+ public function report(Request $r){$this->fin->context($r);$d=$r->validate(['from'=>'required|date_format:Y-m-d','to'=>'required|date_format:Y-m-d|after_or_equal:from|before_or_equal:'.now('Asia/Karachi')->toDateString(),'campus_id'=>'nullable|integer','account_key'=>'nullable|string|max:160']);return DB::transaction(fn()=>response()->json($this->flow->report($r,$d)));}
+ private function closingInput(Request $r,bool $save=false):array{return $r->validate(['campus_id'=>'required|integer','bank_account_id'=>'nullable|integer','closing_date'=>'required|date_format:Y-m-d','opening_balance'=>'required|numeric|between:-9999999999.99,9999999999.99|decimal:0,2']+($save?['counted_balance'=>'required|numeric|between:-9999999999.99,9999999999.99|decimal:0,2','reason'=>'required|string|min:5|max:2000','source_digest'=>'required|string|size:64']:[]));}
+ public function closingPreview(Request $r){$this->fin->context($r);$d=$this->closingInput($r);return DB::transaction(fn()=>response()->json($this->closing->preview($r,$d)));}
+ public function submitClosing(Request $r){$this->fin->context($r,'finance.manage');return response()->json($this->closing->submit($r,$this->closingInput($r,true)));}
+ public function closings(Request $r){$this->fin->context($r);return response()->json($this->closing->listing($r,$r->validate(['campus_id'=>'required|integer','page'=>'nullable|integer|min:1'])));}
+ public function closing(Request $r,int $id){return DB::transaction(fn()=>response()->json($this->closing->detail($r,$id)));}
+ public function reviewClosing(Request $r,int $id){$this->fin->context($r,'finance.approve');return response()->json($this->closing->review($r,$id,$r->validate(['action'=>['required',Rule::in(['approve','reject'])],'reason'=>'required|string|min:5|max:1000'])));}
+ public function history(Request $r){[$sid,$campuses]=$this->fin->context($r);$d=$r->validate(['type'=>['required',Rule::in(['expenses','expense_reversals','finance_reconciliations'])],'id'=>'required|integer','page'=>'nullable|integer|min:1']);$v=$this->fin->row($d['type'],$sid,$d['id']);$campus=$d['type']==='expense_reversals'?$this->fin->row('expenses',$sid,$v->expense_id)->campus_id:$v->campus_id;$this->fin->campus($r,$campus);return response()->json(DB::table('audit_logs as a')->leftJoin('school_memberships as m','m.id','=','a.actor_membership_id')->leftJoin('users as u','u.id','=','m.user_id')->where('a.school_id',$sid)->where('a.target_type',$d['type'])->where('a.target_id',$d['id'])->orderByDesc('a.id')->paginate(10,['a.id','a.action','a.occurred_at','u.name as actor_name']));}
+}

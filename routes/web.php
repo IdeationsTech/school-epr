@@ -3,7 +3,7 @@ use App\Http\Controllers\Api\SessionController;
 use App\Http\Controllers\Api\SchoolController;
 use App\Http\Middleware\SetSchoolContext;
 use Illuminate\Support\Facades\Route;
-foreach (['/','/school','/campus','/users','/roles','/license','/academics/sessions','/academics/terms','/academics/classes','/academics/sections','/academics/subjects','/academics/offerings','/academics/teachers','/academics/assignments','/students','/students/admit','/students/import','/guardians','/fees/setup','/fees/assignments','/fees/billing','/fees/collections','/fees/reports','/attendance','/attendance/register','/attendance/reports','/diary','/diary/editor','/exams','/exams/marks','/exams/reports','/staff','/staff/attendance','/staff/leave','/staff/me','/payroll/setup','/payroll/advances','/payroll/runs'] as $path) {
+foreach (['/finance/expenses','/finance/settings','/finance/cash-flow','/finance/closing','/','/school','/campus','/users','/roles','/license','/academics/sessions','/academics/terms','/academics/classes','/academics/sections','/academics/subjects','/academics/offerings','/academics/teachers','/academics/assignments','/students','/students/admit','/students/import','/guardians','/fees/setup','/fees/assignments','/fees/billing','/fees/collections','/fees/reports','/attendance','/attendance/register','/attendance/reports','/diary','/diary/editor','/exams','/exams/marks','/exams/reports','/staff','/staff/attendance','/staff/leave','/staff/me','/payroll/setup','/payroll/advances','/payroll/runs'] as $path) {
     Route::view($path, 'app');
 }
 Route::view('/admin/{path?}', 'app')->where('path','.*');
@@ -50,6 +50,22 @@ Route::prefix('app-api')->group(function (): void {
         Route::post('/schools/{school}/invoices/{invoice}/payments',[\App\Http\Controllers\Api\PlatformController::class,'payment'])->whereNumber(['school','invoice']);
     });
     Route::middleware(SetSchoolContext::class)->group(function (): void {
+        Route::get('/finance/setup',[\App\Http\Controllers\Api\FinanceController::class,'setup']);
+        Route::post('/finance/categories',[\App\Http\Controllers\Api\FinanceController::class,'category']);
+        Route::post('/finance/banks',[\App\Http\Controllers\Api\FinanceController::class,'bank']);
+        Route::get('/finance/expenses',[\App\Http\Controllers\Api\FinanceController::class,'expenses']);
+        Route::post('/finance/expenses',[\App\Http\Controllers\Api\FinanceController::class,'create']);
+        Route::get('/finance/expenses/{id}',[\App\Http\Controllers\Api\FinanceController::class,'expense']);
+        Route::post('/finance/expenses/{id}/action',[\App\Http\Controllers\Api\FinanceController::class,'action']);
+        Route::post('/finance/expenses/{id}/reversals',[\App\Http\Controllers\Api\FinanceController::class,'reversal']);
+        Route::post('/finance/reversals/{id}/review',[\App\Http\Controllers\Api\FinanceController::class,'reversalReview']);
+        Route::get('/finance/report',[\App\Http\Controllers\Api\FinanceController::class,'report']);
+        Route::post('/finance/closing-preview',[\App\Http\Controllers\Api\FinanceController::class,'closingPreview']);
+        Route::get('/finance/closings',[\App\Http\Controllers\Api\FinanceController::class,'closings']);
+        Route::post('/finance/closings',[\App\Http\Controllers\Api\FinanceController::class,'submitClosing']);
+        Route::get('/finance/closings/{id}',[\App\Http\Controllers\Api\FinanceController::class,'closing']);
+        Route::post('/finance/closings/{id}/review',[\App\Http\Controllers\Api\FinanceController::class,'reviewClosing']);
+        Route::get('/finance/history',[\App\Http\Controllers\Api\FinanceController::class,'history']);
         Route::get('/payroll/setup',[\App\Http\Controllers\Api\PayrollController::class,'setup']);
         Route::post('/payroll/staff',[\App\Http\Controllers\Api\PayrollController::class,'profile']);
         Route::put('/payroll/staff/{id}',[\App\Http\Controllers\Api\PayrollController::class,'profile'])->whereNumber('id');

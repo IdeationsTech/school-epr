@@ -1,12 +1,12 @@
 // School ERP — implemented database ERD
-// 95 domain + 8 Laravel infrastructure + 1 migration tracking = 104 tables.
+// 97 domain + 8 Laravel infrastructure + 1 migration tracking = 106 tables.
 // Paste this entire file into the DBML editor at https://dbdiagram.io/.
 // Diagram only: Laravel migrations remain the source for database creation.
 // Composite references preserve school isolation. No invented logical FKs.
 
 Project school_erp {
   database_type: 'MySQL'
-  Note: 'MySQL 8.4 school ERP. 104 implemented tables. Future-only tables are grouped separately. Status values are strings unless a check explicitly restricts them. Cross-row business rules require application services.'
+  Note: 'MySQL 8.4 school ERP. 106 implemented tables. Future-only tables are grouped separately. Status values are strings unless a check explicitly restricts them. Cross-row business rules require application services.'
 }
 
 Table users {
@@ -879,10 +879,23 @@ Table expenses {
   status varchar(160) [not null]
   approved_by "bigint unsigned" [null]
   file_id "bigint unsigned" [null]
+  requested_by "bigint unsigned" [null]
+  paid_by "bigint unsigned" [null]
+  approved_at datetime [null]
+  paid_on date [null]
+  reference varchar(160) [null]
+  payee varchar(160) [null]
+  entry_key varchar(160) [null]
+  request_hash varchar(160) [null]
+  payment_key varchar(160) [null]
+  snapshot json [null]
+  lock_version "int unsigned" [not null, default: 0]
   created_at timestamp [null]
   updated_at timestamp [null]
   indexes {
     (school_id, id) [unique, name: 't53_school_id']
+    (school_id, entry_key) [unique, name: 't53_u0']
+    (school_id, payment_key) [unique, name: 't53_u1']
   }
   checks {
     `amount > 0` [name: 't53_check0']
@@ -1261,6 +1274,8 @@ Table staff_advances {
   reference varchar(160) [null]
   disbursement_key varchar(160) [null]
   lock_version "int unsigned" [not null, default: 0]
+  voided_at datetime [null]
+  voided_by "bigint unsigned" [null]
   created_at timestamp [null]
   updated_at timestamp [null]
   indexes {
@@ -1839,6 +1854,72 @@ Table salary_payment_reversals {
   }
 }
 
+Table expense_reversals {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  expense_id "bigint unsigned" [not null]
+  kind varchar(160) [not null]
+  amount decimal(12,2) [not null]
+  method varchar(160) [not null]
+  bank_account_id "bigint unsigned" [null]
+  effective_on date [not null]
+  reason text [not null]
+  reference varchar(160) [null]
+  status varchar(160) [not null]
+  requested_by "bigint unsigned" [not null]
+  approved_by "bigint unsigned" [null]
+  reviewed_at datetime [null]
+  review_note text [null]
+  entry_key varchar(160) [not null]
+  request_hash varchar(160) [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't105_school_id']
+    (school_id, entry_key) [unique, name: 't105_u0']
+  }
+  checks {
+    `kind IN ('correction','refund')` [name: 't105_check0']
+    `amount > 0` [name: 't105_check1']
+    `status IN ('pending','approved','rejected')` [name: 't105_check2']
+    `method IN ('cash','bank_transfer','jazzcash','easypaisa')` [name: 't105_check3']
+  }
+}
+
+Table finance_reconciliations {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  campus_id "bigint unsigned" [not null]
+  bank_account_id "bigint unsigned" [null]
+  account_key varchar(160) [not null]
+  closing_date date [not null]
+  revision "int unsigned" [not null]
+  opening_balance decimal(12,2) [not null]
+  expected_balance decimal(12,2) [not null]
+  counted_balance decimal(12,2) [not null]
+  variance decimal(12,2) [not null]
+  reason text [not null]
+  source_digest varchar(160) [not null]
+  snapshot json [not null]
+  status varchar(160) [not null]
+  requested_by "bigint unsigned" [not null]
+  approved_by "bigint unsigned" [null]
+  reviewed_at datetime [null]
+  review_note text [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't106_school_id']
+    (school_id, campus_id, account_key, closing_date, revision) [unique, name: 't106_u0']
+  }
+  checks {
+    `revision > 0` [name: 't106_check0']
+    `variance = counted_balance - expected_balance` [name: 't106_check1']
+    `status IN ('pending','approved','rejected')` [name: 't106_check2']
+    `account_key <> 'cash' OR counted_balance >= 0` [name: 't106_check3']
+  }
+}
+
 // Physical foreign keys from all committed migrations.
 Ref t14_fk0: role_permissions.role_id > roles.id [delete: restrict, update: no action]
 Ref t14_fk1: role_permissions.permission_id > permissions.id [delete: restrict, update: no action]
@@ -1949,6 +2030,8 @@ Ref t53_fk2: expenses.(school_id, category_id) > expense_categories.(school_id, 
 Ref t53_fk3: expenses.(school_id, bank_account_id) > bank_accounts.(school_id, id) [delete: restrict, update: no action]
 Ref t53_fk4: expenses.(school_id, approved_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
 Ref t53_fk5: expenses.(school_id, file_id) > files.(school_id, id) [delete: restrict, update: no action]
+Ref t53_fk6: expenses.(school_id, requested_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t53_fk7: expenses.(school_id, paid_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
 Ref t54_fk0: attendance_sessions.school_id > schools.id [delete: restrict, update: no action]
 Ref t54_fk1: attendance_sessions.(school_id, section_id) > sections.(school_id, id) [delete: restrict, update: no action]
 Ref t54_fk2: attendance_sessions.(school_id, submitted_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
@@ -2016,6 +2099,7 @@ Ref t72_fk1: staff_advances.(school_id, staff_profile_id) > staff_profiles.(scho
 Ref t72_fk2: staff_advances.(school_id, approved_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
 Ref t72_fk3: staff_advances.(school_id, campus_id) > campuses.(school_id, id) [delete: restrict, update: no action]
 Ref t72_fk4: staff_advances.(school_id, bank_account_id) > bank_accounts.(school_id, id) [delete: restrict, update: no action]
+Ref t72_fk5: staff_advances.(school_id, voided_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
 Ref t73_fk0: payroll_runs.school_id > schools.id [delete: restrict, update: no action]
 Ref t73_fk1: payroll_runs.(school_id, campus_id) > campuses.(school_id, id) [delete: restrict, update: no action]
 Ref t73_fk2: payroll_runs.(school_id, approved_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
@@ -2110,6 +2194,16 @@ Ref t103_fk4: payroll_adjustments.(school_id, approved_by) > school_memberships.
 Ref t104_fk0: salary_payment_reversals.school_id > schools.id [delete: restrict, update: no action]
 Ref t104_fk1: salary_payment_reversals.(school_id, salary_payment_id) > salary_payments.(school_id, id) [delete: restrict, update: no action]
 Ref t104_fk2: salary_payment_reversals.(school_id, approved_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t105_fk0: expense_reversals.school_id > schools.id [delete: restrict, update: no action]
+Ref t105_fk1: expense_reversals.(school_id, expense_id) > expenses.(school_id, id) [delete: restrict, update: no action]
+Ref t105_fk2: expense_reversals.(school_id, bank_account_id) > bank_accounts.(school_id, id) [delete: restrict, update: no action]
+Ref t105_fk3: expense_reversals.(school_id, requested_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t105_fk4: expense_reversals.(school_id, approved_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t106_fk0: finance_reconciliations.school_id > schools.id [delete: restrict, update: no action]
+Ref t106_fk1: finance_reconciliations.(school_id, campus_id) > campuses.(school_id, id) [delete: restrict, update: no action]
+Ref t106_fk2: finance_reconciliations.(school_id, bank_account_id) > bank_accounts.(school_id, id) [delete: restrict, update: no action]
+Ref t106_fk3: finance_reconciliations.(school_id, requested_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t106_fk4: finance_reconciliations.(school_id, approved_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
 Ref t32_extra_fk0: teacher_assignments.(school_id, section_id, subject_id) > section_subjects.(school_id, section_id, subject_id) [delete: restrict, update: no action]
 Ref t44_extra_fk0: invoices.(school_id, enrollment_id, fee_assignment_id) > student_fee_assignments.(school_id, enrollment_id, id) [delete: restrict, update: no action]
 Ref t61_extra_fk0: tests.(school_id, section_id, subject_id) > section_subjects.(school_id, section_id, subject_id) [delete: restrict, update: no action]
@@ -2210,6 +2304,8 @@ TableGroup finance {
   cashier_closings
   expense_categories
   expenses
+  expense_reversals
+  finance_reconciliations
 }
 
 TableGroup attendance {
