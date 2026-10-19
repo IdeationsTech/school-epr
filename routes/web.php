@@ -3,7 +3,7 @@ use App\Http\Controllers\Api\SessionController;
 use App\Http\Controllers\Api\SchoolController;
 use App\Http\Middleware\SetSchoolContext;
 use Illuminate\Support\Facades\Route;
-foreach (['/finance/expenses','/finance/settings','/finance/cash-flow','/finance/closing','/','/school','/campus','/users','/roles','/license','/academics/sessions','/academics/terms','/academics/classes','/academics/sections','/academics/subjects','/academics/offerings','/academics/teachers','/academics/assignments','/students','/students/admit','/students/import','/guardians','/fees/setup','/fees/assignments','/fees/billing','/fees/collections','/fees/reports','/attendance','/attendance/register','/attendance/reports','/diary','/diary/editor','/exams','/exams/marks','/exams/reports','/staff','/staff/attendance','/staff/leave','/staff/me','/payroll/setup','/payroll/advances','/payroll/runs'] as $path) {
+foreach (['/students/promotions','/students/transfers','/students/transitions','/finance/expenses','/finance/settings','/finance/cash-flow','/finance/closing','/','/school','/campus','/users','/roles','/license','/academics/sessions','/academics/terms','/academics/classes','/academics/sections','/academics/subjects','/academics/offerings','/academics/teachers','/academics/assignments','/students','/students/admit','/students/import','/guardians','/fees/setup','/fees/assignments','/fees/billing','/fees/collections','/fees/reports','/attendance','/attendance/register','/attendance/reports','/diary','/diary/editor','/exams','/exams/marks','/exams/reports','/staff','/staff/attendance','/staff/leave','/staff/me','/payroll/setup','/payroll/advances','/payroll/runs'] as $path) {
     Route::view($path, 'app');
 }
 Route::view('/admin/{path?}', 'app')->where('path','.*');
@@ -50,6 +50,18 @@ Route::prefix('app-api')->group(function (): void {
         Route::post('/schools/{school}/invoices/{invoice}/payments',[\App\Http\Controllers\Api\PlatformController::class,'payment'])->whereNumber(['school','invoice']);
     });
     Route::middleware(SetSchoolContext::class)->group(function (): void {
+        Route::post('/transitions/setup-preview',[\App\Http\Controllers\Api\EnrollmentTransitionsController::class,'setupPreview']);
+        Route::post('/transitions/copy-sections',[\App\Http\Controllers\Api\EnrollmentTransitionsController::class,'copySections']);
+        Route::get('/transitions/setup',[\App\Http\Controllers\Api\EnrollmentTransitionsController::class,'setup']);
+        Route::get('/transitions/roster',[\App\Http\Controllers\Api\EnrollmentTransitionsController::class,'roster']);
+        Route::get('/transitions/batches',[\App\Http\Controllers\Api\EnrollmentTransitionsController::class,'index']);
+        Route::post('/transitions/batches',[\App\Http\Controllers\Api\EnrollmentTransitionsController::class,'save']);
+        Route::get('/transitions/batches/{id}',[\App\Http\Controllers\Api\EnrollmentTransitionsController::class,'show']);
+        Route::put('/transitions/batches/{id}',[\App\Http\Controllers\Api\EnrollmentTransitionsController::class,'save']);
+        Route::get('/transitions/batches/{id}/preview',[\App\Http\Controllers\Api\EnrollmentTransitionsController::class,'preview']);
+        Route::post('/transitions/batches/{id}/apply',[\App\Http\Controllers\Api\EnrollmentTransitionsController::class,'apply']);
+        Route::post('/transitions/batches/{id}/cancel',[\App\Http\Controllers\Api\EnrollmentTransitionsController::class,'cancel']);
+        Route::get('/transitions/batches/{id}/history',[\App\Http\Controllers\Api\EnrollmentTransitionsController::class,'history']);
         Route::get('/finance/source',[\App\Http\Controllers\Api\FinanceController::class,'source']);
         Route::get('/finance/setup',[\App\Http\Controllers\Api\FinanceController::class,'setup']);
         Route::post('/finance/categories',[\App\Http\Controllers\Api\FinanceController::class,'category']);

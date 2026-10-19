@@ -1,12 +1,12 @@
 // School ERP — implemented database ERD
-// 97 domain + 8 Laravel infrastructure + 1 migration tracking = 106 tables.
+// 100 domain + 8 Laravel infrastructure + 1 migration tracking = 109 tables.
 // Paste this entire file into the DBML editor at https://dbdiagram.io/.
 // Diagram only: Laravel migrations remain the source for database creation.
 // Composite references preserve school isolation. No invented logical FKs.
 
 Project school_erp {
   database_type: 'MySQL'
-  Note: 'MySQL 8.4 school ERP. 106 implemented tables. Future-only tables are grouped separately. Status values are strings unless a check explicitly restricts them. Cross-row business rules require application services.'
+  Note: 'MySQL 8.4 school ERP. 109 implemented tables. Future-only tables are grouped separately. Status values are strings unless a check explicitly restricts them. Cross-row business rules require application services.'
 }
 
 Table users {
@@ -1920,6 +1920,80 @@ Table finance_reconciliations {
   }
 }
 
+Table enrollment_transition_batches {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  title varchar(160) [not null]
+  kind varchar(160) [not null]
+  source_section_id "bigint unsigned" [not null]
+  target_session_id "bigint unsigned" [not null]
+  effective_on date [not null]
+  reason text [not null]
+  status varchar(160) [not null]
+  lock_version "int unsigned" [not null, default: 0]
+  created_by "bigint unsigned" [not null]
+  applied_by "bigint unsigned" [null]
+  applied_at datetime [null]
+  entry_key varchar(160) [not null]
+  request_hash varchar(160) [not null]
+  confirmed_digest varchar(160) [null]
+  snapshot json [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't107_school_id']
+    (school_id, entry_key) [unique, name: 't107_u0']
+  }
+  checks {
+    `kind IN ('promotion','transfer')` [name: 't107_check0']
+    `status IN ('draft','applied','cancelled')` [name: 't107_check1']
+  }
+}
+
+Table enrollment_transition_items {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  batch_id "bigint unsigned" [not null]
+  source_enrollment_id "bigint unsigned" [not null]
+  decision varchar(160) [not null]
+  target_section_id "bigint unsigned" [null]
+  roll_no varchar(160) [null]
+  reason text [null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't108_school_id']
+    (school_id, batch_id, source_enrollment_id) [unique, name: 't108_u0']
+  }
+  checks {
+    `decision IN ('hold','promote','repeat','graduate','withdraw','transfer')` [name: 't108_check0']
+  }
+}
+
+Table enrollment_transition_events {
+  id "bigint unsigned" [pk, increment, not null]
+  school_id "bigint unsigned" [not null]
+  batch_id "bigint unsigned" [not null]
+  item_id "bigint unsigned" [not null]
+  source_enrollment_id "bigint unsigned" [not null]
+  target_enrollment_id "bigint unsigned" [null]
+  decision varchar(160) [not null]
+  applied_by "bigint unsigned" [not null]
+  applied_at datetime [not null]
+  before_state json [not null]
+  after_state json [not null]
+  created_at timestamp [null]
+  updated_at timestamp [null]
+  indexes {
+    (school_id, id) [unique, name: 't109_school_id']
+    (school_id, source_enrollment_id) [unique, name: 't109_u0']
+    (school_id, item_id) [unique, name: 't109_u1']
+  }
+  checks {
+    `decision IN ('promote','repeat','graduate','withdraw','transfer')` [name: 't109_check0']
+  }
+}
+
 // Physical foreign keys from all committed migrations.
 Ref t14_fk0: role_permissions.role_id > roles.id [delete: restrict, update: no action]
 Ref t14_fk1: role_permissions.permission_id > permissions.id [delete: restrict, update: no action]
@@ -2204,6 +2278,21 @@ Ref t106_fk1: finance_reconciliations.(school_id, campus_id) > campuses.(school_
 Ref t106_fk2: finance_reconciliations.(school_id, bank_account_id) > bank_accounts.(school_id, id) [delete: restrict, update: no action]
 Ref t106_fk3: finance_reconciliations.(school_id, requested_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
 Ref t106_fk4: finance_reconciliations.(school_id, approved_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t107_fk0: enrollment_transition_batches.school_id > schools.id [delete: restrict, update: no action]
+Ref t107_fk1: enrollment_transition_batches.(school_id, source_section_id) > sections.(school_id, id) [delete: restrict, update: no action]
+Ref t107_fk2: enrollment_transition_batches.(school_id, target_session_id) > academic_sessions.(school_id, id) [delete: restrict, update: no action]
+Ref t107_fk3: enrollment_transition_batches.(school_id, created_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t107_fk4: enrollment_transition_batches.(school_id, applied_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
+Ref t108_fk0: enrollment_transition_items.school_id > schools.id [delete: restrict, update: no action]
+Ref t108_fk1: enrollment_transition_items.(school_id, batch_id) > enrollment_transition_batches.(school_id, id) [delete: restrict, update: no action]
+Ref t108_fk2: enrollment_transition_items.(school_id, source_enrollment_id) > enrollments.(school_id, id) [delete: restrict, update: no action]
+Ref t108_fk3: enrollment_transition_items.(school_id, target_section_id) > sections.(school_id, id) [delete: restrict, update: no action]
+Ref t109_fk0: enrollment_transition_events.school_id > schools.id [delete: restrict, update: no action]
+Ref t109_fk1: enrollment_transition_events.(school_id, batch_id) > enrollment_transition_batches.(school_id, id) [delete: restrict, update: no action]
+Ref t109_fk2: enrollment_transition_events.(school_id, item_id) > enrollment_transition_items.(school_id, id) [delete: restrict, update: no action]
+Ref t109_fk3: enrollment_transition_events.(school_id, source_enrollment_id) > enrollments.(school_id, id) [delete: restrict, update: no action]
+Ref t109_fk4: enrollment_transition_events.(school_id, target_enrollment_id) > enrollments.(school_id, id) [delete: restrict, update: no action]
+Ref t109_fk5: enrollment_transition_events.(school_id, applied_by) > school_memberships.(school_id, id) [delete: restrict, update: no action]
 Ref t32_extra_fk0: teacher_assignments.(school_id, section_id, subject_id) > section_subjects.(school_id, section_id, subject_id) [delete: restrict, update: no action]
 Ref t44_extra_fk0: invoices.(school_id, enrollment_id, fee_assignment_id) > student_fee_assignments.(school_id, enrollment_id, id) [delete: restrict, update: no action]
 Ref t61_extra_fk0: tests.(school_id, section_id, subject_id) > section_subjects.(school_id, section_id, subject_id) [delete: restrict, update: no action]
@@ -2283,6 +2372,9 @@ TableGroup students {
   student_guardians
   enrollments
   student_documents
+  enrollment_transition_batches
+  enrollment_transition_items
+  enrollment_transition_events
 }
 
 TableGroup fees {

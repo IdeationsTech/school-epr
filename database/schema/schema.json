@@ -4825,5 +4825,228 @@
     ],
     "tenant": true,
     "group": "finance"
+  },
+  {
+    "name": "enrollment_transition_batches",
+    "columns": [
+      {
+        "name": "title",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "kind",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "source_section_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "target_session_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "effective_on",
+        "type": "date",
+        "nullable": false
+      },
+      {
+        "name": "reason",
+        "type": "text",
+        "nullable": false
+      },
+      {
+        "name": "status",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "lock_version",
+        "type": "uint",
+        "nullable": false,
+        "default": 0
+      },
+      {
+        "name": "created_by",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "applied_by",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "applied_at",
+        "type": "datetime",
+        "nullable": true
+      },
+      {
+        "name": "entry_key",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "request_hash",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "confirmed_digest",
+        "type": "string",
+        "nullable": true
+      },
+      {
+        "name": "snapshot",
+        "type": "json",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "source_section_id": "sections",
+      "target_session_id": "academic_sessions",
+      "created_by": "school_memberships",
+      "applied_by": "school_memberships"
+    },
+    "unique": [
+      [
+        "school_id",
+        "entry_key"
+      ]
+    ],
+    "checks": [
+      "kind IN ('promotion','transfer')",
+      "status IN ('draft','applied','cancelled')"
+    ],
+    "tenant": true,
+    "group": "students"
+  },
+  {
+    "name": "enrollment_transition_items",
+    "columns": [
+      {
+        "name": "batch_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "source_enrollment_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "decision",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "target_section_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "roll_no",
+        "type": "string",
+        "nullable": true
+      },
+      {
+        "name": "reason",
+        "type": "text",
+        "nullable": true
+      }
+    ],
+    "refs": {
+      "batch_id": "enrollment_transition_batches",
+      "source_enrollment_id": "enrollments",
+      "target_section_id": "sections"
+    },
+    "unique": [
+      [
+        "school_id",
+        "batch_id",
+        "source_enrollment_id"
+      ]
+    ],
+    "checks": [
+      "decision IN ('hold','promote','repeat','graduate','withdraw','transfer')"
+    ],
+    "tenant": true,
+    "group": "students"
+  },
+  {
+    "name": "enrollment_transition_events",
+    "columns": [
+      {
+        "name": "batch_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "item_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "source_enrollment_id",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "target_enrollment_id",
+        "type": "id",
+        "nullable": true
+      },
+      {
+        "name": "decision",
+        "type": "string",
+        "nullable": false
+      },
+      {
+        "name": "applied_by",
+        "type": "id",
+        "nullable": false
+      },
+      {
+        "name": "applied_at",
+        "type": "datetime",
+        "nullable": false
+      },
+      {
+        "name": "before_state",
+        "type": "json",
+        "nullable": false
+      },
+      {
+        "name": "after_state",
+        "type": "json",
+        "nullable": false
+      }
+    ],
+    "refs": {
+      "batch_id": "enrollment_transition_batches",
+      "item_id": "enrollment_transition_items",
+      "source_enrollment_id": "enrollments",
+      "target_enrollment_id": "enrollments",
+      "applied_by": "school_memberships"
+    },
+    "unique": [
+      [
+        "school_id",
+        "source_enrollment_id"
+      ],
+      [
+        "school_id",
+        "item_id"
+      ]
+    ],
+    "checks": [
+      "decision IN ('promote','repeat','graduate','withdraw','transfer')"
+    ],
+    "tenant": true,
+    "group": "students"
   }
 ]
